@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Football Manager Mobile</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <!-- Contenedor App Móvil -->
+  <div id="app-container">
+
+    <!-- Header superior de la App -->
+    <header class="app-header is-empty" id="app-header">
+      <div class="club-info">
+        <span class="club-badge" id="header-club-badge">RMA</span>
+        <div class="club-text">
+          <span class="club-name" id="header-club-name">Modo Prueba</span>
+          <span class="club-budget" id="header-club-budget"> Presupuesto: -</span>
+        </div>
+      </div>
+      <button class="btn-icon" id="btn-settings-quick" aria-label="Ajustes">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </header>
+
+    <!-- Vista Principal Cambiante -->
+    <main id="app-view">
+
+      <!-- Pantalla de Inicio / Menú Principal -->
+      <section id="screen-main-menu" class="screen active">
+        <div class="menu-hero">
+          <h1 class="game-title">POCKET MANAGER</h1>
+        </div>
+
+        <div class="menu-actions">
+          <button class="btn btn-primary" id="btn-new-game">Nueva Partida</button>
+          <button class="btn btn-secondary" id="btn-load-game">Cargar Partida</button>
+          <button class="btn btn-dark" id="btn-settings">Ajustes</button>
+        </div>
+      </section>
+
+      <!-- Pantalla de Cargar Partida -->
+      <section id="screen-load-game" class="screen">
+        <div class="st-header">
+          <button class="st-back" id="btn-back-load" aria-label="Volver">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <h2 class="st-title">CARGAR PARTIDA</h2>
+        </div>
+        <div class="save-list" id="save-list"></div>
+        <div class="form-actions">
+          <button class="btn btn-danger" id="btn-back-load-bottom">Volver al Menú Inicial</button>
+        </div>
+      </section>
+
+      <!-- Pantalla de Partido -->
+      <section id="screen-match" class="screen">
+        <div class="match-hero">
+          <div class="match-hero-row">
+            <span class="mh-badge" id="home-logo">—</span>
+            <span class="mh-name" id="home-name">—</span>
+            <span class="match-score" id="match-score">0 - 0</span>
+            <span class="mh-name" id="away-name">—</span>
+            <span class="mh-badge" id="away-logo">—</span>
+          </div>
+          <span class="match-timer" id="match-timer">00'</span>
+          <div class="match-scorers">
+            <div class="match-scorers-home" id="match-scorers-home">—</div>
+            <div class="match-scorers-away" id="match-scorers-away">—</div>
+          </div>
+        </div>
+
+        <!-- Valoración en vivo -->
+        <div class="match-stats">
+          <div class="ms-card">
+            <span class="ms-title">Valoración en vivo</span>
+            <div class="ms-ratings" id="match-live-ratings">
+              <div class="ms-col">
+                <div class="ms-col-head" id="lr-home-head">—</div>
+                <div class="ms-col-list" id="lr-home"></div>
+              </div>
+              <div class="ms-col">
+                <div class="ms-col-head" id="lr-away-head">—</div>
+                <div class="ms-col-list" id="lr-away"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-actions">
+          <button class="btn btn-ghost btn-sm" id="btn-match-pause">Pausar</button>
+          <button class="btn btn-ghost btn-sm" id="btn-match-changes" disabled>Cambios</button>
+          <button class="btn btn-primary btn-sm hidden" id="btn-match-continue">Continuar</button>
+        </div>
+      </section>
+
+      <!-- Pantalla de Inicio / Dashboard -->
+      <section id="screen-dashboard" class="screen">
+        <div class="dashboard" id="dashboard-root"></div>
+      </section>
+
+      <!-- Pantalla de Plantilla / Táctica -->
+      <section id="screen-squad" class="screen">
+        <div class="club-identity">
+          <div class="squad-club-badge" id="squad-team-badge">RMA</div>
+          <span class="squad-club-name" id="squad-team-name">—</span>
+          <div class="squad-ovr" id="club-ovr">
+            <div class="ovr-ring" id="club-ovr-ring">
+              <strong id="club-ovr-value">—</strong>
+              <small>GRL</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="club-tabs" id="club-tabs">
+          <button class="club-tab active" data-tab="plantilla">PLANTILLA</button>
+          <button class="club-tab" data-tab="tactica">TÁCTICA</button>
+          <button class="club-tab" data-tab="info">INFORMACIÓN</button>
+        </div>
+
+        <!-- Panel PLANTILLA -->
+        <div class="club-panel active" id="club-panel-plantilla">
+          <div class="squad-subtabs" id="squad-subtabs">
+            <button class="subtab active" data-subtab="primer">PRIMER EQUIPO</button>
+            <button class="subtab" data-subtab="reservas">EQUIPO RESERVAS</button>
+            <button class="subtab" data-subtab="cedidos">CEDIDOS</button>
+          </div>
+          <div class="squad-subtabs squad-stat-tabs" id="squad-stat-tabs" style="display:none">
+            <button class="subtab active" data-stattab="general">GENERAL</button>
+            <button class="subtab" data-stattab="stats">ESTADÍSTICAS</button>
+          </div>
+          <div class="squad-list" id="squad-list"></div>
+        </div>
+
+        <!-- Panel TÁCTICA -->
+        <div class="club-panel" id="club-panel-tactica">
+          <div class="tactica-header">
+            <span class="squad-formation" id="squad-formation"><span class="dot"></span> Formación 4-3-3</span>
+            <div class="squad-ovr squad-ovr-tactica">
+              <div class="ovr-ring" id="squad-ovr-ring">
+                <strong id="squad-team-ovr">—</strong>
+                <small>GRL</small>
+              </div>
+            </div>
+          </div>
+          <div class="tactic-select-row">
+            <button class="tactic-select-btn" id="btn-formation" type="button">
+              <span class="tactic-select-label">Formación</span>
+              <span class="tactic-select-value" id="btn-formation-value">4-3-3</span>
+              <svg class="tactic-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <button class="tactic-select-btn" id="btn-style" type="button">
+              <span class="tactic-select-label">Estilo</span>
+              <span class="tactic-select-value" id="btn-style-value">Equilibrado</span>
+              <svg class="tactic-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+
+          <div class="squad-field" id="squad-field">
+            <p class="squad-loading">Cargando táctica…</p>
+          </div>
+
+          <div class="squad-bench" id="squad-bench"></div>
+
+          <div class="squad-actions">
+            <div class="squad-actions-row">
+              <button class="btn btn-ghost-danger btn-sm hidden" id="squad-btn-cancel">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel INFORMACIÓN -->
+        <div class="club-panel" id="club-panel-info">
+          <div class="club-info-card">
+            <div class="info-block">
+              <h3>Estadio</h3>
+              <p id="club-stadium">—</p>
+            </div>
+            <div class="info-block">
+              <h3>Presupuesto</h3>
+              <p id="club-budget">—</p>
+            </div>
+            <div class="info-block">
+              <h3>Palmarés</h3>
+              <div class="trophies" id="club-trophies">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pantalla de Creación de Mánager -->
+      <section id="screen-create-manager" class="screen">
+        <div class="step-header">
+          <h2 class="step-title">Crea tu mánager</h2>
+          <p class="step-subtitle">Cuéntanos quién eres</p>
+        </div>
+
+        <div class="form-card">
+          <div class="field-group">
+            <label class="field-label" for="mg-name">Nombre</label>
+            <input type="text" id="mg-name" class="text-input" placeholder="P. ej. Carlos" autocomplete="off">
+          </div>
+
+          <div class="field-group">
+            <input type="text" id="mg-lastname" class="text-input" placeholder="P. ej. García Pérez" autocomplete="off">
+          </div>
+
+          <div class="field-group">
+            <button type="button" class="select-trigger" id="mg-nationality">
+              <span class="placeholder">Selecciona tu nacionalidad</span>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="step-dots" aria-label="Paso 1 de 3">
+          <span class="dot filled"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-danger btn-half" id="btn-back-manager">Volver</button>
+          <button class="btn btn-primary btn-half" id="btn-continue-manager" disabled>Continuar</button>
+        </div>
+      </section>
+
+      <!-- Pantalla de Selección de Liga -->
+      <section id="screen-select-league" class="screen">
+        <div class="greeting" id="sl-greeting"></div>
+
+        <div class="step-header small">
+          <h2 class="step-title">Elige tu liga</h2>
+          <p class="step-subtitle">Selecciona una liga</p>
+        </div>
+
+        <div class="country-list" id="sl-leagues"></div>
+
+        <div class="step-dots" aria-label="Paso 2 de 3">
+          <span class="dot filled"></span><span class="dot filled"></span><span class="dot"></span>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-danger btn-half" id="btn-back-league">Atrás</button>
+        </div>
+      </section>
+
+      <!-- Pantalla de Selección de Equipo -->
+      <section id="screen-select-team" class="screen">
+        <div class="st-header">
+          <button class="st-back" id="btn-back-select-top" aria-label="Volver">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <h2 class="st-title">NUEVA PARTIDA</h2>
+        </div>
+
+        <div class="st-summary">
+          <div class="st-team-box" id="st-team-box">
+            <span class="st-team-placeholder">Sin equipo seleccionado.</span>
+          </div>
+          <div class="st-manager-box">
+            <div class="st-manager-field" id="st-manager-name">—</div>
+            <div class="st-manager-field st-manager-nat" id="st-manager-nat">—</div>
+          </div>
+        </div>
+
+        <div class="st-leagues" id="st-leagues"></div>
+
+        <div class="st-list-header">
+          <span class="st-h-team">Equipo (<span id="st-team-count">0</span>)</span>
+          <span class="st-h-meta">
+            <span class="st-h-squad">PLANTILLA</span>
+            <span class="st-h-ovr">VALORACIÓN</span>
+          </span>
+        </div>
+
+        <div class="st-team-list" id="st-team-list"></div>
+
+        <div class="st-actions">
+          <div class="step-dots" aria-label="Paso 3 de 3">
+            <span class="dot filled"></span><span class="dot filled"></span><span class="dot filled"></span>
+          </div>
+          <div class="st-actions-row">
+            <button class="btn st-btn-back" id="btn-back-select">Atrás</button>
+            <button class="btn st-btn-continue" id="btn-start-career" disabled>Continuar</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Barra de Navegación Inferior (Oculta en Menú Inicio) -->
+    <nav class="app-tabbar hidden" id="app-tabbar">
+      <button class="tab-item active" data-target="screen-dashboard">
+        <span class="tab-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </span>
+        <span class="tab-label">Inicio</span>
+      </button>
+      <button class="tab-item" data-target="screen-squad">
+        <span class="tab-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+        </span>
+        <span class="tab-label">Plantilla</span>
+      </button>
+      <button class="tab-item" data-target="screen-league">
+        <span class="tab-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+        </span>
+        <span class="tab-label">Tabla</span>
+      </button>
+      <button class="tab-item" data-target="screen-market">
+        <span class="tab-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+        </span>
+        <span class="tab-label">Fichajes</span>
+      </button>
+    </nav>
+
+    <!-- Modal Nacionalidad -->
+    <div class="modal-backdrop" id="nationality-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Nacionalidad</h3>
+          <button class="modal-close" id="nat-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-search">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="nat-search" class="text-input" placeholder="Buscar país…" autocomplete="off">
+        </div>
+        <div class="nat-list" id="nat-list"></div>
+      </div>
+    </div>
+
+    <!-- Modal Vista Previa Plantilla -->
+    <div class="modal-backdrop" id="team-preview-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3 id="team-preview-title">Plantilla</h3>
+          <button class="modal-close" id="team-preview-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="nat-list" id="team-preview-list"></div>
+      </div>
+    </div>
+
+    <!-- Modal Formación -->
+    <div class="modal-backdrop" id="formation-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Formación</h3>
+          <button class="modal-close" id="formation-modal-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="nat-list" id="formation-modal-list"></div>
+      </div>
+    </div>
+
+    <!-- Modal Estilo de juego -->
+    <div class="modal-backdrop" id="style-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Estilo de juego</h3>
+          <button class="modal-close" id="style-modal-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="nat-list" id="style-modal-list"></div>
+      </div>
+    </div>
+
+    <!-- Modal Resultado del Partido -->
+    <div class="modal-backdrop centered" id="match-result-modal">
+      <div class="modal-panel modal-center">
+        <div class="modal-head">
+          <h3>Resultado</h3>
+          <button class="modal-close" id="match-result-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="match-result-body" id="match-result-body"></div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="match-result-continue">Continuar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Cambios (partido en directo) -->
+    <div class="modal-backdrop" id="match-changes-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Cambios</h3>
+          <span class="modal-head-right">
+            <span class="changes-count" id="mc-remaining">Cambios: 0/5</span>
+            <button class="modal-close" id="match-changes-close" aria-label="Cerrar">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
+          </span>
+        </div>
+        <div class="changes-body" id="match-changes-body">
+          <div class="mc-notice hidden" id="mc-notice"></div>
+          <div class="tactic-select-row">
+            <button class="tactic-select-btn" id="mc-formation" type="button">
+              <span class="tactic-select-label">Formación</span>
+              <span class="tactic-select-value" id="mc-formation-value">4-3-3</span>
+              <svg class="tactic-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <button class="tactic-select-btn" id="mc-style" type="button">
+              <span class="tactic-select-label">Estilo</span>
+              <span class="tactic-select-value" id="mc-style-value">Equilibrado</span>
+              <svg class="tactic-select-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+          <div id="mc-field"></div>
+          <div id="mc-suplentes"></div>
+          <p class="changes-hint">Toca dos <strong>titulares</strong> para intercambiar sus posiciones, o un titular y luego un <strong>suplente</strong> para sustituirlo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ajustes (dentro de partida) -->
+    <div class="modal-backdrop centered" id="settings-modal">
+      <div class="modal-panel modal-center">
+        <div class="modal-head">
+          <h3>Ajustes</h3>
+          <button class="modal-close" id="settings-modal-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="settings-body">
+          <button class="btn btn-primary" id="btn-save-game">Guardar Partida</button>
+          <button class="btn btn-danger" id="btn-back-to-menu">Volver al Menú Principal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Confirmación (eliminar partida) -->
+    <div class="modal-backdrop centered" id="confirm-modal">
+      <div class="modal-panel modal-center">
+        <div class="modal-head">
+          <h3>Eliminar partida</h3>
+          <button class="modal-close" id="confirm-modal-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="settings-body">
+          <p class="confirm-text" id="confirm-text">¿Seguro que quieres eliminar esta partida guardada?</p>
+          <div class="form-actions">
+            <button class="btn btn-secondary btn-half" id="confirm-cancel">Cancelar</button>
+            <button class="btn btn-danger btn-half" id="confirm-delete">Eliminar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast hidden" id="toast"></div>
+
+  </div>
+
+  <script src="data/countries/spain.js"></script>
+  <script src="data/countries/england.js"></script>
+  <script src="data/database.js"></script>
+  <script src="data/nationalities.js"></script>
+  <script src="js/gameState.js"></script>
+  <script src="js/engine/season.js"></script>
+  <script src="js/engine/staminaEngine.js"></script>
+  <script src="js/engine/matchSim.js"></script>
+  <script src="js/ui/render.js"></script>
+  <script src="js/ui/newGame.js"></script>
+  <script src="js/ui/dashboard.js"></script>
+  <script src="js/storage/saveSystem.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
