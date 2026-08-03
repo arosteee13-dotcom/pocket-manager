@@ -387,6 +387,13 @@ function playerDorsalHtml(player) {
     : '<span class="player-number empty"></span>';
 }
 
+// Botón ⓘ para abrir la ficha del jugador desde el campo/banquillo de la táctica
+function playerInfoBtnHtml(playerId) {
+  return `<span class="player-info-btn" data-player-id="${playerId}" title="Ver ficha del jugador">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+  </span>`;
+}
+
 function buildField(team, fieldId, live) {
   const id = fieldId || 'squad-field';
   const squad = getSquadState(team);
@@ -414,6 +421,7 @@ function buildField(team, fieldId, live) {
     const group = getPosGroup(slot.pos).toLowerCase();
     const st = p.stamina !== undefined && p.stamina !== null ? p.stamina : 50;
     const liveExtra = live ? liveMarksHtml(team, p, live) + liveRatingHtml(team, p, live) : statusBadgeHtml(p);
+    const infoBtn = live ? '' : playerInfoBtnHtml(p.id);
     html += `
       <button class="field-player ${group}${sel}${outClass}" data-player-id="${p.id}"
               style="left:${slot.x}%; top:calc(${slot.y}% + 4px)" title="${p.name}">
@@ -422,6 +430,7 @@ function buildField(team, fieldId, live) {
           <span class="fp-pos ${group}">${slot.pos}</span>
           <span class="fp-ovr" style="background:${getRatingColor(p.ovr).bg}; color:${getRatingColor(p.ovr).color}">${p.ovr}</span>
           ${liveExtra}
+          ${infoBtn}
         </span>
         <span class="fp-name">${p.nick || p.name.split(' ').pop()}</span>
         <span class="fp-stamina-bar"><span class="fp-stamina-fill" style="width:${st}%; background:${staminaColor(st)}"></span></span>
@@ -630,6 +639,7 @@ function benchRowHtml(team, player, selected, live) {
   // En el modal de cambios solo se muestra el rendimiento de quien ha jugado (tiene valoración en vivo)
   const played = live && live.ratings && live.ratings[team.id] && live.ratings[team.id][player.id] !== undefined;
   const extra = played ? liveMarksHtml(team, player, live) + liveRatingHtml(team, player, live) : statusBadgeHtml(player);
+  const infoBtn = live ? '' : playerInfoBtnHtml(player.id);
   return `
     <button class="bench-card ${group}${injClass}${selected ? ' selected' : ''}" data-player-id="${player.id}" title="${player.name}">
       <span class="fp-badge">
@@ -637,6 +647,7 @@ function benchRowHtml(team, player, selected, live) {
         <span class="fp-pos ${group}">${player.pos}</span>
         <span class="fp-ovr" style="background:${rc.bg}; color:${rc.color}">${player.ovr}</span>
         ${extra}
+        ${infoBtn}
       </span>
       <span class="fp-name">${player.nick || player.name.split(' ').pop()}</span>
       <span class="fp-stamina-bar"><span class="fp-stamina-fill" style="width:${st}%; background:${staminaColor(st)}"></span></span>
@@ -752,6 +763,59 @@ function doSwap(team, idA, idB) {
 
   squad.selected = null;
   rebuildUi(team, true);
+}
+
+// Cambia el rol de un jugador (titular <-> suplente) manteniendo el once coherente
+function setPlayerRole(team, playerId, makeStarter) {
+  const squad = getSquadState(team);
+  const isStarter = squad.startingIds.indexOf(playerId) !== -1;
+  const player = getPlayer(team, playerId);
+  if (!player) return;
+  if (makeStarter === isStarter) return;
+
+  const slots = FORMATIONS[activeFormation] || FORMATIONS['4-3-3'];
+
+  if (makeStarter) {
+    if (squad.subIds.indexOf(playerId) === -1) return;
+    const starters = squad.startingIds.map(id => getPlayer(team, id));
+    let targetIdx = -1;
+    let targetOvr = Infinity;
+    starters.forEach((p, i) => {
+      if (!p) return;
+      const slotPos = (slots[i] || {}).pos;
+      if (player.pos === 'POR' ? slotPos !== 'POR' : slotPos === 'POR') return;
+      const slotCovers = POSITION_COVERS[slotPos] || [slotPos];
+      const compatible = slotCovers.indexOf(player.pos) !== -1 || getPosGroup(slotPos) === getPosGroup(player.pos);
+      if (compatible && p.ovr < targetOvr) { targetIdx = i; targetOvr = p.ovr; }
+    });
+    if (targetIdx === -1) {
+      starters.forEach((p, i) => {
+        if (!p) return;
+        const slotPos = (slots[i] || {}).pos;
+        if (player.pos === 'POR' ? slotPos !== 'POR' : slotPos === 'POR') return;
+        if (p.ovr < targetOvr) { targetIdx = i; targetOvr = p.ovr; }
+      });
+    }
+    if (targetIdx === -1) return;
+    squad.startingIds[targetIdx] = playerId;
+  } else {
+    const idx = squad.startingIds.indexOf(playerId);
+    if (idx === -1) return;
+    squad.startingIds.splice(idx, 1);
+    const slotPos = (slots[Math.min(idx, slots.length - 1)] || {}).pos;
+    const covers = POSITION_COVERS[slotPos] || [slotPos];
+    const pool = squad.subIds.map(id => getPlayer(team, id)).filter(p => p && !isUnavailable(p));
+    const repl = pool.filter(p => covers.indexOf(p.pos) !== -1).sort(byOvrDesc)[0]
+      || pool.filter(p => getPosGroup(p.pos) === getPosGroup(slotPos)).sort(byOvrDesc)[0]
+      || pool.filter(p => p.pos !== 'POR').sort(byOvrDesc)[0];
+    if (!repl) { squad.startingIds.splice(idx, 0, playerId); return; }
+    squad.startingIds.splice(idx, 0, repl.id);
+  }
+
+  squad.subIds = buildConvocatoriaOrder(team, squad.startingIds);
+  squad.selected = null;
+  state.set(team.id, squad);
+  rebuildUi(team);
 }
 
 function handleSelection(team, playerId) {
@@ -918,7 +982,21 @@ function bindSquadEvents(team) {
   squadEventsBound = true;
 
   section.addEventListener('click', (e) => {
-    const playerEl = e.target.closest('.field-player, .player-card, .bench-card');
+    const infoBtn = e.target.closest('.player-info-btn');
+    if (infoBtn) {
+      const p = getPlayer(team, infoBtn.dataset.playerId);
+      if (p && window.PocketManager.openPlayerModal) window.PocketManager.openPlayerModal(p, team);
+      return;
+    }
+
+    const card = e.target.closest('.player-card');
+    if (card) {
+      const p = getPlayer(team, card.dataset.playerId);
+      if (p && window.PocketManager.openPlayerModal) window.PocketManager.openPlayerModal(p, team);
+      return;
+    }
+
+    const playerEl = e.target.closest('.field-player, .bench-card');
     if (playerEl) {
       handleSelection(team, playerEl.dataset.playerId);
       return;
@@ -1045,6 +1123,7 @@ function restoreRuntime(team, data) {
   window.PocketManager.getStartingTeamOvr = getStartingTeamOvr;
   window.PocketManager.getSquadState = getSquadState;
   window.PocketManager.doSwap = doSwap;
+  window.PocketManager.setPlayerRole = setPlayerRole;
   window.PocketManager.getFormation = getFormation;
   window.PocketManager.buildSuplentes = buildSuplentes;
   window.PocketManager.buildField = buildField;

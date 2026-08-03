@@ -3083,3 +3083,401 @@ body {
   box-shadow: var(--shadow-sm);
   z-index: 2;
 }
+
+/* ==========================================================================
+   Mercado de Fichajes
+   ========================================================================== */
+#screen-transfers { padding: 0; }
+.transfers {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.transfers-tabs {
+  display: flex;
+  gap: 8px;
+}
+.transfers-tab {
+  flex: 1;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.transfers-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.transfers-panel { display: none; }
+.transfers-panel.active { display: flex; flex-direction: column; gap: 12px; }
+
+.tm-toolbar {
+  display: flex;
+  gap: 8px;
+}
+.tm-search { flex: 1; min-width: 0; }
+.tm-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.tm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tm-empty, .th-empty {
+  padding: 30px 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+.tm-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.tm-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--bg-card-light);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+.tm-avatar i {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px dashed var(--border);
+  display: block;
+}
+.tm-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tm-name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tm-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.tm-club {
+  font-size: 0.68rem;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+.tm-ovr {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.8rem;
+}
+
+/* Historial */
+.transfers-subtabs {
+  display: flex;
+  gap: 8px;
+}
+.th-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.th-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.th-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--bg-card-light);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.th-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.th-name { font-weight: 700; font-size: 0.82rem; color: var(--text-main); }
+.th-route { font-size: 0.72rem; color: var(--text-muted); }
+.th-fee { flex-shrink: 0; font-weight: 800; font-size: 0.78rem; color: var(--text-main); }
+
+/* Modal filtros */
+.tm-filters-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tm-field { display: flex; flex-direction: column; gap: 5px; }
+.tm-field label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-faint);
+}
+.tm-field .text-input { background: var(--bg-card); }
+.tm-field-half { flex: 1; min-width: 0; }
+.tm-field-row { display: flex; gap: 10px; }
+.tm-filters-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   Modal Ficha del Jugador
+   ========================================================================== */
+.modal-panel.pm-panel {
+  max-width: 360px;
+  width: calc(100% - 32px);
+}
+.pm-body {
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 82vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pm-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.pm-dorsal {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #F1F5F9;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  box-shadow: inset 0 0 0 1px var(--border-soft);
+}
+.pm-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.pm-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card-light);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.pm-ovr {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+.pm-stats-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+}
+.pm-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pm-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.pm-rows > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.84rem;
+}
+.pm-rows span { color: var(--text-muted); }
+.pm-rows b { color: var(--text-main); font-weight: 700; text-align: right; }
+
+.pm-divider {
+  height: 1px;
+  background: var(--border);
+}
+.pm-section {
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-faint);
+}
+.pm-stamina {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pm-stamina-label {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-main);
+  font-weight: 600;
+  width: 64px;
+}
+.pm-stamina-track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-card-light);
+  overflow: hidden;
+}
+.pm-stamina-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.pm-stamina-val {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text-main);
+  min-width: 34px;
+  text-align: right;
+}
+
+.pm-health-row {
+  display: flex;
+}
+.pm-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+}
+.pm-health.ok { background: rgba(22, 163, 74, 0.12); color: #15803D; }
+.pm-health.inj { background: rgba(239, 68, 68, 0.12); color: #DC2626; }
+.pm-health.sus { background: rgba(249, 115, 22, 0.12); color: #EA580C; }
+
+.pm-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+}
+.pm-note {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.pm-offer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: var(--bg-card-light);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+}
+.pm-offer-label {
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-faint);
+}
+.pm-offer .text-input { background: var(--bg-card); }
+.pm-offer-actions {
+  display: flex;
+  gap: 10px;
+}
+.pm-msg {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--danger);
+  min-height: 0;
+  line-height: 1.35;
+}
+
+/* Botón ⓘ para abrir la ficha desde campo/banquillo */
+.player-info-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--text-main);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 4;
+  border: 2px solid var(--bg-card);
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+.player-info-btn:active { transform: scale(0.9); }
+.player-info-btn .icon { width: 11px; height: 11px; }

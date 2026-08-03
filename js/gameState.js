@@ -5,7 +5,8 @@
     team: null,
     currentSeason: 1,
     currentDate: null,
-    season: null
+    season: null,
+    transfers: []
   };
 
   function setManager(manager) {

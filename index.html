@@ -290,6 +290,35 @@
         </div>
       </section>
 
+      <!-- Pantalla de Mercado / Fichajes -->
+      <section id="screen-transfers" class="screen">
+        <div class="transfers">
+          <div class="transfers-tabs">
+            <button class="transfers-tab active" data-tab="market">MERCADO</button>
+            <button class="transfers-tab" data-tab="history">HISTORIAL</button>
+          </div>
+
+          <!-- Panel MERCADO -->
+          <div class="transfers-panel active" id="transfers-market">
+            <div class="tm-toolbar">
+              <input type="search" id="tm-search" class="text-input tm-search" placeholder="Buscar jugador…" autocomplete="off">
+              <button class="btn btn-secondary btn-sm" id="tm-filters-btn">Filtros avanzados</button>
+            </div>
+            <p class="tm-count" id="tm-count">—</p>
+            <div class="tm-list" id="tm-list"></div>
+          </div>
+
+          <!-- Panel HISTORIAL -->
+          <div class="transfers-panel" id="transfers-history">
+            <div class="transfers-subtabs">
+              <button class="subtab active" data-hsub="myliga">MI LIGA</button>
+              <button class="subtab" data-hsub="todos">TODOS</button>
+            </div>
+            <div class="th-list" id="th-list"></div>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <!-- Barra de Navegación Inferior (Oculta en Menú Inicio) -->
@@ -312,7 +341,7 @@
         </span>
         <span class="tab-label">Tabla</span>
       </button>
-      <button class="tab-item" data-target="screen-market">
+      <button class="tab-item" data-target="screen-transfers">
         <span class="tab-icon-wrap">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
         </span>
@@ -373,6 +402,61 @@
           </button>
         </div>
         <div class="nat-list" id="style-modal-list"></div>
+      </div>
+    </div>
+
+    <!-- Modal Filtros Avanzados (Mercado) -->
+    <div class="modal-backdrop" id="tm-filters-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Filtros avanzados</h3>
+          <button class="modal-close" id="tm-filters-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="nat-list tm-filters-body">
+          <div class="tm-field">
+            <label>Posición</label>
+            <select id="tm-f-pos" class="text-input">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div class="tm-field">
+            <label>Nacionalidad</label>
+            <select id="tm-f-nat" class="text-input"><option value="">Todas</option></select>
+          </div>
+          <div class="tm-field tm-field-half">
+            <label>Edad mín.</label>
+            <input type="number" id="tm-f-ageMin" class="text-input" min="15" max="45" placeholder="16">
+          </div>
+          <div class="tm-field tm-field-half">
+            <label>Edad máx.</label>
+            <input type="number" id="tm-f-ageMax" class="text-input" min="15" max="45" placeholder="40">
+          </div>
+          <div class="tm-field tm-field-half">
+            <label>Rating mín.</label>
+            <input type="number" id="tm-f-ovrMin" class="text-input" min="1" max="99" placeholder="70">
+          </div>
+          <div class="tm-field tm-field-half">
+            <label>Rating máx.</label>
+            <input type="number" id="tm-f-ovrMax" class="text-input" min="1" max="99" placeholder="99">
+          </div>
+          <div class="tm-field">
+            <label>Valor máx. (€)</label>
+            <input type="number" id="tm-f-maxValue" class="text-input" min="0" placeholder="100000000">
+          </div>
+          <div class="tm-filters-actions">
+            <button class="btn btn-secondary btn-half" id="tm-f-reset">Restablecer</button>
+            <button class="btn btn-primary btn-half" id="tm-f-apply">Aplicar filtros</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Ficha del Jugador -->
+    <div class="modal-backdrop centered" id="player-modal">
+      <div class="modal-panel modal-center pm-panel">
+        <div class="pm-body" id="pm-body"></div>
       </div>
     </div>
 
@@ -476,6 +560,9 @@
   <script src="js/ui/render.js"></script>
   <script src="js/ui/newGame.js"></script>
   <script src="js/ui/dashboard.js"></script>
+  <script src="js/engine/aiTransfers.js"></script>
+  <script src="js/ui/transfersView.js"></script>
+  <script src="js/ui/playerModal.js"></script>
   <script src="js/storage/saveSystem.js"></script>
   <script src="js/app.js"></script>
 </body>

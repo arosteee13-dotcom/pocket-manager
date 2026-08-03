@@ -167,6 +167,7 @@
         manager,
         teamId: team.id,
         season: gs.season || null,
+        transfers: gs.transfers || [],
         formation: runtime ? runtime.formation : undefined,
         style: runtime ? runtime.style : undefined,
         squadState: runtime ? runtime.squadState : undefined,
@@ -226,6 +227,7 @@
     S.gameState.currentSeason = data.currentSeason || 1;
     S.gameState.currentDate = data.currentDate || null;
     S.gameState.season = gsd.season || null;
+    S.gameState.transfers = gsd.transfers || [];
     setActiveSaveId(data.saveId);
 
     if (S.restoreRuntime) S.restoreRuntime(team, gsd);

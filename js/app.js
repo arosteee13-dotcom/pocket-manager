@@ -1,6 +1,7 @@
 const db = window.PocketManager.db;
 const renderSquadScreen = window.PocketManager.renderSquadScreen;
 const renderDashboard = window.PocketManager.renderDashboard;
+const renderTransfers = window.PocketManager.renderTransfers;
 const MatchSim = window.PocketManager.MatchSim;
 const gameState = window.PocketManager.gameState;
 const initNewGame = window.PocketManager.initNewGame;
@@ -12,7 +13,7 @@ const saveSystem = window.PocketManager.saveSystem;
 const staminaEngine = window.PocketManager.staminaEngine;
 
 const USER_TEAM_ID = 'esp_madrid';
-const IN_GAME_SCREENS = ['screen-dashboard', 'screen-squad', 'screen-league', 'screen-market'];
+const IN_GAME_SCREENS = ['screen-dashboard', 'screen-squad', 'screen-league', 'screen-transfers'];
 const FLOW_SCREENS = ['screen-create-manager', 'screen-select-league', 'screen-select-team', 'screen-load-game'];
 
 function initialsOf(name) {
@@ -50,6 +51,7 @@ const SCREEN_RENDERERS = {
   'screen-select-team': () => renderSelectTeam(),
   'screen-squad': () => renderSquadScreen(gameState.team ? gameState.team.id : USER_TEAM_ID),
   'screen-dashboard': () => renderDashboard(),
+  'screen-transfers': () => renderTransfers(),
   'screen-load-game': () => renderLoadGame()
 };
 
@@ -544,6 +546,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (window.PocketManager.refreshLineup) window.PocketManager.refreshLineup(gameState.team);
 
+    // Mercado: la IA realiza fichajes puntuales tras cada jornada
+    if (window.PocketManager.runAITransfers) window.PocketManager.runAITransfers(2);
+
     pendingResult = null;
     closeModal('match-result-modal');
     try { saveSystem.saveCurrentGame(); } catch (e) {}
@@ -583,6 +588,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (staminaEngine && staminaEngine.resetFitness) staminaEngine.resetFitness(gameState.team);
     }
     applyCareerToUI();
+    if (window.PocketManager.runAITransfers && gameState.season) {
+      window.PocketManager.runAITransfers(8); // mercado de inicio de temporada
+    }
   });
 
   initNewGame();
