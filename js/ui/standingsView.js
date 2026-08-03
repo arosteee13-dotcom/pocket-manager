@@ -1,0 +1,362 @@
+(function () {
+  const db = window.PocketManager.db;
+  const gameState = window.PocketManager.gameState;
+  const season = window.PocketManager.season;
+  const nationalities = window.PocketManager.nationalities || [];
+  const getPlayerStats = window.PocketManager.getPlayerStats;
+
+  const COUNTRY_FLAG_OVERRIDES = { 'Inglaterra': 'GB-ENG' };
+  const state = { country: null, competitionId: null, group: null, topOpen: null };
+  let bound = false;
+
+  function normalize(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  function flagFromCode(code) {
+    if (!code) return '🌍';
+    const upper = String(code).toUpperCase();
+
+    // Código ISO alfa-2 -> bandera regional (🇪🇸, 🇬🇧…)
+    if (upper.length === 2) {
+      return String.fromCodePoint(...[...upper].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+    }
+
+    // Subdivisión "XX-YYY" -> secuencia de etiquetas (🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra, etc.)
+    const parts = upper.split('-');
+    if (parts.length === 2 && parts[0].length === 2 && parts[1].length === 3) {
+      const tags = [...(parts[0] + parts[1]).toLowerCase()].map(c => 0xE0000 + c.charCodeAt(0));
+      return String.fromCodePoint(0x1F3F4, ...tags, 0xE007F);
+    }
+
+    return '🌍';
+  }
+
+  function flagForCountry(name) {
+    // Prioridad a las banderas de país (Inglaterra -> 🇬🇧) antes que la subdivisión
+    const override = COUNTRY_FLAG_OVERRIDES[name];
+    if (override) return flagFromCode(override);
+    const found = nationalities.find(n => n.name === name);
+    if (found) return flagFromCode(found.code);
+    return '🌍';
+  }
+
+  function initialsOf(s) {
+    return String(s || '').replace(/[^A-Za-zÁÉÍÓÚÑ]/g, '').slice(0, 3).toUpperCase();
+  }
+
+  function badgeHtml(team, cls) {
+    return `<span class="${cls}" style="background:linear-gradient(135deg, ${team.primaryColor}, ${team.secondaryColor || team.primaryColor})">${team.shortName}</span>`;
+  }
+
+  function avatarHtml(p) {
+    const hasNum = p.number !== undefined && p.number !== null && p.number !== '';
+    return hasNum ? `<b>${p.number}</b>` : '<i></i>';
+  }
+
+  function countries() {
+    return db.getCountries() || [];
+  }
+
+  function competitionsOf(countryName) {
+    return db.getCompetitions(countryName) || [];
+  }
+
+  function userCountry() {
+    if (gameState.team) {
+      const c = db.getCountryData(gameState.team.id);
+      if (c) return c.country;
+    }
+    const all = countries();
+    return all.length ? all[0].name : null;
+  }
+
+  function currentCompetition() {
+    return competitionsOf(state.country).find(c => c.id === state.competitionId) ||
+      competitionsOf(state.country)[0] || null;
+  }
+
+  // Clasificación real si es la liga del usuario; en caso contrario una local vacía.
+  function seasonFor(comp) {
+    if (!comp) return null;
+    const isUserLeague = gameState.team && comp.teams.some(t => t.id === gameState.team.id);
+    if (isUserLeague) {
+      return gameState.season || window.PocketManager.season.initSeason(gameState.team);
+    }
+    return comp.teams.length ? window.PocketManager.season.initSeason(comp.teams[0]) : null;
+  }
+
+  // Zonas escaladas al tamaño de la liga, sin solaparse:
+  // verde top 1-4, azul 5-6, rojo últimos 3 (solo si hay hueco).
+  function zoneOf(index, n) {
+    const green = Math.min(4, n);
+    const blue = Math.min(2, Math.max(0, n - green));
+    const red = Math.min(3, Math.max(0, n - green - blue));
+    if (index < green) return 'green';
+    if (index < green + blue) return 'blue';
+    if (index >= n - red) return 'red';
+    return '';
+  }
+
+  function leaderData(comp) {
+    const scorers = [];
+    const assisters = [];
+    for (const t of comp.teams) {
+      for (const p of t.players) {
+        const s = getPlayerStats(p);
+        scorers.push({ p, t, s });
+        assisters.push({ p, t, s });
+      }
+    }
+    const better = (a, b, key) => {
+      if (!b) return true;
+      if (a.s[key] !== b.s[key]) return a.s[key] > b.s[key];
+      return (a.p.ovr || 0) > (b.p.ovr || 0);
+    };
+    let scorer = null, assister = null;
+    for (const it of scorers) if (it.s.goals > 0 && better(it, scorer, 'goals')) scorer = it;
+    for (const it of assisters) if (it.s.assists > 0 && better(it, assister, 'assists')) assister = it;
+    const topScorers = scorers.filter(x => x.s.goals > 0)
+      .sort((a, b) => (b.s.goals - a.s.goals) || (b.s.assists - a.s.assists) || (b.p.ovr - a.p.ovr)).slice(0, 10);
+    const topAssisters = assisters.filter(x => x.s.assists > 0)
+      .sort((a, b) => (b.s.assists - a.s.assists) || (b.s.goals - a.s.goals) || (b.p.ovr - a.p.ovr)).slice(0, 10);
+    return { scorer, assister, topScorers, topAssisters };
+  }
+
+  function leaderCard(title, icon, item, statKey, dataTop) {
+    const valLabel = statKey === 'goals' ? 'goles' : 'asistencias';
+    if (!item) {
+      return `
+        <div class="st-leader">
+          <span class="st-leader-title">${icon} ${title}</span>
+          <span class="st-leader-empty">Sin datos de ${valLabel}</span>
+        </div>`;
+    }
+    const { p, t, s } = item;
+    const val = statKey === 'goals' ? s.goals : s.assists;
+    return `
+      <div class="st-leader">
+        <span class="st-leader-title">${icon} ${title}</span>
+        <span class="st-leader-main">
+          <span class="st-leader-avatar-wrap">
+            <span class="st-leader-avatar">${avatarHtml(p)}</span>
+            ${badgeHtml(t, 'st-leader-badge')}
+          </span>
+          <span class="st-leader-info">
+            <span class="st-leader-name">${p.flag ? p.flag + ' ' : ''}${p.name}</span>
+            <span class="st-leader-club">${t.name}</span>
+          </span>
+          <span class="st-leader-val">${val}</span>
+        </span>
+        <button class="st-leader-link" data-top="${dataTop}">Ver top 10 ➔</button>
+      </div>`;
+  }
+
+  function top10Html(title, list, statKey) {
+    if (!list.length) return '';
+    const rows = list.map((item, i) => {
+      const { p, t, s } = item;
+      const val = statKey === 'goals' ? s.goals : s.assists;
+      return `
+        <div class="st-top-row">
+          <span class="st-top-pos">${i + 1}</span>
+          <span class="st-top-avatar-wrap">
+            <span class="st-top-avatar">${avatarHtml(p)}</span>
+            ${badgeHtml(t, 'st-top-badge')}
+          </span>
+          <span class="st-top-info">
+            <span class="st-top-name">${p.flag ? p.flag + ' ' : ''}${p.name}</span>
+            <span class="st-top-club">${t.shortName}</span>
+          </span>
+          <span class="st-top-val">${val}</span>
+        </div>`;
+    }).join('');
+    return `<h4 class="st-top-title">${title}</h4><div class="st-top-list">${rows}</div>`;
+  }
+
+  function tableHtml(comp) {
+    const se = seasonFor(comp);
+    if (!se) return '<p class="st-empty">Sin datos de clasificación.</p>';
+    const rows = window.PocketManager.season.sortedStandings(se);
+    if (!rows.length) return '<p class="st-empty">Sin equipos.</p>';
+    const userTeamId = gameState.team ? gameState.team.id : null;
+    const n = rows.length;
+    const head = `
+      <div class="st-head">
+        <span class="st-c-pos">#</span>
+        <span class="st-c-team">EQUIPO</span>
+        <span class="st-c-num">PTS</span>
+        <span class="st-c-num">PJ</span>
+        <span class="st-c-num">PG</span>
+        <span class="st-c-num">PE</span>
+        <span class="st-c-num">PP</span>
+        <span class="st-c-num">GF</span>
+        <span class="st-c-num">GC</span>
+        <span class="st-c-num st-c-dg">DG</span>
+      </div>`;
+    const body = rows.map((s, i) => {
+      const team = db.getTeamById(s.teamId);
+      const zone = zoneOf(i, n);
+      const dg = (s.gf || 0) - (s.gc || 0);
+      const dgStr = dg > 0 ? '+' + dg : String(dg);
+      const user = team && userTeamId && team.id === userTeamId ? ' user' : '';
+      return `
+        <div class="st-row ${zone}${user}">
+          <span class="st-c-pos"><i>${i + 1}</i></span>
+          <span class="st-c-team">${team ? badgeHtml(team, 'st-badge') : ''}<span class="st-team-name">${team ? team.name : '—'}</span></span>
+          <span class="st-c-num st-pts">${s.pts}</span>
+          <span class="st-c-num">${s.pj}</span>
+          <span class="st-c-num">${s.g}</span>
+          <span class="st-c-num">${s.e}</span>
+          <span class="st-c-num">${s.p}</span>
+          <span class="st-c-num">${s.gf}</span>
+          <span class="st-c-num">${s.gc}</span>
+          <span class="st-c-num st-c-dg">${dgStr}</span>
+        </div>`;
+    }).join('');
+    return head + body;
+  }
+
+  function renderStandings() {
+    if (!state.country || !competitionsOf(state.country).length) {
+      state.country = state.country || userCountry();
+    }
+    if (!competitionsOf(state.country).some(c => c.id === state.competitionId)) {
+      const comps = competitionsOf(state.country);
+      state.competitionId = comps.length ? comps[0].id : null;
+      state.group = null;
+      state.topOpen = null;
+    }
+    const comp = currentCompetition();
+
+    const trigger = document.getElementById('st-countries-trigger');
+    if (trigger) {
+      trigger.innerHTML = `
+        <span class="nat-flag">${flagForCountry(state.country)}</span>
+        <span class="selected-nat">${state.country}</span>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+    }
+
+    const compsEl = document.getElementById('st-comps');
+    if (compsEl) {
+      compsEl.innerHTML = competitionsOf(state.country).map(c => `
+        <button class="st-comp${c.id === state.competitionId ? ' active' : ''}" data-comp="${c.id}">
+          <span class="st-comp-logo">${initialsOf(c.name)}</span>
+          <span class="st-comp-name">${c.name}</span>
+        </button>`).join('');
+    }
+
+    const groupsEl = document.getElementById('st-groups');
+    if (groupsEl) {
+      const groups = comp && comp.groups;
+      groupsEl.style.display = groups && groups.length ? 'flex' : 'none';
+      if (groups && groups.length) {
+        groupsEl.innerHTML = groups.map(g => `
+          <button class="subtab${state.group === g.id ? ' active' : ''}" data-group="${g.id}">${g.name}</button>`).join('');
+      }
+    }
+
+    const leadersEl = document.getElementById('st-leaders');
+    const topS = document.getElementById('st-top10-scorers');
+    const topA = document.getElementById('st-top10-assists');
+    if (comp) {
+      const ld = leaderData(comp);
+      if (leadersEl) {
+        leadersEl.innerHTML = leaderCard('MÁXIMO GOLEADOR', '⚽', ld.scorer, 'goals', 'scorers') +
+          leaderCard('MÁXIMO ASISTENTE', '👟', ld.assister, 'assists', 'assists');
+      }
+      if (topS) {
+        topS.innerHTML = top10Html('⚽ Top 10 goleadores', ld.topScorers, 'goals');
+        topS.style.display = state.topOpen === 'scorers' ? 'block' : 'none';
+      }
+      if (topA) {
+        topA.innerHTML = top10Html('👟 Top 10 asistentes', ld.topAssisters, 'assists');
+        topA.style.display = state.topOpen === 'assists' ? 'block' : 'none';
+      }
+    } else {
+      if (leadersEl) leadersEl.innerHTML = '';
+      if (topS) topS.style.display = 'none';
+      if (topA) topA.style.display = 'none';
+    }
+
+    const tableEl = document.getElementById('st-table');
+    if (tableEl) tableEl.innerHTML = comp ? tableHtml(comp) : '<p class="st-empty">Sin competiciones.</p>';
+
+    bind();
+  }
+
+  function renderCountryList(q) {
+    const list = document.getElementById('standings-country-list');
+    if (!list) return;
+    const nq = normalize(q);
+    const items = countries()
+      .filter(c => !nq || normalize(c.name).includes(nq))
+      .map(c => `
+        <button class="nat-option${c.name === state.country ? ' selected' : ''}" data-country="${c.name}">
+          <span class="nat-flag">${flagForCountry(c.name)}</span>
+          <span class="nat-name">${c.name}</span>
+          ${c.name === state.country ? '<span class="nat-check">✓</span>' : ''}
+        </button>`)
+      .join('');
+    list.innerHTML = items || '<p class="nat-empty">Sin resultados</p>';
+  }
+
+  function bind() {
+    if (bound) return;
+    bound = true;
+
+    const trigger = document.getElementById('st-countries-trigger');
+    const modal = document.getElementById('standings-country-modal');
+    const search = document.getElementById('standings-country-search');
+    const list = document.getElementById('standings-country-list');
+
+    if (trigger) {
+      trigger.addEventListener('click', () => {
+        search.value = '';
+        renderCountryList('');
+        modal.classList.add('open');
+        search.focus();
+      });
+    }
+    document.getElementById('standings-country-close').addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+    search.addEventListener('input', () => renderCountryList(search.value));
+    list.addEventListener('click', (e) => {
+      const opt = e.target.closest('.nat-option');
+      if (!opt) return;
+      state.country = opt.dataset.country;
+      state.competitionId = null;
+      state.group = null;
+      state.topOpen = null;
+      modal.classList.remove('open');
+      renderStandings();
+    });
+
+    const compsEl = document.getElementById('st-comps');
+    compsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.st-comp');
+      if (!btn) return;
+      state.competitionId = btn.dataset.comp;
+      state.topOpen = null;
+      renderStandings();
+    });
+
+    const groupsEl = document.getElementById('st-groups');
+    groupsEl.addEventListener('click', (e) => {
+      const pill = e.target.closest('[data-group]');
+      if (!pill) return;
+      state.group = pill.dataset.group;
+      renderStandings();
+    });
+
+    const leadersEl = document.getElementById('st-leaders');
+    leadersEl.addEventListener('click', (e) => {
+      const link = e.target.closest('[data-top]');
+      if (!link) return;
+      state.topOpen = state.topOpen === link.dataset.top ? null : link.dataset.top;
+      renderStandings();
+    });
+  }
+
+  window.PocketManager.renderStandings = renderStandings;
+})();

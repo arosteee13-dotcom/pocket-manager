@@ -172,6 +172,8 @@
         style: runtime ? runtime.style : undefined,
         squadState: runtime ? runtime.squadState : undefined,
         playerStats: runtime ? runtime.playerStats : undefined,
+        ratings: runtime ? runtime.ratings : undefined,
+        dorsals: runtime ? runtime.dorsals : undefined,
         staminaInjury: runtime ? runtime.staminaInjury : undefined
       }
     };

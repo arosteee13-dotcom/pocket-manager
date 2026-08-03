@@ -299,7 +299,7 @@ function openTeamPreview(team) {
     const loans = db.getLoanedOut(team.id).sort((a, b) => posRankOf(a.player) - posRankOf(b.player));
 
     let html = `<h3 class="squad-section-title">Plantilla<span class="count">${squad.length}</span></h3><div class="squad-group">`;
-    html += squad.map(p => row(team, p, false, false)).join('');
+    html += squad.map(p => row(team, p, false, false, { ced: window.PocketManager.isLoanedIn(team, p) })).join('');
     html += '</div>';
 
     html += `<h3 class="squad-section-title">Cedidos fuera<span class="count">${loans.length}</span></h3><div class="squad-group">`;

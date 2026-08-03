@@ -610,6 +610,7 @@ function buildList(team, subTab, statTab) {
   if (sub === 'reservas') {
     const { reservas } = buildFirstTeamSquad(team);
     if (view === 'stats') return buildStatsList(team, reservas);
+    if (view === 'dorsales') return buildDorsalesList(team, reservas);
     let html = `<h3 class="squad-section-title">Equipo Reservas<span class="count">${reservas.length}</span></h3><div class="squad-group">`;
     if (!reservas.length) html += '<p class="squad-empty">Sin jugadores en reserva.</p>';
     reservas.forEach(p => { html += playerRowHtml(team, p, false, squad.selected === p.id, { ced: isLoanedIn(team, p) }); });
@@ -628,12 +629,15 @@ function buildList(team, subTab, statTab) {
   // PRIMER EQUIPO
   const { firstTeam } = buildFirstTeamSquad(team);
   if (view === 'stats') return buildStatsList(team, firstTeam);
+  if (view === 'dorsales') return buildDorsalesList(team, firstTeam);
   let html = `<h3 class="squad-section-title">Primer Equipo<span class="count">${firstTeam.length}</span></h3><div class="squad-group">`;
+  if (!firstTeam.length) html += '<p class="squad-empty">Sin resultados.</p>';
   firstTeam.forEach(p => { html += playerRowHtml(team, p, squad.startingIds.includes(p.id), squad.selected === p.id, { ced: isLoanedIn(team, p) }); });
   return html + '</div>';
 }
 
 function buildStatsList(team, players) {
+  if (!players.length) return '<p class="squad-empty">Sin resultados.</p>';
   return '<div class="squad-group">' + players.map(p => {
     const s = getPlayerStats(p);
     const group = getPosGroup(p.pos).toLowerCase();
@@ -674,6 +678,7 @@ function loanStatsOf(player) {
 
 // Tarjeta de estadísticas para jugadores cedidos, mostrando el club destino
 function buildLoanStatsList(team, loans) {
+  if (!loans.length) return '<p class="squad-empty">Sin resultados.</p>';
   return '<div class="squad-group">' + loans.map(({ player: p, destination }) => {
     const s = loanStatsOf(p);
     const group = getPosGroup(p.pos).toLowerCase();
@@ -695,6 +700,111 @@ function buildLoanStatsList(team, loans) {
         </span>
       </div>`;
   }).join('') + '</div>';
+}
+
+// Vista DORSALES: jugadores con su dorsal; tocar uno abre el selector de dorsal
+function buildDorsalesList(team, players) {
+  if (!players.length) return '<p class="squad-empty">Sin resultados.</p>';
+  const html = players.map(p => {
+    const group = getPosGroup(p.pos).toLowerCase();
+    return `
+      <button class="dorsal-row" data-player-id="${p.id}">
+        <span class="player-avatar">${playerDorsalHtml(p)}</span>
+        <span class="player-info">
+          <span class="player-name">${p.flag ? p.flag + ' ' : ''}${p.name}</span>
+          <span class="player-meta"><span class="pos-pill ${group}">${p.pos}</span> · ${p.age} años</span>
+        </span>
+        <span class="dorsal-swap">✎</span>
+      </button>`;
+  }).join('');
+  return `<h3 class="squad-section-title">Dorsales<span class="count">${players.length}</span></h3>
+    <p class="dorsal-hint">Toca un jugador para cambiar su dorsal.</p>
+    <div class="squad-group">${html}</div>`;
+}
+
+// Aviso flotante (toast) reutilizando el elemento #toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.add('hidden'), 2600);
+}
+
+// --- Selección de dorsal (modal) ---
+let dorsalPickerPlayer = null;
+
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+
+// Abre el selector de dorsal para un jugador (teclear o elegir de la lista 1-99)
+function openDorsalPicker(team, playerId) {
+  const player = getPlayer(team, playerId);
+  if (!player) return;
+  dorsalPickerPlayer = player;
+  const titleEl = document.getElementById('dorsal-picker-title');
+  if (titleEl) titleEl.textContent = `Dorsal · ${player.name}`;
+  const input = document.getElementById('dorsal-picker-input');
+  if (input) input.value = player.number !== undefined && player.number !== null && player.number !== '' ? String(player.number) : '';
+
+  // Rejilla 1-99: los ocupados por otros jugadores se marcan con su dueño
+  const grid = document.getElementById('dorsal-picker-grid');
+  if (grid) {
+    const ownerByNumber = {};
+    for (const p of team.players) {
+      if (p.number !== undefined && p.number !== null && p.number !== '' && p.id !== playerId) {
+        ownerByNumber[String(p.number)] = p;
+      }
+    }
+    const chips = [];
+    for (let n = 1; n <= 99; n++) {
+      const owner = ownerByNumber[String(n)];
+      const isCurrent = String(n) === String(player.number);
+      const taken = owner ? ' taken' : '';
+      const current = isCurrent ? ' current' : '';
+      const label = owner ? `${n}·${owner.nick || owner.name}` : n;
+      chips.push(`<button class="dorsal-pick${taken}${current}" data-number="${n}"${owner ? ' disabled' : ''}>${label}</button>`);
+    }
+    grid.innerHTML = chips.join('');
+  }
+
+  openModal('dorsal-picker-modal');
+}
+
+// Asigna el dorsal `n` al jugador seleccionado. Si otro lo tiene, intercambio automático.
+function assignDorsal(n) {
+  const player = dorsalPickerPlayer;
+  if (!player) return;
+  n = Math.floor(Number(n));
+  if (!n || n < 1 || n > 99) {
+    showToast('Introduce un dorsal entre 1 y 99');
+    return;
+  }
+  const team = currentTeam();
+  if (!team) return;
+  const previous = player.number !== undefined && player.number !== null && player.number !== '' ? player.number : '';
+  const owner = team.players.find(p => p.id !== player.id && String(p.number) === String(n));
+  if (owner) {
+    // Intercambio automático: el dueño anterior recibe el dorsal previo del editado
+    owner.number = previous;
+  }
+  player.number = n;
+  closeModal('dorsal-picker-modal');
+  dorsalPickerPlayer = null;
+  renderSquadList();
+  showToast(owner ? `Dorsal ${n} para ${player.name} (${owner.nick || owner.name} toma el ${previous || '—'})` : `Dorsal ${n} asignado a ${player.name}`);
+}
+
+function renderSquadList() {
+  const listEl = document.getElementById('squad-list');
+  if (listEl) listEl.innerHTML = buildList(currentTeam(), activeSubTab, activeStatTab);
 }
 
 function getBenchSplit(team, squad) {
@@ -934,6 +1044,7 @@ function bindClubTabs(team) {
     subtabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s === sub));
     const statTabsEl = document.getElementById('squad-stat-tabs');
     if (statTabsEl) statTabsEl.style.display = 'flex';
+    updateDorsalesTabVisibility();
     const listEl = document.getElementById('squad-list');
     if (listEl) listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
   });
@@ -966,6 +1077,12 @@ function currentTeam() {
   return window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
 }
 
+// El botón DORSALES solo tiene sentido en PRIMER EQUIPO / RESERVAS (no en CEDIDOS)
+function updateDorsalesTabVisibility() {
+  const el = document.getElementById('squad-stat-dorsales');
+  if (el) el.style.display = (activeSubTab === 'cedidos') ? 'none' : '';
+}
+
 // Registra (una sola vez) la selección de opción y cierre de los modales de formación/estilo.
 // Independiente de la pantalla de TÁCTICA, para que funcionen también desde el modal de cambios del partido.
 function bindTacticModals() {
@@ -974,7 +1091,6 @@ function bindTacticModals() {
 
   const close = (m) => { if (m) m.classList.remove('open'); };
   const closeModals = () => { close(formationModal); close(styleModal); };
-
   if (formationModal) {
     formationModal.addEventListener('click', (e) => {
       const team = currentTeam();
@@ -1026,12 +1142,43 @@ function bindTacticModals() {
   if (sClose) sClose.addEventListener('click', closeModals);
 }
 
+// Enlaza (una sola vez) los eventos del selector de dorsal
+function bindDorsalPicker() {
+  const modal = document.getElementById('dorsal-picker-modal');
+  if (!modal) return;
+  const clear = () => { dorsalPickerPlayer = null; };
+
+  document.getElementById('dorsal-picker-close').addEventListener('click', () => { clear(); closeModal('dorsal-picker-modal'); });
+  modal.addEventListener('click', (e) => { if (e.target === modal) { clear(); closeModal('dorsal-picker-modal'); } });
+
+  const apply = () => {
+    const input = document.getElementById('dorsal-picker-input');
+    assignDorsal(input ? input.value : '');
+  };
+  document.getElementById('dorsal-picker-apply').addEventListener('click', apply);
+  const input = document.getElementById('dorsal-picker-input');
+  if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') apply(); });
+
+  const grid = document.getElementById('dorsal-picker-grid');
+  grid.addEventListener('click', (e) => {
+    const chip = e.target.closest('.dorsal-pick');
+    if (!chip || chip.disabled) return;
+    assignDorsal(chip.dataset.number);
+  });
+}
+
 function bindSquadEvents(team) {
   const section = document.getElementById('screen-squad');
   if (!section || squadEventsBound) return;
   squadEventsBound = true;
 
   section.addEventListener('click', (e) => {
+    const dorsalRow = e.target.closest('.dorsal-row');
+    if (dorsalRow) {
+      openDorsalPicker(team, dorsalRow.dataset.playerId);
+      return;
+    }
+
     const infoBtn = e.target.closest('.player-info-btn');
     if (infoBtn) {
       const p = getPlayer(team, infoBtn.dataset.playerId);
@@ -1104,6 +1251,7 @@ function renderSquadScreen(teamId, keepTab = false) {
     statTabsEl.style.display = 'flex';
     statTabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.stattab === activeStatTab));
   }
+  updateDorsalesTabVisibility();
 
   const listEl = document.getElementById('squad-list');
   if (listEl) listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
@@ -1128,6 +1276,8 @@ function captureRuntime() {
     roleOverrides: [...roleOverrides.entries()],
     squadState: squad ? { startingIds: [...squad.startingIds], subIds: [...squad.subIds] } : null,
     playerStats: [...playerStats.entries()],
+    ratings: db.getAllTeams().map(t => [t.id, t.players.map(p => [p.id, p.ovr])]),
+    dorsals: team.players.map(p => [p.id, p.number]),
     staminaInjury: team.players.map(p => [p.id, { stamina: p.stamina, injury: p.injury || null, suspension: p.suspension || null }])
   };
 }
@@ -1145,6 +1295,22 @@ function restoreRuntime(team, data) {
   if (data.playerStats && Array.isArray(data.playerStats)) {
     playerStats.clear();
     for (const [id, s] of data.playerStats) playerStats.set(id, s);
+  }
+  if (data.dorsals && Array.isArray(data.dorsals)) {
+    for (const [id, number] of data.dorsals) {
+      const p = team.players.find(x => x.id === id);
+      if (p) p.number = number;
+    }
+  }
+  if (data.ratings && Array.isArray(data.ratings)) {
+    for (const [teamId, list] of data.ratings) {
+      const t = db.getTeamById(teamId);
+      if (!t || !Array.isArray(list)) continue;
+      for (const [pid, ovr] of list) {
+        const p = t.players.find(x => x.id === pid);
+        if (p) p.ovr = ovr;
+      }
+    }
   }
   if (data.staminaInjury && Array.isArray(data.staminaInjury)) {
     for (const [id, s] of data.staminaInjury) {
@@ -1187,6 +1353,7 @@ function restoreRuntime(team, data) {
   window.PocketManager.buildSuplentes = buildSuplentes;
   window.PocketManager.buildField = buildField;
   window.PocketManager.isLoanedOut = isLoanedOut;
+  window.PocketManager.isLoanedIn = isLoanedIn;
   window.PocketManager.posRankOf = posRankOf;
   window.PocketManager.sortByPosition = sortByPosition;
   window.PocketManager.captureRuntime = captureRuntime;
@@ -1197,4 +1364,5 @@ function restoreRuntime(team, data) {
   window.PocketManager.isUnavailable = isUnavailable;
 
   bindTacticModals();
+  bindDorsalPicker();
 })();

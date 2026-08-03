@@ -81,6 +81,7 @@
     if (!buyer || !seller || !player) return { ok: false, reason: 'Datos inválidos' };
     if (buyer.id === seller.id) return { ok: false, reason: 'Mismo club' };
     if (buyer.budget < fee) return { ok: false, reason: 'Presupuesto insuficiente' };
+    if (player.loan && player.loan.isLoaned) return { ok: false, reason: 'No se puede traspasar a un jugador cedido' };
     const idx = seller.players.indexOf(player);
     if (idx === -1) return { ok: false, reason: 'Jugador no disponible' };
 
@@ -118,7 +119,11 @@
     const pool = [];
     for (const team of db.getAllTeams()) {
       if (!myTeam || team.id === myTeam.id) continue;
-      for (const p of team.players) pool.push({ player: p, team });
+      for (const p of team.players) {
+        // No se pueden fichar jugadores con cesión activa (cedidos a otro club o de otro club)
+        if (p.loan && p.loan.isLoaned) continue;
+        pool.push({ player: p, team });
+      }
     }
     return pool;
   }

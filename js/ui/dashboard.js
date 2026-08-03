@@ -71,9 +71,10 @@
           </div>
           <div class="dash-next-meta">
             <span class="dash-pill">${leagueName}</span>
-            <span class="dash-pill">Jornada ${fx.jornada}</span>
+            <button class="dash-pill dash-pill-link" data-action="calendar">Jornada ${fx.jornada}</button>
             <span class="dash-pill ${fx.isHome ? 'dash-pill-home' : 'dash-pill-away'}">${localVisitante}</span>
           </div>
+          <span class="dash-cal-link" data-action="calendar">Ver Calendario ➔</span>
           <div class="dash-next-actions">
             <button class="dash-play-btn" data-action="play">JUGAR PARTIDO</button>
             <button class="dash-sim-btn" data-action="sim">SIMULAR</button>
@@ -124,6 +125,8 @@
           document.dispatchEvent(new CustomEvent('start-match', { detail: { match: f.match, jornada: f.jornada } }));
         } else if (btn.dataset.action === 'sim') {
           document.dispatchEvent(new CustomEvent('simulate-match', { detail: { match: f.match, jornada: f.jornada } }));
+        } else if (btn.dataset.action === 'calendar') {
+          if (window.PocketManager.openCalendarAt) window.PocketManager.openCalendarAt(f.jornada);
         }
       });
     }

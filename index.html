@@ -135,6 +135,7 @@
           <div class="squad-subtabs squad-stat-tabs" id="squad-stat-tabs" style="display:none">
             <button class="subtab active" data-stattab="general">GENERAL</button>
             <button class="subtab" data-stattab="stats">ESTADÍSTICAS</button>
+            <button class="subtab" id="squad-stat-dorsales" data-stattab="dorsales">DORSALES</button>
           </div>
           <div class="squad-list" id="squad-list"></div>
         </div>
@@ -324,6 +325,46 @@
         </div>
       </section>
 
+      <!-- Pantalla de Clasificación y Estadísticas -->
+      <section id="screen-standings" class="screen">
+        <div class="standings" id="standings-root">
+          <button class="select-trigger st-countries-trigger" id="st-countries-trigger" type="button">
+            <span class="placeholder">Selecciona un país</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="st-comps" id="st-comps"></div>
+          <div class="st-groups" id="st-groups" style="display:none"></div>
+          <div class="st-leaders" id="st-leaders"></div>
+          <div class="st-top10" id="st-top10-scorers" style="display:none"></div>
+          <div class="st-top10" id="st-top10-assists" style="display:none"></div>
+          <div class="st-table-wrap">
+            <div class="st-table" id="st-table"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pantalla de Calendario -->
+      <section id="screen-calendar" class="screen">
+        <div class="calendar">
+          <button class="select-trigger st-countries-trigger" id="cal-countries-trigger" type="button">
+            <span class="placeholder">Selecciona un país</span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="st-comps" id="cal-comps"></div>
+          <div class="calendar-nav">
+            <button class="cal-nav-btn" id="calendar-prev" aria-label="Jornada anterior">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <span class="cal-jornada-label" id="calendar-jornada-label">Jornada —</span>
+            <button class="cal-nav-btn" id="calendar-next" aria-label="Jornada siguiente">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </button>
+          </div>
+          <button class="btn btn-secondary btn-sm calendar-current" id="calendar-current">Ir a Jornada Actual</button>
+          <div class="calendar-list" id="calendar-root"></div>
+        </div>
+      </section>
+
     </main>
 
     <!-- Barra de Navegación Inferior (Oculta en Menú Inicio) -->
@@ -340,7 +381,13 @@
         </span>
         <span class="tab-label">Plantilla</span>
       </button>
-      <button class="tab-item" data-target="screen-league">
+      <button class="tab-item" data-target="screen-calendar">
+        <span class="tab-icon-wrap">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+        </span>
+        <span class="tab-label">Calendario</span>
+      </button>
+      <button class="tab-item" data-target="screen-standings">
         <span class="tab-icon-wrap">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
         </span>
@@ -465,6 +512,86 @@
       </div>
     </div>
 
+    <!-- Modal Detalles de Partido -->
+    <div class="modal-backdrop centered" id="match-details-modal">
+      <div class="modal-panel modal-center">
+        <div class="modal-head">
+          <h3>Detalles del partido</h3>
+          <button class="modal-close" id="match-details-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="match-details-body" id="match-details-body"></div>
+      </div>
+    </div>
+
+    <!-- Modal Balance de Temporada -->
+    <div class="modal-backdrop centered" id="season-summary-modal">
+      <div class="modal-panel modal-center">
+        <div class="modal-head">
+          <h3>Balance de temporada</h3>
+        </div>
+        <div class="season-summary-body" id="season-summary-body"></div>
+        <div class="season-summary-actions">
+          <button class="btn btn-primary" id="season-summary-continue">Continuar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Selección de Dorsal -->
+    <div class="modal-backdrop centered" id="dorsal-picker-modal">
+      <div class="modal-panel modal-center dorsal-picker-panel">
+        <div class="modal-head">
+          <h3 id="dorsal-picker-title">Dorsal</h3>
+          <button class="modal-close" id="dorsal-picker-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="dorsal-picker-body">
+          <div class="dorsal-picker-row">
+            <input type="number" id="dorsal-picker-input" class="text-input" min="1" max="99" inputmode="numeric" placeholder="1-99">
+            <button class="btn btn-primary btn-sm" id="dorsal-picker-apply">Asignar</button>
+          </div>
+          <p class="dorsal-picker-hint">O toca un dorsal de la lista. Los ocupados se muestran atenuados.</p>
+          <div class="dorsal-picker-grid" id="dorsal-picker-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Selección de País (Clasificación) -->
+    <div class="modal-backdrop" id="standings-country-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Selecciona un país</h3>
+          <button class="modal-close" id="standings-country-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-search">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="standings-country-search" class="text-input" placeholder="Buscar país…" autocomplete="off">
+        </div>
+        <div class="nat-list" id="standings-country-list"></div>
+      </div>
+    </div>
+
+    <!-- Modal Selección de País (Calendario) -->
+    <div class="modal-backdrop" id="calendar-country-modal">
+      <div class="modal-panel">
+        <div class="modal-head">
+          <h3>Selecciona un país</h3>
+          <button class="modal-close" id="calendar-country-close" aria-label="Cerrar">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-search">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="calendar-country-search" class="text-input" placeholder="Buscar país…" autocomplete="off">
+        </div>
+        <div class="nat-list" id="calendar-country-list"></div>
+      </div>
+    </div>
+
     <!-- Modal Resultado del Partido -->
     <div class="modal-backdrop centered" id="match-result-modal">
       <div class="modal-panel modal-center">
@@ -568,6 +695,10 @@
   <script src="js/engine/aiTransfers.js"></script>
   <script src="js/ui/transfersView.js"></script>
   <script src="js/ui/playerModal.js"></script>
+  <script src="js/ui/standingsView.js"></script>
+  <script src="js/engine/calendarEngine.js"></script>
+  <script src="js/ui/calendarView.js"></script>
+  <script src="js/engine/seasonEngine.js"></script>
   <script src="js/storage/saveSystem.js"></script>
   <script src="js/app.js"></script>
 </body>

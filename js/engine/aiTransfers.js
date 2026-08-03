@@ -68,6 +68,7 @@
       if (other.id === team.id) continue;
       for (const p of other.players) {
         if (moved.has(p.id)) continue;
+        if (p.loan && p.loan.isLoaned) continue; // no fichar cedidos
         if (groupOf(p.pos) !== group) continue;
         if (window.PocketManager.isInjured && window.PocketManager.isInjured(p)) continue;
         if ((p.value || 0) > team.budget) continue;
@@ -87,7 +88,7 @@
     const userTeam = window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
     if (!userTeam || !window.PocketManager.executeLoan) return 0;
 
-    let candidates = userTeam.players.filter(p => p.loanListed);
+    let candidates = userTeam.players.filter(p => p.loanListed && !(p.loan && p.loan.isLoaned));
     const teams = db.getAllTeams().filter(t => t.id !== userTeam.id);
     for (let i = teams.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));

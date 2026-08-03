@@ -14,7 +14,7 @@ window.PocketManager.spainData = {
       budget: 85000000,
       ovr: 86,
       formation: "4-3-3",
-      style: "Ofensivo",
+      style: "Equilibrado",
       stadium: "Estadio Santiago Bernabéu",
       stadiumCapacity: 81044,
       trophies: [
@@ -174,6 +174,163 @@ window.PocketManager.spainData = {
         // Cedidos fuera
         { id: "es331", name: "Clément Lenglet", nick: "Lenglet", number: "", flag: "🇫🇷", age: 31, stamina: 88, value: 7100000, ovr: 76, pos: "DFC", foot: "Z", loan: { isLoaned: true, parentTeam: "esp_atletico", currentTeam: "Benfica" } },
         { id: "es332", name: "H. Moldovan", nick: "Moldovan", number: "", flag: "🇷🇴", age: 28, stamina: 91, value: 4730000, ovr: 61, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "esp_atletico", currentTeam: "Eyupspor" } }
+      ]
+    },
+    {
+      id: "esp_athletic",
+      name: "Athletic Club",
+      shortName: "ATH",
+      logo: "assets/logos/spain/athletic.png",
+      primaryColor: "#E1261B",
+      secondaryColor: "#FEFEFE",
+      budget: 40000000,
+      ovr: 81,
+      formation: "4-3-3",
+      style: "Ofensivo",
+      stadium: "San Mamés",
+      stadiumCapacity: 53332,
+      trophies: [
+        { name: "Primera División", count: 8 },
+        { name: "Copa del Rey", count: 24 },
+        { name: "Supercopa de España", count: 3 }
+      ],
+      players: [
+        // Porteros
+        { id: "es401", name: "Unai Simón", nick: "Simón", number: 1, flag: "🇪🇸", age: 29, stamina: 100, value: 39250000, ovr: 81, pos: "POR", foot: "D", loan: null },
+        { id: "es402", name: "Julen Agirrezabala", nick: "Agirrezabala", number: "", flag: "🇪🇸", age: 25, stamina: 100, value: 10190000, ovr: 75, pos: "POR", foot: "Z", loan: null },
+        { id: "es403", name: "Álex Padilla", nick: "Padilla", number: 27, flag: "🇲🇽", age: 22, stamina: 100, value: 3640000, ovr: 58, pos: "POR", foot: "D", loan: null },
+        // Defensas
+        { id: "es404", name: "Dani Vivian", nick: "Vivian", number: 3, flag: "🇪🇸", age: 27, stamina: 100, value: 23950000, ovr: 83, pos: "DFC", foot: "D", loan: null },
+        { id: "es405", name: "Aymeric Laporte", nick: "Laporte", number: 14, flag: "🇪🇸", age: 32, stamina: 100, value: 13550000, ovr: 77, pos: "DFC", foot: "Z", loan: null },
+        { id: "es406", name: "Aitor Paredes", nick: "Paredes", number: 4, flag: "🇪🇸", age: 26, stamina: 100, value: 13300000, ovr: 77, pos: "DFC", foot: "D", loan: null },
+        { id: "es407", name: "Yuri", nick: "Yuri", number: 17, flag: "🇪🇸", age: 36, stamina: 100, value: 1030000, ovr: 76, pos: "LI", foot: "Z", loan: null },
+        { id: "es408", name: "Hugo Rincón", nick: "Rincón", number: "", flag: "🇪🇸", age: 23, stamina: 100, value: 5410000, ovr: 71, pos: "LD", foot: "D", loan: null },
+        { id: "es409", name: "Andoni Gorosabel", nick: "Gorosabel", number: 2, flag: "🇪🇸", age: 29, stamina: 100, value: 6460000, ovr: 71, pos: "LD", foot: "D", loan: null },
+        { id: "es410", name: "Jesús Areso", nick: "Areso", number: 12, flag: "🇪🇸", age: 27, stamina: 100, value: 8020000, ovr: 73, pos: "LD", foot: "D", loan: null },
+        { id: "es411", name: "Yeray", nick: "Yeray", number: 5, flag: "🇪🇸", age: 31, stamina: 100, value: 3340000, ovr: 69, pos: "DFC", foot: "D", loan: null },
+        { id: "es412", name: "Unai Egiluz", nick: "Egiluz", number: "", flag: "🇪🇸", age: 24, stamina: 100, value: 1080000, ovr: 67, pos: "DFC", foot: "D", loan: null },
+        { id: "es413", name: "Adama Boiro", nick: "Boiro", number: 19, flag: "🇪🇸", age: 24, stamina: 100, value: 3880000, ovr: 62, pos: "LI", foot: "Z", loan: null },
+        // Centrocampistas
+        { id: "es414", name: "Oihan Sancet", nick: "Sancet", number: 8, flag: "🇪🇸", age: 26, stamina: 100, value: 28460000, ovr: 77, pos: "MCO", foot: "D", loan: null },
+        { id: "es415", name: "Mikel Jauregizar", nick: "Jauregizar", number: 18, flag: "🇪🇸", age: 22, stamina: 100, value: 30720000, ovr: 74, pos: "MC", foot: "D", loan: null },
+        { id: "es416", name: "Iñigo Ruiz De Galarreta", nick: "De Galarreta", number: 16, flag: "🇪🇸", age: 32, stamina: 100, value: 4870000, ovr: 72, pos: "MC", foot: "D", loan: null },
+        { id: "es417", name: "Beñat Prados", nick: "Prados", number: 24, flag: "🇪🇸", age: 25, stamina: 100, value: 17990000, ovr: 68, pos: "MC", foot: "D", loan: null },
+        { id: "es418", name: "Unai Vencedor", nick: "Vencedor", number: "30", flag: "🇪🇸", age: 25, stamina: 100, value: 4320000, ovr: 70, pos: "MC", foot: "D", loan: null },
+        { id: "es419", name: "Peio Canales", nick: "Canales", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 6710000, ovr: 61, pos: "MCO", foot: "D", loan: null },
+        { id: "es420", name: "Alejandro Rego", nick: "Rego", number: 30, flag: "🇪🇸", age: 23, stamina: 100, value: 3200000, ovr: 63, pos: "MC", foot: "D", loan: null },
+        { id: "es421", name: "Beñat Gerenabarrena", nick: "Gerenabarrena", number: "", flag: "🇪🇸", age: 23, stamina: 100, value: 1530000, ovr: 63, pos: "MC", foot: "D", loan: null },
+        { id: "es422", name: "Selton Sued", nick: "Sued", number: 44, flag: "🇪🇸", age: 19, stamina: 100, value: 1880000, ovr: 42, pos: "MC", foot: "D", loan: null },
+        // Delanteros
+        { id: "es423", name: "Iñaki Williams", nick: "Iñaki Williams", number: 9, flag: "🇬🇭", age: 32, stamina: 100, value: 17900000, ovr: 81, pos: "ED", foot: "D", loan: null },
+        { id: "es424", name: "Gorka Guruzeta", nick: "Guruzeta", number: 11, flag: "🇪🇸", age: 29, stamina: 100, value: 12480000, ovr: 76, pos: "DC", foot: "D", loan: null },
+        { id: "es425", name: "Álex Berenguer", nick: "Berenguer", number: 7, flag: "🇪🇸", age: 31, stamina: 100, value: 10010000, ovr: 77, pos: "EI", foot: "D", loan: null },
+        { id: "es426", name: "Nico Williams", nick: "Nico Williams", number: 10, flag: "🇪🇸", age: 24, stamina: 100, value: 74620000, ovr: 82, pos: "EI", foot: "D", loan: null },
+        { id: "es427", name: "Robert Navarro", nick: "Navarro", number: 23, flag: "🇪🇸", age: 24, stamina: 100, value: 12180000, ovr: 68, pos: "ED", foot: "D", loan: null },
+        { id: "es428", name: "Álvaro Djaló", nick: "Djaló", number: "", flag: "🇬🇼", age: 26, stamina: 100, value: 5670000, ovr: 59, pos: "EI", foot: "D", loan: null },
+        { id: "es429", name: "Maroan Sannadi", nick: "Sannadi", number: 21, flag: "🇲🇦", age: 25, stamina: 100, value: 3530000, ovr: 60, pos: "DC", foot: "D", loan: null },
+        { id: "es430", name: "Nico Serrano", nick: "Serrano", number: 22, flag: "🇪🇸", age: 23, stamina: 100, value: 3960000, ovr: 61, pos: "EI", foot: "Z", loan: null },
+        // Cedidos fuera
+        { id: "es431", name: "Ibai Sanz", nick: "Sanz", number: "", flag: "🇪🇸", age: 22, stamina: 100, value: 842000, ovr: 58, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "esp_athletic", currentTeam: "Córdoba CF" } },
+        { id: "es432", name: "Eder García", nick: "García", number: "", flag: "🇪🇸", age: 22, stamina: 100, value: 1120000, ovr: 60, pos: "MC", foot: "D", loan: { isLoaned: true, parentTeam: "esp_athletic", currentTeam: "Córdoba CF" } }
+      ]
+    },
+    {
+      id: "esp_celta",
+      name: "RC Celta",
+      shortName: "CEL",
+      logo: "assets/logos/spain/celta.png",
+      primaryColor: "#B2D2EF",
+      secondaryColor: "#82A9C9",
+      budget: 30000000,
+      ovr: 79,
+      formation: "3-4-3",
+      style: "Equilibrado",
+      stadium: "Estadio de Balaídos",
+      stadiumCapacity: 24870,
+      trophies: [],
+      players: [
+        // Porteros
+        { id: "es501", name: "Andrei Radu", nick: "Radu", number: 13, flag: "🇷🇴", age: 29, stamina: 100, value: 9320000, ovr: 74, pos: "POR", foot: "D", loan: null },
+        { id: "es502", name: "Iván Villar", nick: "Villar", number: 1, flag: "🇪🇸", age: 29, stamina: 100, value: 1160000, ovr: 50, pos: "POR", foot: "D", loan: null },
+        // Defensas
+        { id: "es503", name: "Carl Starfelt", nick: "Starfelt", number: 2, flag: "🇸🇪", age: 31, stamina: 100, value: 7250000, ovr: 74, pos: "DFC", foot: "D", loan: null },
+        { id: "es504", name: "Sergio Carreira", nick: "Carreira", number: 5, flag: "🇪🇸", age: 25, stamina: 100, value: 10740000, ovr: 71, pos: "LD", foot: "D", loan: null },
+        { id: "es505", name: "Javier Rodríguez", nick: "Javi Rodríguez", number: 20, flag: "🇪🇸", age: 23, stamina: 100, value: 14980000, ovr: 73, pos: "DFC", foot: "D", loan: null },
+        { id: "es506", name: "Marcos Alonso", nick: "Alonso", number: 3, flag: "🇪🇸", age: 35, stamina: 100, value: 1700000, ovr: 74, pos: "DFC", foot: "Z", loan: null },
+        { id: "es507", name: "Álvaro Núñez", nick: "Núñez", number: 15, flag: "🇪🇸", age: 26, stamina: 100, value: 6180000, ovr: 74, pos: "LD", foot: "D", loan: null },
+        { id: "es508", name: "Javi Rueda", nick: "Rueda", number: 17, flag: "🇪🇸", age: 24, stamina: 100, value: 5660000, ovr: 70, pos: "LD", foot: "D", loan: null },
+        { id: "es509", name: "Javi Galán", nick: "Galán", number: "", flag: "🇪🇸", age: 31, stamina: 100, value: 3920000, ovr: 72, pos: "LI", foot: "Z", loan: null },
+        { id: "es510", name: "Unai Núñez", nick: "Unai Núñez", number: "", flag: "🇪🇸", age: 29, stamina: 100, value: 4730000, ovr: 69, pos: "DFC", foot: "D", loan: null },
+        { id: "es511", name: "Carlos Domínguez", nick: "Domínguez", number: 24, flag: "🇪🇸", age: 25, stamina: 100, value: 4470000, ovr: 65, pos: "DFC", foot: "Z", loan: null },
+        { id: "es512", name: "Yoel Lago", nick: "Lago", number: 29, flag: "🇪🇸", age: 22, stamina: 100, value: 5110000, ovr: 64, pos: "DFC", foot: "D", loan: null },
+        { id: "es513", name: "Manu Fernández", nick: "Fernández", number: 12, flag: "🇪🇸", age: 25, stamina: 100, value: 1550000, ovr: 63, pos: "DFC", foot: "D", loan: null },
+        { id: "es514", name: "Abdoulaye Faye", nick: "Faye", number: "", flag: "🇸🇳", age: 21, stamina: 100, value: 2380000, ovr: 56, pos: "DFC", foot: "Z", loan: null },
+        // Centrocampistas
+        { id: "es515", name: "Ilaix Moriba", nick: "Moriba", number: 6, flag: "🇬🇳", age: 23, stamina: 100, value: 17990000, ovr: 71, pos: "MC", foot: "D", loan: null },
+        { id: "es516", name: "Miguel Román", nick: "Román", number: 8, flag: "🇪🇸", age: 23, stamina: 100, value: 13240000, ovr: 65, pos: "MC", foot: "D", loan: null },
+        { id: "es517", name: "Aleix Febas", nick: "Febas", number: 14, flag: "🇪🇸", age: 30, stamina: 100, value: 6190000, ovr: 73, pos: "MC", foot: "D", loan: null },
+        { id: "es518", name: "Matías Vecino", nick: "Vecino", number: 21, flag: "🇺🇾", age: 34, stamina: 100, value: 2470000, ovr: 69, pos: "MC", foot: "D", loan: null },
+        // Delanteros
+        { id: "es519", name: "Borja Iglesias", nick: "Iglesias", number: 7, flag: "🇪🇸", age: 33, stamina: 100, value: 4810000, ovr: 75, pos: "DC", foot: "D", loan: null },
+        { id: "es520", name: "Ferran Jutglà", nick: "Jutglà", number: 9, flag: "🇪🇸", age: 27, stamina: 100, value: 12920000, ovr: 75, pos: "ED", foot: "D", loan: null },
+        { id: "es521", name: "Pablo Durán", nick: "Durán", number: 18, flag: "🇪🇸", age: 25, stamina: 100, value: 8600000, ovr: 71, pos: "DC", foot: "D", loan: null },
+        { id: "es522", name: "Iago Aspas", nick: "Aspas", number: 10, flag: "🇪🇸", age: 39, stamina: 100, value: 728000, ovr: 72, pos: "DC", foot: "Z", loan: null },
+        { id: "es523", name: "Williot Swedberg", nick: "Swedberg", number: 19, flag: "🇸🇪", age: 22, stamina: 100, value: 22660000, ovr: 68, pos: "EI", foot: "D", loan: null },
+        { id: "es524", name: "Hugo Álvarez", nick: "Álvarez", number: 23, flag: "🇪🇸", age: 23, stamina: 100, value: 12690000, ovr: 67, pos: "EI", foot: "D", loan: null },
+        { id: "es525", name: "Carles Pérez", nick: "Pérez", number: "", flag: "🇪🇸", age: 28, stamina: 100, value: 4260000, ovr: 66, pos: "ED", foot: "Z", loan: null },
+        { id: "es526", name: "J. El-Abdellaoui", nick: "El-Abdellaoui", number: 39, flag: "🇲🇦", age: 20, stamina: 100, value: 10590000, ovr: 60, pos: "ED", foot: "D", loan: null },
+        // Cedidos fuera
+        { id: "es528", name: "Carlos Dotor", nick: "Dotor", number: "", flag: "🇪🇸", age: 25, stamina: 100, value: 1580000, ovr: 61, pos: "MC", foot: "D", loan: { isLoaned: true, parentTeam: "esp_celta", currentTeam: "Málaga C.F" } },
+        { id: "es529", name: "Damián Rodríguez", nick: "Damián", number: "", flag: "🇪🇸", age: 23, stamina: 100, value: 4100000, ovr: 57, pos: "MCD", foot: "Z", loan: { isLoaned: true, parentTeam: "esp_celta", currentTeam: "Cádiz CF" } }
+      ]
+    },
+    {
+      id: "esp_levantte",
+      name: "Levante UD",
+      shortName: "LEV",
+      logo: "assets/logos/spain/levante.png",
+      primaryColor: "#A4133C",
+      secondaryColor: "#0E1B4D",
+      budget: 15000000,
+      ovr: 76,
+      formation: "4-2-3-1",
+      style: "Equilibrado",
+      stadium: "Estadi Ciutat de València",
+      stadiumCapacity: 26354,
+      trophies: [],
+      players: [
+        // Porteros
+        { id: "es601", name: "M. Ryan", nick: "Ryan", number: "", flag: "🇦🇺", age: 34, stamina: 100, value: 2580000, ovr: 76, pos: "POR", foot: "D", loan: null },
+        { id: "es602", name: "Pablo Campos", nick: "Campos", number: 1, flag: "🇪🇸", age: 24, stamina: 100, value: 2770000, ovr: 64, pos: "POR", foot: "D", loan: null },
+        { id: "es603", name: "Dani Martín", nick: "Martín", number: "", flag: "🇪🇸", age: 20, stamina: 100, value: 680000, ovr: 52, pos: "POR", foot: "D", loan: null },
+        { id: "es604", name: "A. Primo", nick: "Primo", number: "", flag: "🇪🇸", age: 22, stamina: 100, value: 184000, ovr: 42, pos: "POR", foot: "D", loan: null },
+        // Defensas
+        { id: "es605", name: "Aïssa Mandi", nick: "Mandi", number: "", flag: "🇩🇿", age: 34, stamina: 100, value: 2500000, ovr: 76, pos: "DFC", foot: "D", loan: null },
+        { id: "es606", name: "Dela", nick: "Dela", number: 4, flag: "🇪🇸", age: 27, stamina: 100, value: 5540000, ovr: 74, pos: "DFC", foot: "D", loan: null },
+        { id: "es607", name: "U. Elgezabal", nick: "Elgezabal", number: 5, flag: "🇪🇸", age: 33, stamina: 100, value: 1240000, ovr: 75, pos: "DFC", foot: "D", loan: null },
+        { id: "es608", name: "Jeremy Toljan", nick: "Toljan", number: 22, flag: "🇩🇪", age: 31, stamina: 100, value: 2690000, ovr: 72, pos: "LD", foot: "D", loan: null },
+        { id: "es609", name: "Manu Sánchez", nick: "Sánchez", number: "", flag: "🇪🇸", age: 25, stamina: 100, value: 8290000, ovr: 73, pos: "LI", foot: "Z", loan: { isLoaned: true, parentTeam: "esp_celta", currentTeam: "esp_levantte" } },
+        { id: "es610", name: "Xavi Grande", nick: "Grande", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 1190000, ovr: 57, pos: "LD", foot: "D", loan: null },
+        { id: "es611", name: "Jorge Cabello", nick: "Cabello", number: "", flag: "🇪🇸", age: 22, stamina: 100, value: 2420000, ovr: 62, pos: "DFC", foot: "Z", loan: null },
+        { id: "es612", name: "Nacho Pérez", nick: "Pérez", number: "", flag: "🇪🇸", age: 17, stamina: 100, value: 416000, ovr: 47, pos: "LD", foot: "D", loan: null },
+        // Centrocampistas
+        { id: "es613", name: "Carlos Álvarez", nick: "Álvarez", number: 24, flag: "🇪🇸", age: 22, stamina: 100, value: 17610000, ovr: 73, pos: "MCO", foot: "Z", loan: null },
+        { id: "es614", name: "K. Arriaga", nick: "Arriaga", number: 16, flag: "🇭🇳", age: 28, stamina: 100, value: 4990000, ovr: 70, pos: "MCD", foot: "D", loan: null },
+        { id: "es615", name: "Oriol Rey", nick: "Rey", number: 20, flag: "🇪🇸", age: 28, stamina: 100, value: 3830000, ovr: 69, pos: "MCD", foot: "Z", loan: null },
+        { id: "es616", name: "E. Bardeli", nick: "Bardeli", number: "", flag: "🇫🇷", age: 25, stamina: 100, value: 6570000, ovr: 71, pos: "MC", foot: "D", loan: null },
+        { id: "es617", name: "Dani Requena", nick: "Requena", number: "", flag: "🇪🇸", age: 22, stamina: 100, value: 1570000, ovr: 60, pos: "MC", foot: "D", loan: { isLoaned: true, parentTeam: "Villarreal B", currentTeam: "esp_levantte" } },
+        { id: "es618", name: "Olasagasti", nick: "Olasagasti", number: 8, flag: "🇪🇸", age: 25, stamina: 100, value: 3450000, ovr: 61, pos: "MC", foot: "Z", loan: null },
+        { id: "es619", name: "Hugo Sotelo", nick: "Sotelo", number: "", flag: "🇪🇸", age: 22, stamina: 100, value: 7380000, ovr: 61, pos: "MC", foot: "D", loan: { isLoaned: true, parentTeam: "esp_celta", currentTeam: "esp_levantte" } },
+        { id: "es620", name: "Edgar Alcañiz", nick: "Alcañiz", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 215000, ovr: 49, pos: "MC", foot: "D", loan: null },
+        // Delanteros
+        { id: "es621", name: "Etta Eyong", nick: "Eyong", number: 21, flag: "🇨🇲", age: 22, stamina: 100, value: 15030000, ovr: 71, pos: "DC", foot: "D", loan: null },
+        { id: "es622", name: "Roger Brugué", nick: "Brugué", number: 7, flag: "🇪🇸", age: 29, stamina: 100, value: 4330000, ovr: 72, pos: "EI", foot: "Z", loan: null },
+        { id: "es623", name: "Iván Romero", nick: "Romero", number: 9, flag: "🇪🇸", age: 25, stamina: 100, value: 9140000, ovr: 68, pos: "DC", foot: "D", loan: null },
+        { id: "es624", name: "Víctor García", nick: "García", number: 17, flag: "🇪🇸", age: 28, stamina: 100, value: 2410000, ovr: 69, pos: "ED", foot: "D", loan: null },
+        { id: "es625", name: "T. Abed", nick: "Abed", number: 55, flag: "🇮🇱", age: 22, stamina: 100, value: 3070000, ovr: 61, pos: "ED", foot: "Z", loan: null },
+        { id: "es626", name: "Yanis Musuayi", nick: "Musuayi", number: "", flag: "🇧🇪", age: 19, stamina: 100, value: 803000, ovr: 48, pos: "DC", foot: "D", loan: null },
+        { id: "es627", name: "Paco Cortés", nick: "Cortés", number: 27, flag: "🇪🇸", age: 18, stamina: 100, value: 1530000, ovr: 51, pos: "EI", foot: "D", loan: null },
+        { id: "es628", name: "Kareem Tunde", nick: "Tunde", number: 26, flag: "🇪🇸", age: 20, stamina: 100, value: 794000, ovr: 49, pos: "ED", foot: "Z", loan: null }
       ]
     }
   ]

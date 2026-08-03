@@ -2,6 +2,8 @@ const db = window.PocketManager.db;
 const renderSquadScreen = window.PocketManager.renderSquadScreen;
 const renderDashboard = window.PocketManager.renderDashboard;
 const renderTransfers = window.PocketManager.renderTransfers;
+const renderStandings = window.PocketManager.renderStandings;
+const renderCalendar = window.PocketManager.renderCalendar;
 const MatchSim = window.PocketManager.MatchSim;
 const gameState = window.PocketManager.gameState;
 const initNewGame = window.PocketManager.initNewGame;
@@ -13,7 +15,7 @@ const saveSystem = window.PocketManager.saveSystem;
 const staminaEngine = window.PocketManager.staminaEngine;
 
 const USER_TEAM_ID = 'esp_madrid';
-const IN_GAME_SCREENS = ['screen-dashboard', 'screen-squad', 'screen-league', 'screen-transfers'];
+const IN_GAME_SCREENS = ['screen-dashboard', 'screen-squad', 'screen-calendar', 'screen-standings', 'screen-transfers'];
 const FLOW_SCREENS = ['screen-create-manager', 'screen-select-league', 'screen-select-team', 'screen-load-game'];
 
 function initialsOf(name) {
@@ -52,6 +54,8 @@ const SCREEN_RENDERERS = {
   'screen-squad': () => renderSquadScreen(gameState.team ? gameState.team.id : USER_TEAM_ID),
   'screen-dashboard': () => renderDashboard(),
   'screen-transfers': () => renderTransfers(),
+  'screen-standings': () => renderStandings(),
+  'screen-calendar': () => renderCalendar(),
   'screen-load-game': () => renderLoadGame()
 };
 
@@ -66,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let liveEngine = null;
   let liveMatch = null;
   let pendingResult = null;
+  let pendingSeasonSummary = null;
   let changesSelected = null;
   let forcedOutId = null;
   let matchSubsUsed = 0;
@@ -430,7 +435,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isStarter) {
         const p = team.players.find(x => x.id === pid);
         if (p && p._sentOff) {
-          showToast('Expulsado: no puede ser sustituido en el partido');
+          if (changesSelected && changesSelected !== pid && changesSelected !== forcedOutId) {
+            // Recolocar al titular seleccionado en la posición del expulsado (no cuenta como cambio)
+            window.PocketManager.doSwap(team, changesSelected, pid);
+            changesSelected = null;
+          } else {
+            showToast('Expulsado: no puede ser sustituido. Toca otro titular para recolocarlo aquí.');
+          }
+          renderChangesView();
           return;
         }
         if (changesSelected && changesSelected !== pid) {
@@ -533,6 +545,9 @@ document.addEventListener("DOMContentLoaded", () => {
       while (sim.minute < 90) sim.stepMinute();
       sim._recordRatings();
       window.PocketManager.season.applyMatchResult(se, m, sim.homeGoals, sim.awayGoals);
+      if (window.PocketManager.calendar && window.PocketManager.calendar.buildMatchSummary) {
+        m.summary = window.PocketManager.calendar.buildMatchSummary(sim.events);
+      }
       const mins = sim.minutesPlayed || {};
       if (mins[home.id]) staminaEngine.applyMatchStamina(home, mins[home.id]);
       if (mins[away.id]) staminaEngine.applyMatchStamina(away, mins[away.id]);
@@ -566,6 +581,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const { result, match, jornada } = pendingResult;
     const se = gameState.season || window.PocketManager.season.initSeason(gameState.team);
     window.PocketManager.season.applyMatchResult(se, match, result.homeGoals, result.awayGoals);
+    if (window.PocketManager.calendar && window.PocketManager.calendar.buildMatchSummary) {
+      match.summary = window.PocketManager.calendar.buildMatchSummary(result.events);
+    }
 
     // Stamina tras el partido (según minutos jugados)
     const minutes = result.minutesPlayed || {};
@@ -600,14 +618,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.PocketManager.runAITransfers) window.PocketManager.runAITransfers(2);
     if (window.PocketManager.runAILoans) window.PocketManager.runAILoans(1);
 
+    // Fin de temporada: evolución de medias + arranque de la nueva temporada
+    if (!window.PocketManager.season.nextFixture(se, gameState.team.id) && window.PocketManager.seasonEngine) {
+      const changes = window.PocketManager.seasonEngine.updatePlayerRatingsAtSeasonEnd(db.getAllTeams());
+      const country = db.getCountryData(gameState.team.id);
+      const leagueTeams = country ? country.teams : [gameState.team];
+      for (const t of leagueTeams) if (staminaEngine.resetFitness) staminaEngine.resetFitness(t);
+      try { db.returnLoans(); } catch (e) {}
+      gameState.currentSeason = (gameState.currentSeason || 1) + 1;
+      gameState.season = window.PocketManager.season.initSeason(gameState.team);
+      if (window.PocketManager.setFormation) window.PocketManager.setFormation(gameState.team.formation || '4-3-3');
+      pendingSeasonSummary = changes;
+    }
+
     pendingResult = null;
     closeModal('match-result-modal');
     try { saveSystem.saveCurrentGame(); } catch (e) {}
     showScreen('screen-dashboard');
+    if (pendingSeasonSummary) {
+      showSeasonSummary(pendingSeasonSummary);
+      pendingSeasonSummary = null;
+    }
   }
 
   document.getElementById('match-result-continue').addEventListener('click', commitResult);
   document.getElementById('match-result-close').addEventListener('click', commitResult);
+
+  // Muestra el resumen de cambios de media al cierre de temporada
+  function showSeasonSummary(changes) {
+    const body = document.getElementById('season-summary-body');
+    const modal = document.getElementById('season-summary-modal');
+    if (!body || !modal) return;
+    if (!changes || !changes.length) {
+      body.innerHTML = '<p class="season-summary-empty">Sin cambios destacados de media esta temporada.</p>';
+    } else {
+      const rows = changes.map(c => `
+        <div class="ss-row">
+          <span class="ss-player">${c.flag ? c.flag + ' ' : ''}${c.name}<small class="ss-team">${c.team || ''}</small></span>
+          <span class="ss-change">${c.from} ➔ ${c.to} <b class="${c.delta > 0 ? 'ss-up' : 'ss-down'}">${c.delta > 0 ? '+' : ''}${c.delta}</b></span>
+        </div>`).join('');
+      body.innerHTML = `<div class="ss-list">${rows}</div>`;
+    }
+    modal.classList.add('open');
+  }
+  document.getElementById('season-summary-continue').addEventListener('click', () => {
+    document.getElementById('season-summary-modal').classList.remove('open');
+  });
 
   document.addEventListener('start-match', (e) => {
     const { match, jornada } = e.detail || {};

@@ -42,6 +42,12 @@
     return owner;
   }
 
+  // Club del que viene cedido el jugador (padre de la cesión)
+  function loanOriginClub(player) {
+    const parent = player && player.loan && player.loan.parentTeam ? db.getTeamById(player.loan.parentTeam) : null;
+    return parent ? `${parent.name} (${parent.shortName})` : (player && player.loan ? player.loan.parentTeam : '');
+  }
+
   function healthHtml(player) {
     if (window.PocketManager.isInjured && window.PocketManager.isInjured(player)) {
       const w = player.injury.weeksLeft;
@@ -63,11 +69,19 @@
 
     const isMine = !!(gameState.team && owner.id === gameState.team.id);
     const isLoanedOutP = isMine && window.PocketManager.isLoanedOut && window.PocketManager.isLoanedOut(owner, p);
+    const isLoanedInP = isMine && window.PocketManager.isLoanedIn && window.PocketManager.isLoanedIn(owner, p);
 
     let actions;
     if (isMine) {
       if (isLoanedOutP) {
         actions = `<p class="pm-note">Cedido a ${club.name}. No está disponible para tu once.</p>`;
+      } else if (isLoanedInP) {
+        const inFirst = window.PocketManager.isPlayerInFirstTeam(owner, p.id);
+        actions = `
+          <p class="pm-note">Cedido de otro club. No puedes traspasarlo ni cederlo.</p>
+          <div class="pm-squad-actions">
+            <button class="btn pm-role-btn" id="pm-role">${inFirst ? 'BAJAR A RESERVAS' : 'SUBIR AL PRIMER EQUIPO'}</button>
+          </div>`;
       } else {
         const inFirst = window.PocketManager.isPlayerInFirstTeam(owner, p.id);
         actions = `
@@ -100,6 +114,7 @@
       <div class="pm-rows">
         <div><span>Valor de mercado</span><b>${window.PocketManager.formatValue(p.value)}</b></div>
         <div><span>Equipo actual</span><b>${club.name} (${club.shortName})</b></div>
+        ${p.loan && p.loan.isLoaned ? `<div><span>Equipo procedente</span><b>${loanOriginClub(p)}</b></div>` : ''}
       </div>
 
       <div class="pm-divider"></div>
