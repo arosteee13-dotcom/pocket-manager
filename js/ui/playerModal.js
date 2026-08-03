@@ -199,6 +199,15 @@
     if (idx === -1) return { ok: false, reason: 'Jugador no disponible' };
     seller.players.splice(idx, 1);
     player.loan = { isLoaned: true, parentTeam: seller.id, currentTeam: buyer.id };
+    // Si el usuario cede a un jugador propio, guarda su línea base para mostrar solo las
+    // estadísticas del periodo de cesión en la pestaña de cedidos.
+    if (gameState.team && seller.id === gameState.team.id && window.PocketManager.getPlayerStats) {
+      const b = window.PocketManager.getPlayerStats(player);
+      player.loan.baselineStats = {
+        apps: b.apps, goals: b.goals, assists: b.assists,
+        ratingSum: b.ratingSum, yellows: b.yellows, reds: b.reds
+      };
+    }
     buyer.players.push(player);
     if (window.PocketManager.refreshLineup) {
       try { window.PocketManager.refreshLineup(buyer); } catch (e) {}
@@ -225,8 +234,13 @@
     const team = gameState.team;
     if (!team) return;
     const inFirst = window.PocketManager.isPlayerInFirstTeam(team, state.player.id);
-    if (window.PocketManager.setPlayerSection) {
-      window.PocketManager.setPlayerSection(team, state.player.id, inFirst ? 'reserves' : 'first');
+    const target = inFirst ? 'reserves' : 'first';
+    const res = window.PocketManager.setPlayerSection
+      ? window.PocketManager.setPlayerSection(team, state.player.id, target)
+      : { ok: true };
+    if (res && res.ok === false) {
+      showToast(res.reason || 'No se puede cambiar la sección del jugador.');
+      return;
     }
     const name = state.player.name;
     closePlayerModal();

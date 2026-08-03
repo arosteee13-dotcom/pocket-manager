@@ -516,6 +516,51 @@ document.addEventListener("DOMContentLoaded", () => {
     openModal('match-result-modal');
   }
 
+  // Simula el resto de partidos de la jornada (los que no son del usuario) para que la
+  // clasificación quede completa y los jugadores cedidos en clubes de la liga acumulen stats.
+  function simulateLeagueRest(jornada) {
+    const se = gameState.season;
+    if (!se || !se.jornadas) return;
+    const j = se.jornadas[Number(jornada) - 1];
+    if (!j) return;
+    for (const m of j.matches) {
+      if (m.played) continue;
+      if (m.homeId === gameState.team.id || m.awayId === gameState.team.id) continue;
+      const home = db.getTeamById(m.homeId);
+      const away = db.getTeamById(m.awayId);
+      if (!home || !away) continue;
+      const sim = new MatchSim(home, away, function () {});
+      while (sim.minute < 90) sim.stepMinute();
+      sim._recordRatings();
+      window.PocketManager.season.applyMatchResult(se, m, sim.homeGoals, sim.awayGoals);
+      const mins = sim.minutesPlayed || {};
+      if (mins[home.id]) staminaEngine.applyMatchStamina(home, mins[home.id]);
+      if (mins[away.id]) staminaEngine.applyMatchStamina(away, mins[away.id]);
+    }
+  }
+
+  // Avanza estadísticas sintéticas plausibles de los cedidos cuyo club no está en la base
+  // de datos (fuera de la liga, p. ej. QPR, Lommel, AS Monaco). Así la pestaña de
+  // estadísticas de cedidos muestra progreso real.
+  function advanceOutOfLeagueLoans() {
+    const team = gameState.team;
+    if (!team) return;
+    const loans = db.getLoanedOut(team.id);
+    for (const { player: p } of loans) {
+      const dest = p.loan && p.loan.currentTeam ? db.getTeamById(p.loan.currentTeam) : null;
+      if (dest) continue; // club en la liga: sus partidos se simulan de verdad
+      const s = window.PocketManager.getPlayerStats(p);
+      if (Math.random() > 0.85) continue; // ~15% de jornadas sin jugar
+      s.apps++;
+      s.ratingSum += 5.6 + Math.random() * 2.0;
+      if (p.pos === 'POR') continue;
+      if (Math.random() < 0.10) s.goals++;
+      if (Math.random() < 0.08) s.assists++;
+      if (Math.random() < 0.05) s.yellows++;
+      if (Math.random() < 0.01) s.reds++;
+    }
+  }
+
   function commitResult() {
     if (!pendingResult) return;
     const { result, match, jornada } = pendingResult;
@@ -528,6 +573,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const away = db.getTeamById(match.awayId);
     if (home) staminaEngine.applyMatchStamina(home, minutes[home.id]);
     if (away) staminaEngine.applyMatchStamina(away, minutes[away.id]);
+
+    // Simular el resto de la jornada (clasificación completa + stats de cedidos en la liga)
+    simulateLeagueRest(jornada);
+    // Stats sintéticas para cedidos en clubes fuera de la liga
+    advanceOutOfLeagueLoans();
 
     // Recuperación entre jornadas (semanas transcurridas hasta el próximo partido)
     const played = Number(jornada) || 1;

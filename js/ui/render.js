@@ -337,7 +337,9 @@ function getSquadState(team) {
 // Tras lesiones/sanciones: quita no disponibles del once y rellena el 11 con los disponibles
 function refreshLineup(team) {
   const squad = getSquadState(team);
-  const healthyStarters = squad.startingIds.filter(id => !isUnavailable(getPlayer(team, id)));
+  // Descarta ids que ya no están en la plantilla (traspasado/cedido) para evitar huecos rotos
+  const valid = (id) => !!getPlayer(team, id);
+  const healthyStarters = squad.startingIds.filter(id => valid(id) && !isUnavailable(getPlayer(team, id)));
   const startingIds = healthyStarters.length < 11 ? getStartingLineup(team, healthyStarters) : healthyStarters;
   const subIds = buildConvocatoriaOrder(team, startingIds);
   state.set(team.id, { startingIds, subIds, selected: null });
@@ -582,10 +584,15 @@ function buildFirstTeamSquad(team) {
   // 4) Forzados a primer equipo entran siempre
   forcedIn.forEach(p => { if (p.pos !== 'POR' || inTeam.size < 25) inTeam.add(p.id); });
 
-  // 5) Rellenar hasta 25 con los mejores jugadores de campo restantes (nunca más porteros)
+  // 5) Rellenar con los mejores jugadores de campo restantes (nunca más porteros), sin
+  //    superar 25. Cada jugador bajado a reservas de forma explícita libera una plaza
+  //    que solo puede ocupar un jugador subido explícitamente, no el relleno automático.
+  const demotedCount = players.filter(p => roleOverrides.get(p.id) === 'reserves').length;
+  const forcedInCount = players.filter(p => roleOverrides.get(p.id) === 'first').length;
+  const fillCap = Math.max(11, Math.min(25, 25 - demotedCount + forcedInCount));
   const remaining = players.filter(p => !inTeam.has(p.id) && p.pos !== 'POR' && !forcedOut.has(p.id)).sort(byOvrDesc);
   for (const p of remaining) {
-    if (inTeam.size >= 25) break;
+    if (inTeam.size >= fillCap) break;
     inTeam.add(p.id);
   }
 
@@ -611,6 +618,7 @@ function buildList(team, subTab, statTab) {
 
   if (sub === 'cedidos') {
     const loans = db.getLoanedOut(team.id).sort((a, b) => posRankOf(a.player) - posRankOf(b.player));
+    if (view === 'stats') return buildLoanStatsList(team, loans);
     let html = `<h3 class="squad-section-title">Cedidos fuera<span class="count">${loans.length}</span></h3><div class="squad-group">`;
     if (!loans.length) html += '<p class="squad-empty">Sin jugadores cedidos.</p>';
     loans.forEach(({ player: p, destination }) => { html += playerRowHtml(team, p, false, false, { destination }); });
@@ -636,6 +644,46 @@ function buildStatsList(team, players) {
         <span class="player-info">
           <span class="player-name">${p.name}</span>
           <span class="player-meta"><span class="pos-pill ${group}">${p.pos}</span> · ${p.flag || '—'}</span>
+        </span>
+        <span class="stat-block">
+          <span class="stat"><i>PJ</i><b>${s.apps}</b></span>
+          <span class="stat"><i>G</i><b>${s.goals}</b></span>
+          <span class="stat"><i>A</i><b>${s.assists}</b></span>
+          <span class="stat"><i>MED</i><b>${med}</b></span>
+          <span class="stat"><i>TA</i><b>${s.yellows}</b></span>
+          <span class="stat"><i>TR</i><b>${s.reds}</b></span>
+        </span>
+      </div>`;
+  }).join('') + '</div>';
+}
+
+// Stats del periodo de cesión (actual − línea base al ceder). Sin línea base = desde cero.
+function loanStatsOf(player) {
+  const s = getPlayerStats(player);
+  const b = (player.loan && player.loan.baselineStats) || { apps: 0, goals: 0, assists: 0, ratingSum: 0, yellows: 0, reds: 0 };
+  const max0 = (v) => Math.max(0, v);
+  return {
+    apps: max0(s.apps - (b.apps || 0)),
+    goals: max0(s.goals - (b.goals || 0)),
+    assists: max0(s.assists - (b.assists || 0)),
+    ratingSum: max0(s.ratingSum - (b.ratingSum || 0)),
+    yellows: max0(s.yellows - (b.yellows || 0)),
+    reds: max0(s.reds - (b.reds || 0))
+  };
+}
+
+// Tarjeta de estadísticas para jugadores cedidos, mostrando el club destino
+function buildLoanStatsList(team, loans) {
+  return '<div class="squad-group">' + loans.map(({ player: p, destination }) => {
+    const s = loanStatsOf(p);
+    const group = getPosGroup(p.pos).toLowerCase();
+    const med = s.apps > 0 ? (s.ratingSum / s.apps).toFixed(1) : '—';
+    return `
+      <div class="stat-card">
+        <span class="player-avatar">${playerDorsalHtml(p)}${statusBadgeHtml(p)}</span>
+        <span class="player-info">
+          <span class="player-name">${p.name}</span>
+          <span class="player-meta"><span class="pos-pill ${group}">${p.pos}</span> · Cedido en: ${destination || '—'}</span>
         </span>
         <span class="stat-block">
           <span class="stat"><i>PJ</i><b>${s.apps}</b></span>
@@ -792,10 +840,19 @@ function doSwap(team, idA, idB) {
 
 // Mueve un jugador entre primer equipo y reservas, manteniendo el once coherente.
 // Al bajar a reservas, sale del once (y del banquillo).
+// Devuelve { ok: boolean, reason?: string }.
 function setPlayerSection(team, playerId, section) {
   const player = getPlayer(team, playerId);
-  if (!player) return;
-  if (section !== 'first' && section !== 'reserves') return;
+  if (!player) return { ok: false, reason: 'Jugador no encontrado' };
+  if (section !== 'first' && section !== 'reserves') return { ok: false, reason: 'Sección inválida' };
+
+  // Tope de 25 en el primer equipo: no se puede subir si ya está lleno
+  if (section === 'first' && !isPlayerInFirstTeam(team, playerId)) {
+    if (buildFirstTeamSquad(team).firstTeam.length >= 25) {
+      return { ok: false, reason: 'El primer equipo ya tiene 25 jugadores. Baja uno para poder subir a otro.' };
+    }
+  }
+
   roleOverrides.set(playerId, section);
 
   const squad = getSquadState(team);
@@ -804,6 +861,7 @@ function setPlayerSection(team, playerId, section) {
   squad.selected = null;
   state.set(team.id, squad);
   rebuildUi(team);
+  return { ok: true };
 }
 
 function isPlayerInFirstTeam(team, playerId) {
@@ -875,7 +933,7 @@ function bindClubTabs(team) {
     activeSubTab = sub.dataset.subtab;
     subtabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s === sub));
     const statTabsEl = document.getElementById('squad-stat-tabs');
-    if (statTabsEl) statTabsEl.style.display = (activeSubTab === 'cedidos') ? 'none' : 'flex';
+    if (statTabsEl) statTabsEl.style.display = 'flex';
     const listEl = document.getElementById('squad-list');
     if (listEl) listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
   });
@@ -1043,7 +1101,7 @@ function renderSquadScreen(teamId, keepTab = false) {
 
   const statTabsEl = document.getElementById('squad-stat-tabs');
   if (statTabsEl) {
-    statTabsEl.style.display = (activeSubTab === 'cedidos') ? 'none' : 'flex';
+    statTabsEl.style.display = 'flex';
     statTabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.stattab === activeStatTab));
   }
 
