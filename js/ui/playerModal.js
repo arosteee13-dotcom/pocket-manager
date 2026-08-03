@@ -69,8 +69,13 @@
       if (isLoanedOutP) {
         actions = `<p class="pm-note">Cedido a ${club.name}. No está disponible para tu once.</p>`;
       } else {
-        const isStarter = window.PocketManager.getSquadState(owner).startingIds.indexOf(p.id) !== -1;
-        actions = `<button class="btn btn-secondary" id="pm-role">${isStarter ? 'Pasar a Suplente' : 'Pasar a Titular'}</button>`;
+        const inFirst = window.PocketManager.isPlayerInFirstTeam(owner, p.id);
+        actions = `
+          <div class="pm-squad-actions">
+            <button class="pm-list-btn transfer${p.transferListed ? ' active' : ''}" id="pm-transfer">TRANSFERIBLE</button>
+            <button class="pm-list-btn ced${p.loanListed ? ' active' : ''}" id="pm-ced">CEDIBLE</button>
+            <button class="btn pm-role-btn" id="pm-role">${inFirst ? 'BAJAR A RESERVAS' : 'SUBIR AL PRIMER EQUIPO'}</button>
+          </div>`;
       }
     } else {
       actions = `
@@ -93,7 +98,7 @@
       </div>
 
       <div class="pm-rows">
-        <div><span>Valor de mercado</span><b>${formatBudget(p.value)}</b></div>
+        <div><span>Valor de mercado</span><b>${window.PocketManager.formatValue(p.value)}</b></div>
         <div><span>Equipo actual</span><b>${club.name} (${club.shortName})</b></div>
       </div>
 
@@ -126,8 +131,14 @@
     const loanBtn = document.getElementById('pm-loan');
     if (loanBtn) loanBtn.addEventListener('click', requestLoan);
 
+    const transferBtn = document.getElementById('pm-transfer');
+    if (transferBtn) transferBtn.addEventListener('click', toggleTransfer);
+
+    const cedBtn = document.getElementById('pm-ced');
+    if (cedBtn) cedBtn.addEventListener('click', toggleCed);
+
     const roleBtn = document.getElementById('pm-role');
-    if (roleBtn) roleBtn.addEventListener('click', toggleRole);
+    if (roleBtn) roleBtn.addEventListener('click', toggleSection);
 
     const offerCancel = document.getElementById('pm-offer-cancel');
     if (offerCancel) offerCancel.addEventListener('click', () => { state.offerOpen = false; render(); });
@@ -153,7 +164,7 @@
     const offer = Math.floor(Number(input ? input.value : 0));
     if (!offer || offer <= 0) { setMsg('Introduce una cantidad válida.'); return; }
     if (offer < state.player.value) {
-      setMsg(`El club rechaza tu oferta de ${formatBudget(offer)}. Valor de mercado: ${formatBudget(state.player.value)}.`);
+      setMsg(`El club rechaza tu oferta de ${window.PocketManager.formatValue(offer)}. Valor de mercado: ${window.PocketManager.formatValue(state.player.value)}.`);
       return;
     }
     const res = window.PocketManager.executeTransfer(gameState.team, state.owner, state.player, offer);
@@ -168,13 +179,9 @@
   }
 
   function requestLoan() {
-    const p = state.player;
-    const owner = state.owner;
-    if (window.PocketManager.isInjured && window.PocketManager.isInjured(p)) { setMsg('No se puede ceder a un jugador lesionado.'); return; }
-    if (window.PocketManager.getSquadState(owner).startingIds.indexOf(p.id) !== -1) { setMsg('El club rechaza la cesión: es un jugador clave de su once.'); return; }
-    const res = executeLoan(gameState.team, owner, p);
+    const res = executeLoan(gameState.team, state.owner, state.player);
     if (res.ok) {
-      const name = p.name;
+      const name = state.player.name;
       closePlayerModal();
       showToast(`¡Cesión completada! ${name} se une a tu plantilla`);
       refreshAfterChange();
@@ -186,6 +193,8 @@
   function executeLoan(buyer, seller, player) {
     if (!buyer || !seller || !player) return { ok: false, reason: 'Datos inválidos' };
     if (buyer.id === seller.id) return { ok: false, reason: 'Mismo club' };
+    if (window.PocketManager.isInjured && window.PocketManager.isInjured(player)) return { ok: false, reason: 'No se puede ceder a un jugador lesionado.' };
+    if (window.PocketManager.getSquadState(seller).startingIds.indexOf(player.id) !== -1) return { ok: false, reason: 'El club rechaza la cesión: es un jugador clave de su once.' };
     const idx = seller.players.indexOf(player);
     if (idx === -1) return { ok: false, reason: 'Jugador no disponible' };
     seller.players.splice(idx, 1);
@@ -198,16 +207,30 @@
     return { ok: true };
   }
 
-  function toggleRole() {
+  function toggleTransfer() {
+    const p = state.player;
+    p.transferListed = !p.transferListed;
+    showToast(p.transferListed ? `${p.name} está en la lista de transferibles` : `${p.name} ya no está en la lista de transferibles`);
+    render();
+  }
+
+  function toggleCed() {
+    const p = state.player;
+    p.loanListed = !p.loanListed;
+    showToast(p.loanListed ? `${p.name} está en la lista de cedibles` : `${p.name} ya no está en la lista de cedibles`);
+    render();
+  }
+
+  function toggleSection() {
     const team = gameState.team;
     if (!team) return;
-    const isStarter = window.PocketManager.getSquadState(team).startingIds.indexOf(state.player.id) !== -1;
-    if (window.PocketManager.setPlayerRole) {
-      window.PocketManager.setPlayerRole(team, state.player.id, !isStarter);
+    const inFirst = window.PocketManager.isPlayerInFirstTeam(team, state.player.id);
+    if (window.PocketManager.setPlayerSection) {
+      window.PocketManager.setPlayerSection(team, state.player.id, inFirst ? 'reserves' : 'first');
     }
     const name = state.player.name;
     closePlayerModal();
-    showToast(`${name} ahora es ${isStarter ? 'suplente' : 'titular'}`);
+    showToast(`${name} ahora está en ${inFirst ? 'el equipo de reservas' : 'el primer equipo'}`);
   }
 
   function refreshAfterChange() {

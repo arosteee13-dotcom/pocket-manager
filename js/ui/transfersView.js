@@ -160,7 +160,7 @@
         <span class="tm-main">
           <span class="tm-name">${p.flag ? p.flag + ' ' : ''}${p.name}</span>
           <span class="tm-meta">${p.age} años · ${foot === 'Z' ? 'Zurdo' : 'Diestro'} · <span class="pos-pill ${groupOf(p.pos).toLowerCase()}">${p.pos}</span></span>
-          <span class="tm-club">${team.shortName} · ${formatBudget(p.value)}</span>
+          <span class="tm-club">${team.shortName} · ${window.PocketManager.formatValue(p.value)}</span>
         </span>
         <span class="tm-ovr" style="background:${rc.bg}; color:${rc.color}">${p.ovr}</span>
       </div>`;
@@ -243,7 +243,7 @@
           <span class="th-name">${t.playerName}</span>
           <span class="th-route">${t.fromTeamName} ➡️ ${t.toTeamName}</span>
         </span>
-        <span class="th-fee">${formatBudget(t.fee)}</span>
+        <span class="th-fee">${window.PocketManager.formatValue(t.fee)}</span>
       </div>`;
   }
 

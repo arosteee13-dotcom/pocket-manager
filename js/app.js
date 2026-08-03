@@ -548,6 +548,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Mercado: la IA realiza fichajes puntuales tras cada jornada
     if (window.PocketManager.runAITransfers) window.PocketManager.runAITransfers(2);
+    if (window.PocketManager.runAILoans) window.PocketManager.runAILoans(1);
 
     pendingResult = null;
     closeModal('match-result-modal');
@@ -590,6 +591,7 @@ document.addEventListener("DOMContentLoaded", () => {
     applyCareerToUI();
     if (window.PocketManager.runAITransfers && gameState.season) {
       window.PocketManager.runAITransfers(8); // mercado de inicio de temporada
+      if (window.PocketManager.runAILoans) window.PocketManager.runAILoans(3);
     }
   });
 

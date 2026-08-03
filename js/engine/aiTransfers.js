@@ -56,24 +56,66 @@
     return set;
   }
 
-  // Mejor jugador disponible para reforzar la posición, de otros clubes (nunca del equipo del usuario),
-  // dentro del presupuesto del club.
+  // Mejor jugador disponible para reforzar la posición, dentro del presupuesto del club.
+  // El club del usuario solo aparece como vendedor si el jugador está en la lista de
+  // transferibles, y esos jugadores tienen prioridad sobre el resto del mercado.
   function pickTarget(team, group) {
     const userTeam = window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
     const moved = recentlyMovedIds();
     let best = null;
+    let bestListed = null;
     for (const other of db.getAllTeams()) {
       if (other.id === team.id) continue;
-      if (userTeam && other.id === userTeam.id) continue;
       for (const p of other.players) {
         if (moved.has(p.id)) continue;
         if (groupOf(p.pos) !== group) continue;
         if (window.PocketManager.isInjured && window.PocketManager.isInjured(p)) continue;
         if ((p.value || 0) > team.budget) continue;
+        const isUserPlayer = !!(userTeam && other.id === userTeam.id);
+        if (isUserPlayer && !p.transferListed) continue;
         if (!best || p.ovr > best.player.ovr) best = { player: p, seller: other };
+        if (p.transferListed && (!bestListed || p.ovr > bestListed.player.ovr)) bestListed = { player: p, seller: other };
       }
     }
+    if (bestListed) return bestListed;
     return best;
+  }
+
+  // La IA pide cesiones de los jugadores en la lista de cedibles del usuario.
+  // `limit`: número máximo de cesiones en esta ejecución.
+  function runAILoans(limit) {
+    const userTeam = window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
+    if (!userTeam || !window.PocketManager.executeLoan) return 0;
+
+    let candidates = userTeam.players.filter(p => p.loanListed);
+    const teams = db.getAllTeams().filter(t => t.id !== userTeam.id);
+    for (let i = teams.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = teams[i]; teams[i] = teams[j]; teams[j] = tmp;
+    }
+
+    let done = 0;
+    const max = Math.max(0, Number(limit) || 0);
+    for (const team of teams) {
+      if (done >= max) break;
+      if (team.players.length >= 40) continue;
+
+      const needs = needsOf(team);
+      if (!needs.length) continue;
+
+      const group = needs[Math.floor(Math.random() * needs.length)];
+      const candidate = candidates
+        .filter(p => groupOf(p.pos) === group && !(window.PocketManager.isInjured && window.PocketManager.isInjured(p)))
+        .sort((a, b) => b.ovr - a.ovr)[0];
+      if (!candidate) continue;
+
+      const res = window.PocketManager.executeLoan(team, userTeam, candidate);
+      if (res && res.ok) {
+        candidates = candidates.filter(p => p.id !== candidate.id);
+        done++;
+      }
+    }
+    return done;
   }
 
   // Ejecuta fichajes automáticos de los clubes de la IA.
@@ -109,4 +151,5 @@
   }
 
   window.PocketManager.runAITransfers = runAITransfers;
+  window.PocketManager.runAILoans = runAILoans;
 })();

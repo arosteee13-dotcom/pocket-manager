@@ -75,9 +75,9 @@
       { pos: 'MC', x: 59, y: 40 },
       { pos: 'MC', x: 41, y: 40 },
       { pos: 'CAD', x: 84, y: 42 },
-      { pos: 'EI', x: 80, y: 14 },
+      { pos: 'EI', x: 20, y: 14 },
       { pos: 'DC', x: 50, y: 12 },
-      { pos: 'ED', x: 20, y: 14 }
+      { pos: 'ED', x: 80, y: 14 }
     ],
     '4-2-3-1': [
       { pos: 'POR', x: 50, y: 86 },
@@ -88,9 +88,9 @@
       { pos: 'MCD', x: 39, y: 48 },
       { pos: 'MCD', x: 61, y: 48 },
       { pos: 'MCO', x: 50, y: 30 },
-      { pos: 'EI', x: 82, y: 20 },
+      { pos: 'EI', x: 18, y: 20 },
       { pos: 'DC', x: 50, y: 11 },
-      { pos: 'ED', x: 18, y: 20 }
+      { pos: 'ED', x: 82, y: 20 }
     ],
     '5-3-2': [
       { pos: 'POR', x: 50, y: 86 },
@@ -152,6 +152,18 @@ let activeFormation = '4-3-3';
 const STYLES = ['Ofensivo', 'Equilibrado', 'Defensivo'];
 const styleOverrides = new Map();
 
+// Sección elegida por el usuario: 'first' (primer equipo) o 'reserves' (reservas).
+const roleOverrides = new Map();
+
+// Sección actual de un jugador (primer equipo / reservas), aplicando las preferencias del usuario
+function sectionOf(team, playerId) {
+  const p = team.players.find(x => x.id === playerId);
+  if (!p) return 'reserves';
+  if (roleOverrides.get(playerId) === 'reserves') return 'reserves';
+  if (roleOverrides.get(playerId) === 'first') return 'first';
+  return buildFirstTeamSquad(team).firstTeam.some(x => x.id === playerId) ? 'first' : 'reserves';
+}
+
 function getTeamStyle(team) {
   return styleOverrides.get(team.id) || team.style || 'Equilibrado';
 }
@@ -202,7 +214,7 @@ function getPlayerStats(player) {
 }
 
 function getStartingLineup(team, preferredIds) {
-  const players = activeRoster(team).filter(p => !isUnavailable(p));
+  const players = activeRoster(team).filter(p => !isUnavailable(p) && roleOverrides.get(p.id) !== 'reserves');
   const slots = FORMATIONS[activeFormation] || FORMATIONS['4-3-3'];
   const preferred = (preferredIds || []).map(id => players.find(p => p.id === id)).filter(Boolean);
   const assigned = new Array(slots.length).fill(null);
@@ -366,8 +378,14 @@ function getFormation(team) {
   return FORMATIONS[activeFormation] ? activeFormation : '4-3-3';
 }
 
+// Valor de mercado: millones con 2 decimales (€5,11M / €25,62M); por debajo de 1M,
+// redondeado al millar (€107.000 / €108.000).
 function formatValue(n) {
-  return `€${Number(n || 0).toLocaleString('es-ES')}`;
+  const v = Number(n || 0);
+  if (v >= 1e9) return `€${(v / 1e9).toFixed(2).replace('.', ',')}B`;
+  if (v >= 1e6) return `€${(v / 1e6).toFixed(2).replace('.', ',')}M`;
+  const k = Math.round(v / 1000) * 1000;
+  return `€${k.toLocaleString('es-ES')}`;
 }
 
 function getRatingColor(ovr) {
@@ -539,26 +557,33 @@ function buildFirstTeamSquad(team) {
   const players = activeRoster(team);
   const inTeam = new Set();
 
+  // Preferencias del usuario: los forzados a 'reserves' nunca entran; los 'first' siempre
+  const forcedOut = new Set(players.filter(p => roleOverrides.get(p.id) === 'reserves').map(p => p.id));
+  const forcedIn = players.filter(p => roleOverrides.get(p.id) === 'first');
+
   // 1) Los 11 titulares siempre entran (pero con tope de 3 porteros)
-  startingIds.forEach(id => inTeam.add(id));
+  startingIds.forEach(id => { if (!forcedOut.has(id)) inTeam.add(id); });
 
   // 2) Tope de 3 porteros: mantener solo los 3 mejores POR (o los que haya)
-  const gks = players.filter(p => p.pos === 'POR').sort(byOvrDesc);
+  const gks = players.filter(p => p.pos === 'POR' && !forcedOut.has(p.id)).sort(byOvrDesc);
   const gkCap = Math.min(3, gks.length);
   const topGks = new Set(gks.slice(0, gkCap).map(p => p.id));
   for (const p of players) {
-    if (p.pos === 'POR' && inTeam.has(p.id) && !topGks.has(p.id)) inTeam.delete(p.id);
+    if (p.pos === 'POR' && inTeam.has(p.id) && !topGks.has(p.id) && !forcedIn.some(x => x.id === p.id)) inTeam.delete(p.id);
   }
   topGks.forEach(id => inTeam.add(id));
 
-  // 3) Mínimo 2 por posición específica de campo (mejores por OVR)
-  const posiciones = [...new Set(players.filter(p => p.pos !== 'POR').map(p => p.pos))];
+  // 3) Mínimo 2 por posición específica de campo (mejores por OVR), sin forzados fuera
+  const posiciones = [...new Set(players.filter(p => p.pos !== 'POR' && !forcedOut.has(p.id)).map(p => p.pos))];
   for (const pos of posiciones) {
-    players.filter(p => p.pos === pos).sort(byOvrDesc).slice(0, 2).forEach(p => inTeam.add(p.id));
+    players.filter(p => p.pos === pos && !forcedOut.has(p.id)).sort(byOvrDesc).slice(0, 2).forEach(p => inTeam.add(p.id));
   }
 
-  // 4) Rellenar hasta 25 con los mejores jugadores de campo restantes (nunca más porteros)
-  const remaining = players.filter(p => !inTeam.has(p.id) && p.pos !== 'POR').sort(byOvrDesc);
+  // 4) Forzados a primer equipo entran siempre
+  forcedIn.forEach(p => { if (p.pos !== 'POR' || inTeam.size < 25) inTeam.add(p.id); });
+
+  // 5) Rellenar hasta 25 con los mejores jugadores de campo restantes (nunca más porteros)
+  const remaining = players.filter(p => !inTeam.has(p.id) && p.pos !== 'POR' && !forcedOut.has(p.id)).sort(byOvrDesc);
   for (const p of remaining) {
     if (inTeam.size >= 25) break;
     inTeam.add(p.id);
@@ -765,57 +790,24 @@ function doSwap(team, idA, idB) {
   rebuildUi(team, true);
 }
 
-// Cambia el rol de un jugador (titular <-> suplente) manteniendo el once coherente
-function setPlayerRole(team, playerId, makeStarter) {
-  const squad = getSquadState(team);
-  const isStarter = squad.startingIds.indexOf(playerId) !== -1;
+// Mueve un jugador entre primer equipo y reservas, manteniendo el once coherente.
+// Al bajar a reservas, sale del once (y del banquillo).
+function setPlayerSection(team, playerId, section) {
   const player = getPlayer(team, playerId);
   if (!player) return;
-  if (makeStarter === isStarter) return;
+  if (section !== 'first' && section !== 'reserves') return;
+  roleOverrides.set(playerId, section);
 
-  const slots = FORMATIONS[activeFormation] || FORMATIONS['4-3-3'];
-
-  if (makeStarter) {
-    if (squad.subIds.indexOf(playerId) === -1) return;
-    const starters = squad.startingIds.map(id => getPlayer(team, id));
-    let targetIdx = -1;
-    let targetOvr = Infinity;
-    starters.forEach((p, i) => {
-      if (!p) return;
-      const slotPos = (slots[i] || {}).pos;
-      if (player.pos === 'POR' ? slotPos !== 'POR' : slotPos === 'POR') return;
-      const slotCovers = POSITION_COVERS[slotPos] || [slotPos];
-      const compatible = slotCovers.indexOf(player.pos) !== -1 || getPosGroup(slotPos) === getPosGroup(player.pos);
-      if (compatible && p.ovr < targetOvr) { targetIdx = i; targetOvr = p.ovr; }
-    });
-    if (targetIdx === -1) {
-      starters.forEach((p, i) => {
-        if (!p) return;
-        const slotPos = (slots[i] || {}).pos;
-        if (player.pos === 'POR' ? slotPos !== 'POR' : slotPos === 'POR') return;
-        if (p.ovr < targetOvr) { targetIdx = i; targetOvr = p.ovr; }
-      });
-    }
-    if (targetIdx === -1) return;
-    squad.startingIds[targetIdx] = playerId;
-  } else {
-    const idx = squad.startingIds.indexOf(playerId);
-    if (idx === -1) return;
-    squad.startingIds.splice(idx, 1);
-    const slotPos = (slots[Math.min(idx, slots.length - 1)] || {}).pos;
-    const covers = POSITION_COVERS[slotPos] || [slotPos];
-    const pool = squad.subIds.map(id => getPlayer(team, id)).filter(p => p && !isUnavailable(p));
-    const repl = pool.filter(p => covers.indexOf(p.pos) !== -1).sort(byOvrDesc)[0]
-      || pool.filter(p => getPosGroup(p.pos) === getPosGroup(slotPos)).sort(byOvrDesc)[0]
-      || pool.filter(p => p.pos !== 'POR').sort(byOvrDesc)[0];
-    if (!repl) { squad.startingIds.splice(idx, 0, playerId); return; }
-    squad.startingIds.splice(idx, 0, repl.id);
-  }
-
+  const squad = getSquadState(team);
+  squad.startingIds = getStartingLineup(team, squad.startingIds);
   squad.subIds = buildConvocatoriaOrder(team, squad.startingIds);
   squad.selected = null;
   state.set(team.id, squad);
   rebuildUi(team);
+}
+
+function isPlayerInFirstTeam(team, playerId) {
+  return sectionOf(team, playerId) === 'first';
 }
 
 function handleSelection(team, playerId) {
@@ -1075,6 +1067,7 @@ function captureRuntime() {
   return {
     formation: activeFormation,
     style: styleOverrides.get(team.id) || null,
+    roleOverrides: [...roleOverrides.entries()],
     squadState: squad ? { startingIds: [...squad.startingIds], subIds: [...squad.subIds] } : null,
     playerStats: [...playerStats.entries()],
     staminaInjury: team.players.map(p => [p.id, { stamina: p.stamina, injury: p.injury || null, suspension: p.suspension || null }])
@@ -1085,6 +1078,12 @@ function restoreRuntime(team, data) {
   if (!team || !data) return;
   if (data.formation) activeFormation = data.formation;
   if (data.style) setStyle(team.id, data.style);
+  if (data.roleOverrides && Array.isArray(data.roleOverrides)) {
+    roleOverrides.clear();
+    for (const [id, section] of data.roleOverrides) {
+      if (id && (section === 'first' || section === 'reserves')) roleOverrides.set(id, section);
+    }
+  }
   if (data.playerStats && Array.isArray(data.playerStats)) {
     playerStats.clear();
     for (const [id, s] of data.playerStats) playerStats.set(id, s);
@@ -1123,7 +1122,9 @@ function restoreRuntime(team, data) {
   window.PocketManager.getStartingTeamOvr = getStartingTeamOvr;
   window.PocketManager.getSquadState = getSquadState;
   window.PocketManager.doSwap = doSwap;
-  window.PocketManager.setPlayerRole = setPlayerRole;
+  window.PocketManager.setPlayerSection = setPlayerSection;
+  window.PocketManager.isPlayerInFirstTeam = isPlayerInFirstTeam;
+  window.PocketManager.formatValue = formatValue;
   window.PocketManager.getFormation = getFormation;
   window.PocketManager.buildSuplentes = buildSuplentes;
   window.PocketManager.buildField = buildField;
