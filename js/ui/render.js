@@ -804,7 +804,7 @@ function assignDorsal(n) {
 
 function renderSquadList() {
   const listEl = document.getElementById('squad-list');
-  if (listEl) listEl.innerHTML = buildList(currentTeam(), activeSubTab, activeStatTab);
+  if (listEl) listEl.innerHTML = buildList(squadTeam(), activeSubTab, activeStatTab);
 }
 
 function getBenchSplit(team, squad) {
@@ -1046,7 +1046,7 @@ function bindClubTabs(team) {
     if (statTabsEl) statTabsEl.style.display = 'flex';
     updateDorsalesTabVisibility();
     const listEl = document.getElementById('squad-list');
-    if (listEl) listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
+    if (listEl) listEl.innerHTML = buildList(squadTeam(), activeSubTab, activeStatTab);
   });
 
   const statTabsEl = document.getElementById('squad-stat-tabs');
@@ -1057,7 +1057,7 @@ function bindClubTabs(team) {
       activeStatTab = tab.dataset.stattab;
       statTabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s === tab));
       const listEl = document.getElementById('squad-list');
-      if (listEl) listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
+      if (listEl) listEl.innerHTML = buildList(squadTeam(), activeSubTab, activeStatTab);
     });
   }
 
@@ -1075,6 +1075,32 @@ function bindClubTabs(team) {
 
 function currentTeam() {
   return window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
+}
+
+// Equipo actualmente renderizado en la pantalla de plantilla (puede ser otro club en vista)
+let activeSquadTeamId = null;
+function squadTeam() {
+  if (activeSquadTeamId) {
+    const t = db.getTeamById(activeSquadTeamId);
+    if (t) return t;
+  }
+  return currentTeam();
+}
+
+// ¿Estamos viendo un equipo que no es el del usuario? (solo lectura)
+function squadIsReadOnly() {
+  const team = squadTeam();
+  const user = currentTeam();
+  return !!(user && team && team.id !== user.id);
+}
+
+function setSquadViewReadonly(readonly) {
+  const formBtn = document.getElementById('btn-formation');
+  const styleBtn = document.getElementById('btn-style');
+  if (formBtn) formBtn.disabled = readonly;
+  if (styleBtn) styleBtn.disabled = readonly;
+  const section = document.getElementById('screen-squad');
+  if (section) section.classList.toggle('squad-view-readonly', readonly);
 }
 
 // El botón DORSALES solo tiene sentido en PRIMER EQUIPO / RESERVAS (no en CEDIDOS)
@@ -1173,8 +1199,12 @@ function bindSquadEvents(team) {
   squadEventsBound = true;
 
   section.addEventListener('click', (e) => {
+    const team = squadTeam();
+    const readonly = squadIsReadOnly();
+
     const dorsalRow = e.target.closest('.dorsal-row');
     if (dorsalRow) {
+      if (readonly) { showToast('Vista de solo lectura'); return; }
       openDorsalPicker(team, dorsalRow.dataset.playerId);
       return;
     }
@@ -1195,6 +1225,7 @@ function bindSquadEvents(team) {
 
     const playerEl = e.target.closest('.field-player, .bench-card');
     if (playerEl) {
+      if (readonly) { showToast('Vista de solo lectura'); return; }
       handleSelection(team, playerEl.dataset.playerId);
       return;
     }
@@ -1207,12 +1238,20 @@ function bindSquadEvents(team) {
   });
 }
 
-function renderSquadScreen(teamId, keepTab = false) {
+function renderSquadScreen(teamId, keepTab = false, isView = false) {
   const team = db.getTeamById(teamId);
   if (!team) {
     const fieldEl = document.getElementById('squad-field');
     if (fieldEl) fieldEl.innerHTML = '<p class="text-muted">Equipo no encontrado.</p>';
     return;
+  }
+  activeSquadTeamId = teamId;
+
+  // En vista de otro equipo, usamos SU formación para mostrar su mejor once disponible
+  const prevFormation = activeFormation;
+  if (isView && team.formation) {
+    activeFormation = team.formation;
+    state.delete(team.id);
   }
 
   const titleEl = document.getElementById('squad-team-name');
@@ -1262,6 +1301,15 @@ function renderSquadScreen(teamId, keepTab = false) {
   renderClubInfo(team);
   updateTeamOvr(team);
   updateActionBar(team);
+
+  // Indicadores de vista de otro club
+  const viewBack = document.getElementById('squad-view-back');
+  const readonly = isView && !(currentTeam() && team.id === currentTeam().id);
+  if (viewBack) viewBack.classList.toggle('hidden', !isView);
+  setSquadViewReadonly(readonly);
+
+  if (isView && team.formation) activeFormation = prevFormation;
+
   bindSquadEvents(team);
   bindClubTabs(team);
 }
@@ -1277,6 +1325,7 @@ function captureRuntime() {
     squadState: squad ? { startingIds: [...squad.startingIds], subIds: [...squad.subIds] } : null,
     playerStats: [...playerStats.entries()],
     ratings: db.getAllTeams().map(t => [t.id, t.players.map(p => [p.id, p.ovr])]),
+    trophies: db.getAllTeams().map(t => [t.id, (t.trophies || []).map(x => ({ name: x.name, count: x.count }))]),
     dorsals: team.players.map(p => [p.id, p.number]),
     staminaInjury: team.players.map(p => [p.id, { stamina: p.stamina, injury: p.injury || null, suspension: p.suspension || null }])
   };
@@ -1310,6 +1359,12 @@ function restoreRuntime(team, data) {
         const p = t.players.find(x => x.id === pid);
         if (p) p.ovr = ovr;
       }
+    }
+  }
+  if (data.trophies && Array.isArray(data.trophies)) {
+    for (const [teamId, trophies] of data.trophies) {
+      const t = db.getTeamById(teamId);
+      if (t && Array.isArray(trophies)) t.trophies = trophies;
     }
   }
   if (data.staminaInjury && Array.isArray(data.staminaInjury)) {

@@ -172,6 +172,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btn-settings-quick").addEventListener("click", () => openModal("settings-modal"));
+  document.getElementById("squad-view-back").addEventListener("click", () => {
+    document.dispatchEvent(new CustomEvent("nav", { detail: "screen-standings" }));
+  });
   document.getElementById("settings-modal-close").addEventListener("click", () => closeModal("settings-modal"));
   document.getElementById("btn-save-game").addEventListener("click", () => {
     const result = saveSystem.saveCurrentGame();
@@ -618,9 +621,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.PocketManager.runAITransfers) window.PocketManager.runAITransfers(2);
     if (window.PocketManager.runAILoans) window.PocketManager.runAILoans(1);
 
-    // Fin de temporada: evolución de medias + arranque de la nueva temporada
+    // Fin de temporada: evolución de medias + título de liga + arranque de la nueva temporada
     if (!window.PocketManager.season.nextFixture(se, gameState.team.id) && window.PocketManager.seasonEngine) {
       const changes = window.PocketManager.seasonEngine.updatePlayerRatingsAtSeasonEnd(db.getAllTeams());
+      let trophy = null;
+      if (window.PocketManager.seasonEngine.awardLeagueTitle) {
+        try { trophy = window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
+      }
       const country = db.getCountryData(gameState.team.id);
       const leagueTeams = country ? country.teams : [gameState.team];
       for (const t of leagueTeams) if (staminaEngine.resetFitness) staminaEngine.resetFitness(t);
@@ -628,7 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
       gameState.currentSeason = (gameState.currentSeason || 1) + 1;
       gameState.season = window.PocketManager.season.initSeason(gameState.team);
       if (window.PocketManager.setFormation) window.PocketManager.setFormation(gameState.team.formation || '4-3-3');
-      pendingSeasonSummary = changes;
+      pendingSeasonSummary = { changes, trophy };
     }
 
     pendingResult = null;
@@ -644,21 +651,29 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('match-result-continue').addEventListener('click', commitResult);
   document.getElementById('match-result-close').addEventListener('click', commitResult);
 
-  // Muestra el resumen de cambios de media al cierre de temporada
-  function showSeasonSummary(changes) {
+  // Muestra el resumen de cambios de media y título de liga al cierre de temporada
+  function showSeasonSummary(summary) {
     const body = document.getElementById('season-summary-body');
     const modal = document.getElementById('season-summary-modal');
     if (!body || !modal) return;
+    const changes = summary ? summary.changes : null;
+    const trophy = summary ? summary.trophy : null;
+
+    let html = '';
+    if (trophy && trophy.team) {
+      html += `<div class="ss-trophy">🏆 ${trophy.team.name} gana la ${trophy.trophyName} (${trophy.count})</div>`;
+    }
     if (!changes || !changes.length) {
-      body.innerHTML = '<p class="season-summary-empty">Sin cambios destacados de media esta temporada.</p>';
+      html += '<p class="season-summary-empty">Sin cambios destacados de media esta temporada.</p>';
     } else {
       const rows = changes.map(c => `
         <div class="ss-row">
           <span class="ss-player">${c.flag ? c.flag + ' ' : ''}${c.name}<small class="ss-team">${c.team || ''}</small></span>
           <span class="ss-change">${c.from} ➔ ${c.to} <b class="${c.delta > 0 ? 'ss-up' : 'ss-down'}">${c.delta > 0 ? '+' : ''}${c.delta}</b></span>
         </div>`).join('');
-      body.innerHTML = `<div class="ss-list">${rows}</div>`;
+      html += `<div class="ss-list">${rows}</div>`;
     }
+    body.innerHTML = html;
     modal.classList.add('open');
   }
   document.getElementById('season-summary-continue').addEventListener('click', () => {

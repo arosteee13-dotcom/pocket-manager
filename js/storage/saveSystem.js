@@ -173,6 +173,7 @@
         squadState: runtime ? runtime.squadState : undefined,
         playerStats: runtime ? runtime.playerStats : undefined,
         ratings: runtime ? runtime.ratings : undefined,
+        trophies: runtime ? runtime.trophies : undefined,
         dorsals: runtime ? runtime.dorsals : undefined,
         staminaInjury: runtime ? runtime.staminaInjury : undefined
       }

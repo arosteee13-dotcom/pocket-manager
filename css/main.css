@@ -4234,3 +4234,36 @@ body {
 .season-summary-actions {
   padding: 0 16px 16px;
 }
+
+/* Vista de otro equipo desde la Tabla */
+.squad-view-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-card);
+  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+.squad-view-back:active { transform: scale(0.94); }
+.squad-view-back .icon { width: 20px; height: 20px; }
+
+/* Banner de título de liga en el resumen de temporada */
+.ss-trophy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(37, 99, 235, 0.12));
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+}

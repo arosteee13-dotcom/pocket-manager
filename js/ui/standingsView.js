@@ -201,7 +201,7 @@
       const dgStr = dg > 0 ? '+' + dg : String(dg);
       const user = team && userTeamId && team.id === userTeamId ? ' user' : '';
       return `
-        <div class="st-row ${zone}${user}">
+        <div class="st-row ${zone}${user}" data-team-id="${s.teamId}">
           <span class="st-c-pos"><i>${i + 1}</i></span>
           <span class="st-c-team">${team ? badgeHtml(team, 'st-badge') : ''}<span class="st-team-name">${team ? team.name : '—'}</span></span>
           <span class="st-c-num st-pts">${s.pts}</span>
@@ -309,6 +309,20 @@
     const modal = document.getElementById('standings-country-modal');
     const search = document.getElementById('standings-country-search');
     const list = document.getElementById('standings-country-list');
+
+    // Clic en un equipo de la clasificación -> ver su plantilla completa (solo lectura)
+    const tableEl = document.getElementById('st-table');
+    if (tableEl) {
+      tableEl.addEventListener('click', (e) => {
+        const row = e.target.closest('.st-row[data-team-id]');
+        if (!row) return;
+        const teamId = row.dataset.teamId;
+        if (window.PocketManager.renderSquadScreen) {
+          document.dispatchEvent(new CustomEvent('nav', { detail: 'screen-squad' }));
+          window.PocketManager.renderSquadScreen(teamId, false, true);
+        }
+      });
+    }
 
     if (trigger) {
       trigger.addEventListener('click', () => {

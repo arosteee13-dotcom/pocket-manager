@@ -74,8 +74,38 @@
     return changes;
   }
 
+  // Nombre del trofeo de liga según el país (para sumar al palmarés del campeón)
+  const LEAGUE_TROPHY_NAMES = { 'España': 'Primera División', 'Inglaterra': 'Premier League' };
+
+  function leagueTrophyNameFor(team) {
+    const country = window.PocketManager.db.getCountryData(team.id);
+    if (country) return LEAGUE_TROPHY_NAMES[country.country] || country.leagueName;
+    return 'Liga';
+  }
+
+  // Otorga el título de liga al campeón de la temporada y devuelve { team, trophyName, count }.
+  function awardLeagueTitle(season) {
+    if (!season || !season.standings) return null;
+    const list = window.PocketManager.season.sortedStandings(season);
+    if (!list || !list.length) return null;
+    const championId = list[0].teamId;
+    const champion = window.PocketManager.db.getTeamById(championId);
+    if (!champion) return null;
+    const trophyName = leagueTrophyNameFor(champion);
+    const trophies = champion.trophies || (champion.trophies = []);
+    let entry = trophies.find(t => t.name === trophyName);
+    if (entry) {
+      entry.count = (entry.count || 0) + 1;
+    } else {
+      entry = { name: trophyName, count: 1 };
+      trophies.push(entry);
+    }
+    return { team: champion, trophyName, count: entry.count };
+  }
+
   window.PocketManager.seasonEngine = {
     updatePlayerRatingsAtSeasonEnd,
-    avgRatingOf
+    avgRatingOf,
+    awardLeagueTitle
   };
 })();
