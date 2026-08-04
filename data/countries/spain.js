@@ -918,7 +918,7 @@ window.PocketManager.spainData = {
       ],
       players: [
         // Porteros
-        { id: "es1045", name: "Odysseas Vlachodimos", nick: "Vlachodimos", number: 1, flag: "🇬🇷", age: 32, stamina: 100, value: 3000000, ovr: 72, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "Newcastle", currentTeam: "esp_sevilla" } },
+        { id: "es1045", name: "Odysseas Vlachodimos", nick: "Vlachodimos", number: 1, flag: "🇬🇷", age: 32, stamina: 100, value: 3000000, ovr: 72, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_newcastle", currentTeam: "esp_sevilla" } },
         { id: "es1046", name: "Fran González", nick: "F. González", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 3000000, ovr: 56, pos: "POR", foot: "D", loan: null },
         // Defensas
         { id: "es1047", name: "Kike Salas", nick: "Kike", number: 4, flag: "🇪🇸", age: 24, stamina: 100, value: 14000000, ovr: 72, pos: "DFC", foot: "Z", loan: null },

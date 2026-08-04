@@ -117,10 +117,36 @@
       { pos: 'MC', x: 65, y: 35 },
       { pos: 'MI', x: 20, y: 30 },
       { pos: 'DC', x: 50, y: 11 }
+    ],
+    '3-4-2-1': [
+      { pos: 'POR', x: 50, y: 86 },
+      { pos: 'DFC', x: 75, y: 67 },
+      { pos: 'DFC', x: 50, y: 67 },
+      { pos: 'DFC', x: 25, y: 67 },
+      { pos: 'CAI', x: 16, y: 45 },
+      { pos: 'MCD', x: 38, y: 42 },
+      { pos: 'MC', x: 62, y: 42 },
+      { pos: 'CAD', x: 84, y: 45 },
+      { pos: 'MCO', x: 35, y: 20 },
+      { pos: 'MCO', x: 65, y: 20 },
+      { pos: 'DC', x: 50, y: 10 }
+    ],
+    '4-4-1-1': [
+      { pos: 'POR', x: 50, y: 86 },
+      { pos: 'LD', x: 80, y: 67 },
+      { pos: 'DFC', x: 61, y: 67 },
+      { pos: 'DFC', x: 39, y: 67 },
+      { pos: 'LI', x: 20, y: 67 },
+      { pos: 'MD', x: 80, y: 35 },
+      { pos: 'MC', x: 59, y: 42 },
+      { pos: 'MC', x: 41, y: 42 },
+      { pos: 'MI', x: 20, y: 35 },
+      { pos: 'MCO', x: 50, y: 18 },
+      { pos: 'DC', x: 50, y: 10 }
     ]
   };
 
-  const FORMATION_ORDER = ['3-4-3', '3-5-2', '4-3-3', '4-4-2', '4-2-3-1', '4-1-4-1', '5-3-2'];
+  const FORMATION_ORDER = ['3-4-3', '3-5-2', '3-4-2-1', '4-3-3', '4-4-2', '4-4-1-1', '4-2-3-1', '4-1-4-1', '5-3-2'];
 
   function getPosGroup(pos) {
     return POS_GROUPS[pos] || 'MED';
