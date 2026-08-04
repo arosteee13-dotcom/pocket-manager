@@ -19,6 +19,14 @@
     return 'Diestro';
   }
 
+  // Tags de listas del jugador: LT (transferible, naranja) y LC (cedible, lila).
+  function listTagsHtml(p) {
+    const tags = [];
+    if (p.transferListed) tags.push('<span class="list-tag lt">LT</span>');
+    if (p.loanListed) tags.push('<span class="list-tag lc">LC</span>');
+    return tags.join('');
+  }
+
   function staminaColor(st) {
     if (st >= 75) return '#22c55e';
     if (st >= 50) return '#f59e0b';
@@ -40,6 +48,21 @@
       if (dest) return dest;
     }
     return owner;
+  }
+
+  // El jugador puede subir/bajar entre el primer equipo y su filial.
+  // promote: el club del jugador es un filial del club del usuario (o el propio equipo del
+  //          usuario es un filial). demote: el club del jugador es el primer equipo del usuario.
+  function filialActionsFor(owner, player) {
+    const PCE = window.PocketManager.parentChildEngine;
+    const user = gameState.team;
+    if (!PCE || !user || !owner || !player) return { promote: false, demote: false };
+    if (player.loan && player.loan.isLoaned) return { promote: false, demote: false };
+    const ownerIsMyFilial = !!(owner.parentClubId && (owner.id === user.id || (user.farmTeamId && owner.id === user.farmTeamId)));
+    return {
+      promote: ownerIsMyFilial,
+      demote: !!(owner.farmTeamId && owner.id === user.id)
+    };
   }
 
   // Club del que viene cedido el jugador (padre de la cesión)
@@ -70,6 +93,7 @@
     const isMine = !!(gameState.team && owner.id === gameState.team.id);
     const isLoanedOutP = isMine && window.PocketManager.isLoanedOut && window.PocketManager.isLoanedOut(owner, p);
     const isLoanedInP = isMine && window.PocketManager.isLoanedIn && window.PocketManager.isLoanedIn(owner, p);
+    const filial = filialActionsFor(owner, p);
 
     let actions;
     if (isMine) {
@@ -84,13 +108,24 @@
           </div>`;
       } else {
         const inFirst = window.PocketManager.isPlayerInFirstTeam(owner, p.id);
+        const filialBtns = filial.demote
+          ? `<div class="pm-squad-actions pm-filial-actions"><button class="pm-list-btn" id="pm-demote">BAJAR AL FILIAL</button></div>`
+          : (filial.promote
+            ? `<div class="pm-squad-actions pm-filial-actions"><button class="pm-list-btn" id="pm-promote">ASCENDER AL PRIMER EQUIPO</button></div>`
+            : '');
         actions = `
           <div class="pm-squad-actions">
             <button class="pm-list-btn transfer${p.transferListed ? ' active' : ''}" id="pm-transfer">TRANSFERIBLE</button>
             <button class="pm-list-btn ced${p.loanListed ? ' active' : ''}" id="pm-ced">CEDIBLE</button>
             <button class="btn pm-role-btn" id="pm-role">${inFirst ? 'BAJAR A RESERVAS' : 'SUBIR AL PRIMER EQUIPO'}</button>
-          </div>`;
+          </div>
+          ${filialBtns}`;
       }
+    } else if (filial.promote) {
+      // Jugador del filial de tu club (visto desde el subapartado FILIAL).
+      actions = `
+        <p class="pm-note">Jugador del filial de tu club.</p>
+        <div class="pm-squad-actions pm-filial-actions"><button class="pm-list-btn" id="pm-promote">ASCENDER AL PRIMER EQUIPO</button></div>`;
     } else {
       actions = `
         <button class="btn btn-primary" id="pm-offer">REALIZAR OFERTA DE TRASPASO</button>
@@ -100,7 +135,7 @@
     return `
       <div class="pm-head">
         <span class="pm-dorsal">${hasNum ? p.number : ''}</span>
-        <span class="pm-title">${p.flag ? p.flag + ' ' : ''}${p.name}</span>
+        <span class="pm-title">${p.flag ? p.flag + ' ' : ''}${p.name} ${listTagsHtml(p)}</span>
       </div>
 
       <div class="pm-stats">
@@ -154,6 +189,12 @@
 
     const roleBtn = document.getElementById('pm-role');
     if (roleBtn) roleBtn.addEventListener('click', toggleSection);
+
+    const promoteBtn = document.getElementById('pm-promote');
+    if (promoteBtn) promoteBtn.addEventListener('click', promoteToFirstTeam);
+
+    const demoteBtn = document.getElementById('pm-demote');
+    if (demoteBtn) demoteBtn.addEventListener('click', demoteToFilial);
 
     const offerCancel = document.getElementById('pm-offer-cancel');
     if (offerCancel) offerCancel.addEventListener('click', () => { state.offerOpen = false; render(); });
@@ -251,6 +292,14 @@
     const p = state.player;
     p.loanListed = !p.loanListed;
     showToast(p.loanListed ? `${p.name} está en la lista de cedibles` : `${p.name} ya no está en la lista de cedibles`);
+    // Al marcar como CEDIBLE, la CPU puede pedir la cesión al momento.
+    if (p.loanListed && window.PocketManager.generateLoanOffer) {
+      const offer = window.PocketManager.generateLoanOffer(p);
+      if (offer) {
+        showToast('📨 Propuesta de cesión recibida');
+        if (window.PocketManager.updateInboxBadge) window.PocketManager.updateInboxBadge();
+      }
+    }
     render();
   }
 
@@ -269,6 +318,36 @@
     const name = state.player.name;
     closePlayerModal();
     showToast(`${name} ahora está en ${inFirst ? 'el equipo de reservas' : 'el primer equipo'}`);
+  }
+
+  // Sube al jugador del filial al primer equipo (permanente).
+  function promoteToFirstTeam() {
+    const PCE = window.PocketManager.parentChildEngine;
+    if (!PCE) return;
+    const res = PCE.promote(state.owner, state.player.id);
+    if (res && res.ok) {
+      const name = state.player.name;
+      closePlayerModal();
+      showToast(`${name} → ${res.to}`);
+      refreshAfterChange();
+    } else {
+      showToast((res && res.reason) || 'No se pudo subir al jugador.');
+    }
+  }
+
+  // Baja al jugador del primer equipo al filial (permanente).
+  function demoteToFilial() {
+    const PCE = window.PocketManager.parentChildEngine;
+    if (!PCE) return;
+    const res = PCE.demote(state.owner, state.player.id);
+    if (res && res.ok) {
+      const name = state.player.name;
+      closePlayerModal();
+      showToast(`${name} → ${res.to}`);
+      refreshAfterChange();
+    } else {
+      showToast((res && res.reason) || 'No se pudo bajar al jugador.');
+    }
   }
 
   function refreshAfterChange() {

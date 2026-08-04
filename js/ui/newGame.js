@@ -235,7 +235,10 @@ function teamLogoHtml(team) {
 function renderLeagueTeams() {
   const listEl = document.getElementById('st-team-list');
   const countEl = document.getElementById('st-team-count');
-  const teams = (selectedCountry ? db.getTeamsByCountry(selectedCountry) : [])
+  // Equipos de la liga seleccionada del país (p. ej. LaLiga o LaLiga Hypermotion).
+  const comp = (selectedCountry ? db.getCompetitions(selectedCountry) : [])
+    .find(c => c.type === 'league' && c.id === selectedLeague);
+  const teams = (comp && comp.teams ? comp.teams : [])
     .slice()
     .sort((a, b) => {
       const ra = Math.round(window.PocketManager.getTeamRating(a));
@@ -386,7 +389,7 @@ function renderSelectTeam() {
   resetTeamBox();
 
   const leaguesEl = document.getElementById('st-leagues');
-  const competitions = selectedCountry ? db.getCompetitions(selectedCountry) : [];
+  const competitions = (selectedCountry ? db.getCompetitions(selectedCountry) : []).filter(c => c.type !== 'cup');
   if (!selectedLeague && competitions.length) selectedLeague = competitions[0].id;
   leaguesEl.innerHTML = competitions.map(c => `
     <button class="st-league-pill${selectedLeague === c.id ? ' active' : ''}" data-league-id="${c.id}">${c.name}</button>`).join('');

@@ -6,7 +6,7 @@
   const getPlayerStats = window.PocketManager.getPlayerStats;
 
   const COUNTRY_FLAG_OVERRIDES = { 'Inglaterra': 'GB-ENG' };
-  const state = { country: null, competitionId: null, group: null, topOpen: null };
+  const state = { country: null, competitionId: null, group: null, round: null, topOpen: null };
   let bound = false;
 
   function normalize(s) {
@@ -49,6 +49,48 @@
     return `<span class="${cls}" style="background:linear-gradient(135deg, ${team.primaryColor}, ${team.secondaryColor || team.primaryColor})">${team.shortName}</span>`;
   }
 
+  // Etiqueta corta de una ronda de copa: 1/N se mantiene, 1/8 -> Octavos,
+  // Cuartos/Semifinal/Final normalizados; el resto conserva su nombre oficial.
+  function roundLabel(name) {
+    const n = String(name || '');
+    if (n === 'Final') return 'Final';
+    if (/semifinal/i.test(n)) return 'Semifinal';
+    if (/cuartos/i.test(n)) return 'Cuartos';
+    if (n === 'Treintaidosavos de final') return '1/32';
+    if (n === 'Dieciseisavos de final') return '1/16';
+    const m = n.match(/^1\/(\d+)$/);
+    if (m) {
+      if (Number(m[1]) === 8) return 'Octavos';
+      return n; // 1/16, 1/32, 1/64, 1/128…
+    }
+    return n; // Ronda 1-5, Fase previa, Grupo N/M, …
+  }
+
+  // Rondas de una copa para mostrar en el subapartado: se omiten las fases previas de la
+  // Copa del Rey (clasificatorias de divisiones) y se agrupan las dos piernas de la
+  // Semifinal en una sola entrada. Devuelve [{ label, rounds: [round...] }].
+  function displayRounds(cup) {
+    const rounds = (cup && cup.rounds) || [];
+    const out = [];
+    for (let i = 0; i < rounds.length; i++) {
+      const r = rounds[i];
+      if (/^fase previa/i.test(String(r.round || ''))) continue;
+      if (/^semifinal/i.test(String(r.round || ''))) {
+        const legs = [r];
+        let j = i + 1;
+        while (j < rounds.length && /^semifinal/i.test(String(rounds[j].round || ''))) {
+          legs.push(rounds[j]);
+          j++;
+        }
+        out.push({ label: 'Semifinal', rounds: legs });
+        i = j - 1;
+        continue;
+      }
+      out.push({ label: roundLabel(r.round), rounds: [r] });
+    }
+    return out;
+  }
+
   function avatarHtml(p) {
     const hasNum = p.number !== undefined && p.number !== null && p.number !== '';
     return hasNum ? `<b>${p.number}</b>` : '<i></i>';
@@ -79,6 +121,9 @@
   // Clasificación real de la competición (todas las ligas se simulan en paralelo).
   function seasonFor(comp) {
     if (!comp) return null;
+    if (comp.type === 'cup') {
+      return gameState.seasons ? (gameState.seasons[comp.id] || null) : null;
+    }
     const saved = gameState.seasons ? gameState.seasons[comp.id] : null;
     if (saved) return saved;
     return comp.teams.length ? window.PocketManager.season.initSeason(comp.teams[0]) : null;
@@ -91,7 +136,9 @@
     europa: { label: 'Europa League', color: '#2BD396' },
     conference: { label: 'Fase Previa Conference League', color: '#5B97E2' },
     permanencia: { label: 'Permanencia', color: '#B0B0B0' },
-    descenso: { label: 'Descenso', color: '#EF3A4B' }
+    descenso: { label: 'Descenso', color: '#EF3A4B' },
+    ascenso: { label: 'Ascenso Directo', color: '#1B7A36' },
+    playoffsAscenso: { label: 'Playoffs de Ascenso', color: '#8BC57F' }
   };
 
   // La Premier League no tiene plaza de Conference League (su permanencia empieza en el 6).
@@ -120,19 +167,34 @@
     return 'permanencia';
   }
 
+  // Zonas de LaLiga Hypermotion (22 equipos): 1-2 ascenso, 3-6 playoffs, 7-18 permanencia, 19-22 descenso.
+  function hypermotionZoneOf(index, n) {
+    if (!n || n <= 0) return 'permanencia';
+    if (index < 2) return 'ascenso';
+    if (index < 6) return 'playoffsAscenso';
+    if (index >= n - 4) return 'descenso';
+    return 'permanencia';
+  }
+
+  // Zona por competición: Hypermotion usa sus propias zonas; el resto el esquema europeo.
+  function zoneOfComp(comp, index, n) {
+    if (comp && String(comp.id || '').indexOf('hypermotion') !== -1) return hypermotionZoneOf(index, n);
+    return zoneOf(index, n, hasConferenceFor(comp));
+  }
+
   // Zonas presentes en una liga de `n` equipos, en orden canónico (para la leyenda).
-  function zonesFor(n, hasConference) {
-    const order = ['champ', 'champions', 'europa', 'conference', 'permanencia', 'descenso'];
+  function zonesFor(n, comp) {
+    const order = ['champ', 'champions', 'europa', 'conference', 'ascenso', 'playoffsAscenso', 'permanencia', 'descenso'];
     const present = new Set();
     if (n && n > 0) {
-      for (let i = 0; i < n; i++) present.add(zoneOf(i, n, hasConference));
+      for (let i = 0; i < n; i++) present.add(zoneOfComp(comp, i, n));
     }
     return order.filter(z => present.has(z));
   }
 
   // Leyenda dinámica: solo las zonas que aplican a la liga seleccionada.
-  function legendHtml(n, hasConference) {
-    const zones = zonesFor(n, hasConference);
+  function legendHtml(n, comp) {
+    const zones = zonesFor(n, comp);
     if (!zones.length) return '';
     return `<div class="st-legend">${zones.map(z => {
       const meta = ZONE_META[z] || { label: z, color: '#B0B0B0' };
@@ -239,7 +301,7 @@
       </div>`;
     const body = rows.map((s, i) => {
       const team = db.getTeamById(s.teamId);
-      const zone = zoneOf(i, n, hasConferenceFor(comp));
+      const zone = zoneOfComp(comp, i, n);
       const dg = (s.gf || 0) - (s.gc || 0);
       const dgStr = dg > 0 ? '+' + dg : String(dg);
       const user = team && userTeamId && team.id === userTeamId ? ' user' : '';
@@ -260,6 +322,42 @@
     return head + body;
   }
 
+  // Panel de una competición de copa: rondas con resultados y campeón (en vez de tabla).
+  function cupPanelHtml(comp) {
+    const cup = gameState.seasons[comp.id];
+    if (!cup || !cup.rounds) return '<p class="st-empty">Sin datos.</p>';
+    const nameOf = (id) => { const t = db.getTeamById(id); return t ? t.shortName : '—'; };
+    const matchLine = (m) => {
+      const home = nameOf(m.homeId), away = nameOf(m.awayId);
+      if (!m.played) {
+        return `<div class="cup-match"><span class="cup-mh">${home}</span><span class="cup-vs">vs</span><span class="cup-ma">${away}</span></div>`;
+      }
+      const score = `${m.homeGoals} - ${m.awayGoals}`;
+      const pen = m.penalties ? `<small class="cup-note">pen ${m.penalties.home}-${m.penalties.away}</small>` : '';
+      const extra = m.etGoals ? `<small class="cup-note">prórr.</small>` : '';
+      const leg = m.leg ? `<small class="cup-note">${m.leg === 1 ? 'ida' : 'vuelta'}</small>` : '';
+      const homeW = m.winnerId === m.homeId ? ' cup-win' : '';
+      const awayW = m.winnerId === m.awayId ? ' cup-win' : '';
+      return `<div class="cup-match">
+        <span class="cup-mh${homeW}">${home}</span>
+        <span class="cup-score">${score}${extra}${pen}${leg}</span>
+        <span class="cup-ma${awayW}">${away}</span>
+      </div>`;
+    };
+    const display = displayRounds(cup);
+    const list = (state.round !== null && display[state.round]) ? [display[state.round]] : display;
+    const rounds = list.map(d => {
+      const pending = !d.rounds.every(x => x.completed);
+      return `
+      <div class="cup-round">
+        <div class="cup-round-title">${d.label}${pending ? ' · pendiente' : ''}</div>
+        ${d.rounds.map(r => r.matches.map(matchLine).join('')).join('')}
+      </div>`;
+    }).join('');
+    const winner = cup.winner ? `<div class="cup-winner">🏆 Campeón: ${nameOf(cup.winner)}</div>` : '';
+    return rounds + winner;
+  }
+
   function renderStandings() {
     if (!state.country || !competitionsOf(state.country).length) {
       state.country = state.country || userCountry();
@@ -268,6 +366,7 @@
       const comps = competitionsOf(state.country);
       state.competitionId = comps.length ? comps[0].id : null;
       state.group = null;
+      state.round = null;
       state.topOpen = null;
     }
     const comp = currentCompetition();
@@ -291,18 +390,30 @@
 
     const groupsEl = document.getElementById('st-groups');
     if (groupsEl) {
-      const groups = comp && comp.groups;
-      groupsEl.style.display = groups && groups.length ? 'flex' : 'none';
-      if (groups && groups.length) {
-        groupsEl.innerHTML = groups.map(g => `
-          <button class="subtab${state.group === g.id ? ' active' : ''}" data-group="${g.id}">${g.name}</button>`).join('');
+      const cup = (comp && comp.type === 'cup') ? gameState.seasons[comp.id] : null;
+      const rounds = (cup && cup.rounds && cup.rounds.length) ? displayRounds(cup) : null;
+      if (rounds) {
+        // Subapartado de rondas en las copas: un chip por ronda (por defecto la primera).
+        if (state.round === null || state.round < 0 || state.round >= rounds.length) state.round = 0;
+        groupsEl.style.display = 'flex';
+        groupsEl.innerHTML = rounds.map((d, i) =>
+          `<button class="subtab${state.round === i ? ' active' : ''}" data-round="${i}">${d.label}</button>`
+        ).join('');
+      } else {
+        const groups = comp && comp.groups;
+        groupsEl.style.display = groups && groups.length ? 'flex' : 'none';
+        if (groups && groups.length) {
+          groupsEl.innerHTML = groups.map(g => `
+            <button class="subtab${state.group === g.id ? ' active' : ''}" data-group="${g.id}">${g.name}</button>`).join('');
+        }
       }
     }
 
     const leadersEl = document.getElementById('st-leaders');
     const topS = document.getElementById('st-top10-scorers');
     const topA = document.getElementById('st-top10-assists');
-    if (comp) {
+    const isCup = comp && comp.type === 'cup';
+    if (comp && !isCup) {
       const ld = leaderData(comp);
       if (leadersEl) {
         leadersEl.innerHTML = leaderCard('MÁXIMO GOLEADOR', '⚽', ld.scorer, 'goals', 'scorers') +
@@ -323,11 +434,13 @@
     }
 
     const tableEl = document.getElementById('st-table');
-    if (tableEl) tableEl.innerHTML = comp ? tableHtml(comp) : '<p class="st-empty">Sin competiciones.</p>';
+    if (tableEl) {
+      tableEl.innerHTML = isCup ? cupPanelHtml(comp) : (comp ? tableHtml(comp) : '<p class="st-empty">Sin competiciones.</p>');
+    }
 
     // Leyenda dinámica bajo la tabla (solo las zonas que aplican a esta liga)
     const legendEl = document.getElementById('st-legend');
-    if (legendEl) legendEl.innerHTML = comp ? legendHtml(comp.teams ? comp.teams.length : 0, hasConferenceFor(comp)) : '';
+    if (legendEl) legendEl.innerHTML = (!isCup && comp) ? legendHtml(comp.teams ? comp.teams.length : 0, comp) : '';
 
     bind();
   }
@@ -388,6 +501,7 @@
       state.country = opt.dataset.country;
       state.competitionId = null;
       state.group = null;
+      state.round = null;
       state.topOpen = null;
       modal.classList.remove('open');
       renderStandings();
@@ -398,6 +512,7 @@
       const btn = e.target.closest('.st-comp');
       if (!btn) return;
       state.competitionId = btn.dataset.comp;
+      state.round = null;
       state.topOpen = null;
       renderStandings();
     });
@@ -407,6 +522,12 @@
       const pill = e.target.closest('[data-group]');
       if (!pill) return;
       state.group = pill.dataset.group;
+      renderStandings();
+    });
+    groupsEl.addEventListener('click', (e) => {
+      const pill = e.target.closest('[data-round]');
+      if (!pill) return;
+      state.round = Number(pill.dataset.round);
       renderStandings();
     });
 

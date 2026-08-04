@@ -10,12 +10,15 @@
   }
 
   function formDots(list) {
-    if (!list.length) return '<span class="dash-form-empty">Sin partidos disputados</span>';
     const map = { W: ['dash-form-w', 'V'], E: ['dash-form-d', 'E'], L: ['dash-form-l', 'D'] };
-    return list.map(r => {
+    if (!list.length) return '<span class="dash-form-empty">Sin partidos disputados</span>';
+    const last5 = list.slice(-5);
+    const chips = last5.map(r => {
       const [cls, label] = map[r] || ['dash-form-w', 'V'];
-      return `<span class="dash-form-dot ${cls}">${label}</span>`;
-    }).join('');
+      return `<span class="dash-form-chip ${cls}">[${label}]</span>`;
+    });
+    while (chips.length < 5) chips.unshift('<span class="dash-form-slot">[·]</span>');
+    return chips.join('');
   }
 
   function newsFor(team) {
@@ -23,6 +26,19 @@
     if (form.length && form[form.length - 1] === 'W') return '🎉 ¡Gran victoria! La plantilla está en racha de cara al próximo encuentro.';
     if (form.length && form[form.length - 1] === 'L') return '📉 Derrota en el último partido. El cuerpo técnico trabaja para recuperar sensaciones.';
     return '📋 Plantilla lista para el próximo encuentro.';
+  }
+
+  function compLabel(f) {
+    if (f.compType === 'league') return 'Liga';
+    if (f.compId === 'copa_del_rey') return 'Copa del Rey';
+    if (f.compId === 'supercopa_de_espana') return 'Supercopa';
+    return f.compName;
+  }
+
+  function compCls(f) {
+    if (f.compType === 'league') return 'dash-comp-liga';
+    if (f.compId === 'copa_del_rey') return 'dash-comp-copa';
+    return 'dash-comp-super';
   }
 
   function renderDashboard() {
@@ -37,18 +53,18 @@
 
     if (!gameState.season) gameState.season = season.initSeason(team);
     const se = gameState.season;
+    const calendar = window.PocketManager.calendar;
 
-    const fx = season.nextFixture(se, team.id);
-    if (!fx) {
+    // El próximo partido real: liga, Copa del Rey, Supercopa… lo que toque.
+    const next = calendar && calendar.nextUserFixture ? calendar.nextUserFixture(team.id) : null;
+    if (!next) {
       root.innerHTML = '<p class="dash-empty">Temporada completada. ¡Enhorabuena!</p>';
       return;
     }
 
-    const country = db.getCountryData(team.id);
-    const leagueName = country ? country.leagueName : 'Liga';
-    const rivalId = fx.match.homeId === team.id ? fx.match.awayId : fx.match.homeId;
-    const rival = db.getTeamById(rivalId);
-    const localVisitante = fx.isHome ? 'Local' : 'Visitante';
+    const rival = db.getTeamById(next.match.homeId === team.id ? next.match.awayId : next.match.homeId);
+    const localVisitante = next.isHome ? 'Local' : 'Visitante';
+    const slotLabel = calendar && calendar.SLOT_LABELS ? (calendar.SLOT_LABELS[next.slot] || '') : '';
 
     const standings = season.sortedStandings(se);
     const pos = season.positionOf(se, team.id);
@@ -66,13 +82,13 @@
             ${rival ? badgeHtml(rival, 'dash-badge dash-badge-away') : ''}
           </div>
           <div class="dash-next-names">
-            <span class="dash-next-name">${team.shortName}</span>
-            <span class="dash-next-name">${rival ? rival.shortName : '—'}</span>
+            <span class="dash-next-name">${team.name}</span>
+            <span class="dash-next-name">${rival ? rival.name : '—'}</span>
           </div>
           <div class="dash-next-meta">
-            <span class="dash-pill">${leagueName}</span>
-            <button class="dash-pill dash-pill-link" data-action="calendar">Jornada ${fx.jornada}</button>
-            <span class="dash-pill ${fx.isHome ? 'dash-pill-home' : 'dash-pill-away'}">${localVisitante}</span>
+            <span class="dash-pill ${compCls(next)}">${compLabel(next)}</span>
+            <button class="dash-pill dash-pill-link" data-action="calendar">Semana ${next.week} · Slot ${next.slot} (${slotLabel})</button>
+            <span class="dash-pill ${next.isHome ? 'dash-pill-home' : 'dash-pill-away'}">${localVisitante}</span>
           </div>
           <span class="dash-cal-link" data-action="calendar">Ver Calendario ➔</span>
           <div class="dash-next-actions">
@@ -111,22 +127,28 @@
         </div>
       </div>`;
 
+    if (window.PocketManager.updateInboxBadge) window.PocketManager.updateInboxBadge();
+
     if (!bound) {
       bound = true;
       root.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         const team = gameState.team;
-        const se = gameState.season;
-        if (!team || !se) return;
-        const f = season.nextFixture(se, team.id);
-        if (!f) return;
-        if (btn.dataset.action === 'play') {
-          document.dispatchEvent(new CustomEvent('start-match', { detail: { match: f.match, jornada: f.jornada } }));
-        } else if (btn.dataset.action === 'sim') {
-          document.dispatchEvent(new CustomEvent('simulate-match', { detail: { match: f.match, jornada: f.jornada } }));
-        } else if (btn.dataset.action === 'calendar') {
-          if (window.PocketManager.openCalendarAt) window.PocketManager.openCalendarAt(f.jornada);
+        if (!team) return;
+        const calendar = window.PocketManager.calendar;
+        const next = calendar && calendar.nextUserFixture ? calendar.nextUserFixture(team.id) : null;
+        if (btn.dataset.action === 'play' || btn.dataset.action === 'sim') {
+          if (next) {
+            const ev = btn.dataset.action === 'play' ? 'start-match' : 'simulate-match';
+            document.dispatchEvent(new CustomEvent(ev, {
+              detail: { match: next.match, week: next.week, compId: next.compId, jornada: next.jornada }
+            }));
+          }
+          return;
+        }
+        if (btn.dataset.action === 'calendar') {
+          if (window.PocketManager.openCalendarAt && next) window.PocketManager.openCalendarAt(next.week);
         }
       });
     }

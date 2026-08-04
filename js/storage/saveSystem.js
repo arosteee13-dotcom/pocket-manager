@@ -169,6 +169,8 @@
         season: gs.season || null,
         seasons: gs.seasons || {},
         transfers: gs.transfers || [],
+        callUpLog: gs.callUpLog || [],
+        callUpsWeek: gs._callUpsWeek || 0,
         formation: runtime ? runtime.formation : undefined,
         style: runtime ? runtime.style : undefined,
         squadState: runtime ? runtime.squadState : undefined,
@@ -176,7 +178,10 @@
         ratings: runtime ? runtime.ratings : undefined,
         trophies: runtime ? runtime.trophies : undefined,
         dorsals: runtime ? runtime.dorsals : undefined,
-        staminaInjury: runtime ? runtime.staminaInjury : undefined
+        staminaInjury: runtime ? runtime.staminaInjury : undefined,
+        inbox: gs.inbox || { seen: [], offers: [] },
+        academy: gs.academy || null,
+        englandShield: gs.englandShield || null
       }
     };
   }
@@ -233,6 +238,11 @@
     S.gameState.season = gsd.season || null;
     S.gameState.seasons = gsd.seasons || {};
     S.gameState.transfers = gsd.transfers || [];
+    S.gameState.callUpLog = gsd.callUpLog || [];
+    S.gameState._callUpsWeek = gsd.callUpsWeek || 0;
+    S.gameState.inbox = gsd.inbox || { seen: [], offers: [] };
+    S.gameState.academy = gsd.academy || null;
+    S.gameState.englandShield = gsd.englandShield || null;
     setActiveSaveId(data.saveId);
 
     if (S.restoreRuntime) S.restoreRuntime(team, gsd);

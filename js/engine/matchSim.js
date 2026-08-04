@@ -78,7 +78,8 @@
   }
 
   class MatchSim {
-    constructor(homeTeam, awayTeam, onMinute) {
+    constructor(homeTeam, awayTeam, onMinute, opts) {
+      this.recordStats = !(opts && opts.recordStats === false);
       this.homeTeam = homeTeam;
       this.awayTeam = awayTeam;
       this.onMinute = onMinute || function () {};
@@ -115,6 +116,12 @@
       this.scorersList[awayTeam.id] = [];
       for (const t of [homeTeam, awayTeam]) {
         for (const p of t.players) delete p._sentOff;
+      }
+      // Rotaciones de la CPU antes del partido: si un titular está bajo de energía o hay
+      // doble jornada, la IA rota 1-2 jugadores por suplentes de su misma posición.
+      if (window.PocketManager.aiEngine && window.PocketManager.aiEngine.prepareCpuLineup) {
+        try { window.PocketManager.aiEngine.prepareCpuLineup(homeTeam); } catch (e) {}
+        try { window.PocketManager.aiEngine.prepareCpuLineup(awayTeam); } catch (e) {}
       }
       this._computeChances();
     }
@@ -188,7 +195,7 @@
           this._addEvent(side.id, ev.player.id, -0.5);
         }
       }
-      if (ev.player && window.PocketManager.getPlayerStats) {
+      if (this.recordStats && ev.player && window.PocketManager.getPlayerStats) {
         const s = window.PocketManager.getPlayerStats(ev.player);
         if (!s) return;
         if (ev.type === 'goal') s.goals++;
@@ -288,6 +295,7 @@
     }
 
     _recordRatings() {
+      if (!this.recordStats) return;
       const recordTeam = (team) => {
         const starters = startersOf(team);
         for (const p of starters) {
@@ -361,8 +369,8 @@
   }
 
   // Simulación instantánea (opción SIMULAR): ejecuta los 90 minutos al momento.
-  function simulateInstant(homeTeam, awayTeam) {
-    const sim = new MatchSim(homeTeam, awayTeam, function () {});
+  function simulateInstant(homeTeam, awayTeam, opts) {
+    const sim = new MatchSim(homeTeam, awayTeam, function () {}, opts || {});
     while (sim.minute < 90) {
       const minuteEvents = sim.stepMinute();
       for (const ev of minuteEvents) {

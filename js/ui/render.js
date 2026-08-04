@@ -531,18 +531,24 @@ function playerRowHtml(team, player, isStarter, isSelected, opts = {}) {
   const group = getPosGroup(player.pos).toLowerCase();
   const foot = player.foot || 'D';
   const cedTag = opts.ced ? '<span class="ced-tag">CED</span>' : '';
+  const listTags = [];
+  if (player.transferListed) listTags.push('<span class="list-tag lt">LT</span>');
+  if (player.loanListed) listTags.push('<span class="list-tag lc">LC</span>');
+  const listTagsHtml = listTags.join('');
   const destDorsal = player.number !== undefined && player.number !== null && player.number !== '' ? ` · #${player.number}` : '';
   const destTag = opts.destination ? `<span class="ced-tag dest">CED → ${opts.destination}${destDorsal}</span>` : '';
+  const filialClass = opts.filial ? ' filial-card' : '';
+  const idAttr = opts.filial ? `data-filial-player-id="${player.id}"` : `data-player-id="${player.id}"`;
 
   return `
-    <button class="player-card${selectedClass}${injClass}" data-player-id="${player.id}">
+    <button class="player-card${selectedClass}${injClass}${filialClass}" ${idAttr}>
       <span class="player-avatar">
         ${playerDorsalHtml(player)}
         <span class="avatar-check">${ICON_CHECK}</span>
         ${statusBadgeHtml(player)}
       </span>
       <span class="player-info">
-        <span class="player-name">${player.flag ? player.flag + ' ' : ''}${player.name} ${cedTag}</span>
+        <span class="player-name">${player.flag ? player.flag + ' ' : ''}${player.name} ${listTagsHtml}${cedTag}</span>
         <span class="player-meta"><span class="pos-pill ${group}">${player.pos}</span> · ${player.age} años · ${foot}</span>
         ${destTag ? `<span class="player-dest">${destTag}</span>` : ''}
       </span>
@@ -654,6 +660,17 @@ function buildList(team, subTab, statTab) {
     let html = `<h3 class="squad-section-title">Cedidos fuera<span class="count">${loans.length}</span></h3><div class="squad-group">`;
     if (!loans.length) html += '<p class="squad-empty">Sin jugadores cedidos.</p>';
     loans.forEach(({ player: p, destination }) => { html += playerRowHtml(team, p, false, false, { destination }); });
+    return html + '</div>';
+  }
+
+  // FILIAL: plantilla del club filial con opción de subir jugadores al primer equipo.
+  if (sub === 'filial') {
+    const farm = team && team.farmTeamId ? db.getTeamById(team.farmTeamId) : null;
+    if (!farm) return '<p class="squad-empty">Este club no tiene filial.</p>';
+    if (view === 'stats') return buildStatsList(farm, farm.players);
+    let html = `<h3 class="squad-section-title">${farm.name}<span class="count">${farm.players.length}</span></h3><div class="squad-group">`;
+    if (!farm.players.length) html += '<p class="squad-empty">Sin jugadores en el filial.</p>';
+    farm.players.forEach(p => { html += playerRowHtml(farm, p, false, false, { filial: true }); });
     return html + '</div>';
   }
 
@@ -1073,9 +1090,7 @@ function bindClubTabs(team) {
     if (!sub) return;
     activeSubTab = sub.dataset.subtab;
     subtabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s === sub));
-    const statTabsEl = document.getElementById('squad-stat-tabs');
-    if (statTabsEl) statTabsEl.style.display = 'flex';
-    updateDorsalesTabVisibility();
+    updateFilialTabVisibility();
     const listEl = document.getElementById('squad-list');
     if (listEl) listEl.innerHTML = buildList(squadTeam(), activeSubTab, activeStatTab);
   });
@@ -1137,7 +1152,22 @@ function setSquadViewReadonly(readonly) {
 // El botón DORSALES solo tiene sentido en PRIMER EQUIPO / RESERVAS (no en CEDIDOS)
 function updateDorsalesTabVisibility() {
   const el = document.getElementById('squad-stat-dorsales');
-  if (el) el.style.display = (activeSubTab === 'cedidos') ? 'none' : '';
+  if (el) el.style.display = (activeSubTab === 'cedidos' || activeSubTab === 'filial') ? 'none' : '';
+}
+
+// ¿Se puede gestionar el filial desde este club? (el equipo del usuario con farmTeamId)
+function canManageFilial(team) {
+  const user = currentTeam();
+  return !!(team && team.farmTeamId && user && team.id === user.id);
+}
+
+// Muestra/oculta el subapartado FILIAL (solo para el club del usuario con filial).
+function updateFilialTabVisibility() {
+  const el = document.getElementById('squad-subtab-filial');
+  if (el) el.style.display = canManageFilial(squadTeam()) ? '' : 'none';
+  const statTabsEl = document.getElementById('squad-stat-tabs');
+  if (statTabsEl) statTabsEl.style.display = 'flex';
+  updateDorsalesTabVisibility();
 }
 
 // Registra (una sola vez) la selección de opción y cierre de los modales de formación/estilo.
@@ -1224,6 +1254,27 @@ function bindDorsalPicker() {
   });
 }
 
+function handleAcademyAction(team, action, youthId) {
+  const academy = window.PocketManager.academyEngine;
+  if (!academy || !youthId) return;
+  if (action === 'promote') {
+    const res = academy.promoteYouth(team.id, youthId);
+    if (res && res.ok) {
+      showToast(`¡${res.player.name} promocionado a Reservas!`);
+    } else {
+      showToast((res && res.reason) || 'No se pudo promocionar');
+      return;
+    }
+  } else if (action === 'discard') {
+    const res = academy.discardYouth(team.id, youthId);
+    if (res && res.ok) showToast(`${res.name} descartado`);
+  }
+  renderAcademy(team);
+  // Si están en la pestaña Plantilla, refrescar el listado (el promocionado aparece en Reservas).
+  const listEl = document.getElementById('squad-list');
+  if (listEl && activeClubTab === 'plantilla') listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
+}
+
 function bindSquadEvents(team) {
   const section = document.getElementById('screen-squad');
   if (!section || squadEventsBound) return;
@@ -1233,10 +1284,26 @@ function bindSquadEvents(team) {
     const team = squadTeam();
     const readonly = squadIsReadOnly();
 
+    const academyBtn = e.target.closest('[data-academy-action]');
+    if (academyBtn) {
+      if (readonly) { showToast('Vista de solo lectura'); return; }
+      handleAcademyAction(team, academyBtn.dataset.academyAction, academyBtn.dataset.youth);
+      return;
+    }
+
     const dorsalRow = e.target.closest('.dorsal-row');
     if (dorsalRow) {
       if (readonly) { showToast('Vista de solo lectura'); return; }
       openDorsalPicker(team, dorsalRow.dataset.playerId);
+      return;
+    }
+
+    const filialCard = e.target.closest('.filial-card');
+    if (filialCard) {
+      const farm = team && team.farmTeamId ? db.getTeamById(team.farmTeamId) : null;
+      if (!farm) return;
+      const p = farm.players.find(x => x.id === filialCard.dataset.filialPlayerId);
+      if (p && window.PocketManager.openPlayerModal) window.PocketManager.openPlayerModal(p, farm);
       return;
     }
 
@@ -1267,6 +1334,38 @@ function bindSquadEvents(team) {
       rebuildUi(team);
     }
   });
+}
+
+function renderAcademy(team) {
+  const listEl = document.getElementById('academy-list');
+  if (!listEl) return;
+  const academy = window.PocketManager.academyEngine;
+  if (!academy || !academy.academyList) {
+    listEl.innerHTML = '';
+    return;
+  }
+  const list = academy.academyList();
+  if (!list.length) {
+    listEl.innerHTML = '<p class="academy-empty">Sin canteranos disponibles. Llegarán en la Semana 20 (Enero).</p>';
+    return;
+  }
+  listEl.innerHTML = list.map(y => `
+    <div class="academy-card" data-youth="${y.id}">
+      <div class="academy-head">
+        <span class="academy-avatar">${y.flag || '🇪🇸'}</span>
+        <div>
+          <div class="academy-name">${y.name}</div>
+          <div class="academy-meta"><span class="pos-pill ${getPosGroup(y.pos).toLowerCase()}">${y.pos}</span> · ${y.age} años</div>
+        </div>
+        <span class="academy-pot ${academy.potentialCls(y.potential)}">${academy.potentialLabel(y.potential)}</span>
+      </div>
+      <div class="academy-range">Media estimada: <b>${y.ovrRange[0]}-${y.ovrRange[1]}</b></div>
+      ${y.valueRange ? `<div class="academy-value">Valor estimado: <b>${formatValue(y.valueRange[0])} - ${formatValue(y.valueRange[1])}</b></div>` : ''}
+      <div class="academy-actions">
+        <button class="btn btn-primary" data-academy-action="promote" data-youth="${y.id}">Promocionar a Reservas</button>
+        <button class="btn btn-secondary" data-academy-action="discard" data-youth="${y.id}">Descartar</button>
+      </div>
+    </div>`).join('');
 }
 
 function renderSquadScreen(teamId, keepTab = false, isView = false) {
@@ -1312,6 +1411,13 @@ function renderSquadScreen(teamId, keepTab = false, isView = false) {
     activeSubTab = 'primer';
     activeStatTab = 'general';
   }
+  // Filial: en vista de otro club (solo lectura) no se puede gestionar.
+  if (!canManageFilial(team) && activeSubTab === 'filial') activeSubTab = 'primer';
+  // Pestaña Academia: solo para el club del usuario (no en la vista de otros clubes).
+  const isUserClub = !!(currentTeam() && team.id === currentTeam().id);
+  const academiaTab = document.getElementById('club-tab-academia');
+  if (academiaTab) academiaTab.style.display = isUserClub ? '' : 'none';
+  if (!isUserClub && activeClubTab === 'academia') activeClubTab = 'plantilla';
   document.querySelectorAll('#screen-squad .club-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === activeClubTab));
   document.querySelectorAll('#screen-squad .subtab').forEach(s => s.classList.toggle('active', s.dataset.subtab === activeSubTab));
   document.querySelectorAll('#screen-squad .club-panel').forEach(p => p.classList.toggle('active', p.id === 'club-panel-' + activeClubTab));
@@ -1322,6 +1428,7 @@ function renderSquadScreen(teamId, keepTab = false, isView = false) {
     statTabsEl.querySelectorAll('.subtab').forEach(s => s.classList.toggle('active', s.dataset.stattab === activeStatTab));
   }
   updateDorsalesTabVisibility();
+  updateFilialTabVisibility();
 
   const listEl = document.getElementById('squad-list');
   if (listEl) listEl.innerHTML = buildList(team, activeSubTab, activeStatTab);
@@ -1330,6 +1437,7 @@ function renderSquadScreen(teamId, keepTab = false, isView = false) {
   if (benchEl) benchEl.innerHTML = buildBench(team);
 
   renderClubInfo(team);
+  renderAcademy(team);
   updateTeamOvr(team);
   updateActionBar(team);
 

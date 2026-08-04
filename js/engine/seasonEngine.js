@@ -74,12 +74,18 @@
     return changes;
   }
 
-  // Nombre del trofeo de liga según el país (para sumar al palmarés del campeón)
+  // Nombre del trofeo de liga según el país (para sumar al palmarés del campeón).
   const LEAGUE_TROPHY_NAMES = { 'España': 'Primera División', 'Inglaterra': 'Premier League' };
 
   function leagueTrophyNameFor(team) {
-    const country = window.PocketManager.db.getCountryData(team.id);
-    if (country) return LEAGUE_TROPHY_NAMES[country.country] || country.leagueName;
+    const db = window.PocketManager.db;
+    const country = db.getCountryData(team.id);
+    if (country) {
+      // El trofeo depende de la liga del equipo (p. ej. LaLiga Hypermotion).
+      const comp = (db.getCompetitions(country.country) || []).find(c => c.type === 'league' && c.teams && c.teams.some(t => t.id === team.id));
+      if (comp && String(comp.id || '').indexOf('hypermotion') !== -1) return 'LaLiga Hypermotion';
+      return LEAGUE_TROPHY_NAMES[country.country] || country.leagueName;
+    }
     return 'Liga';
   }
 

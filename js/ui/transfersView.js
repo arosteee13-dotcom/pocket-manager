@@ -13,7 +13,7 @@
   let bound = false;
   let activeTab = 'market';
   let historySub = 'myliga';
-  const filters = { pos: '', nat: '', ageMin: '', ageMax: '', ovrMin: '', ovrMax: '', maxValue: '' };
+  const filters = { pos: '', nat: '', div: '', ageMin: '', ageMax: '', ovrMin: '', ovrMax: '', maxValue: '' };
 
   function groupOf(pos) {
     if (pos === 'POR') return 'POR';
@@ -54,7 +54,9 @@
 
   function isMyLeagueTeam(teamId) {
     const country = db.getCountryData(gameState.team.id);
-    return country ? country.teams.some(t => t.id === teamId) : false;
+    if (!country) return false;
+    const comp = (db.getCompetitions(country.country) || []).find(c => c.type === 'league');
+    return comp ? comp.teams.some(t => t.id === teamId) : false;
   }
 
   function openModal(id) {
@@ -119,6 +121,10 @@
       try { window.PocketManager.refreshLineup(buyer); } catch (e) {}
       try { window.PocketManager.refreshLineup(seller); } catch (e) {}
     }
+    // El presupuesto del club ha cambiado: refresca el badge del header.
+    if (window.PocketManager.updateBudgetBadge) {
+      try { window.PocketManager.updateBudgetBadge(); } catch (e) {}
+    }
     return { ok: true, record };
   }
 
@@ -137,13 +143,30 @@
     return pool;
   }
 
+  // División de un jugador: sus divisiones inferiores tienen `division`; los de Primera/Premier
+  // no (se infiere por el país del club).
+  const DIVISION_LABELS = {
+    'primera': 'Primera División',
+    'segunda': 'Segunda División',
+    '1rfef': 'Primera RFEF',
+    '2rfef': 'Segunda RFEF',
+    'premier': 'Premier League'
+  };
+
+  function divisionOf(player, team) {
+    if (player.division) return player.division;
+    const country = db.getCountryData(team.id);
+    return country && country.country === 'España' ? 'primera' : 'premier';
+  }
+
   function applyFilters(pool) {
     const search = document.getElementById('tm-search');
     const q = normalizeText(search ? search.value : '');
-    return pool.filter(({ player: p }) => {
+    return pool.filter(({ player: p, team }) => {
       if (q && !normalizeText(p.name).includes(q)) return false;
       if (filters.pos && p.pos !== filters.pos) return false;
       if (filters.nat && p.flag !== filters.nat) return false;
+      if (filters.div && divisionOf(p, team) !== filters.div) return false;
       if (filters.ageMin !== '' && p.age < Number(filters.ageMin)) return false;
       if (filters.ageMax !== '' && p.age > Number(filters.ageMax)) return false;
       if (filters.ovrMin !== '' && p.ovr < Number(filters.ovrMin)) return false;
@@ -161,7 +184,10 @@
     const listEl = document.getElementById('tm-list');
     if (!listEl) return;
     if (!pool.length) { listEl.innerHTML = '<p class="tm-empty">Sin resultados.</p>'; return; }
-    listEl.innerHTML = pool.map(({ player: p, team }) => marketCard(p, team)).join('');
+    // Tope de render para no saturar el DOM (todos siguen siendo buscables con filtros).
+    const limited = pool.slice(0, 300);
+    listEl.innerHTML = limited.map(({ player: p, team }) => marketCard(p, team)).join('') +
+      (pool.length > limited.length ? '<p class="tm-empty">Mostrando los 300 mejores. Usa los filtros para afinar.</p>' : '');
   }
 
   function marketCard(p, team) {
@@ -203,6 +229,7 @@
     }
     document.getElementById('tm-f-pos').value = filters.pos;
     document.getElementById('tm-f-nat').value = filters.nat;
+    document.getElementById('tm-f-div').value = filters.div;
     document.getElementById('tm-f-ageMin').value = filters.ageMin;
     document.getElementById('tm-f-ageMax').value = filters.ageMax;
     document.getElementById('tm-f-ovrMin').value = filters.ovrMin;
@@ -214,6 +241,7 @@
   function applyFiltersModal() {
     filters.pos = document.getElementById('tm-f-pos').value;
     filters.nat = document.getElementById('tm-f-nat').value;
+    filters.div = document.getElementById('tm-f-div').value;
     filters.ageMin = document.getElementById('tm-f-ageMin').value;
     filters.ageMax = document.getElementById('tm-f-ageMax').value;
     filters.ovrMin = document.getElementById('tm-f-ovrMin').value;
@@ -224,9 +252,10 @@
   }
 
   function resetFilters() {
-    filters.pos = filters.nat = filters.ageMin = filters.ageMax = filters.ovrMin = filters.ovrMax = filters.maxValue = '';
+    filters.pos = filters.nat = filters.div = filters.ageMin = filters.ageMax = filters.ovrMin = filters.ovrMax = filters.maxValue = '';
     document.getElementById('tm-f-pos').value = '';
     document.getElementById('tm-f-nat').value = '';
+    document.getElementById('tm-f-div').value = '';
     document.getElementById('tm-f-ageMin').value = '';
     document.getElementById('tm-f-ageMax').value = '';
     document.getElementById('tm-f-ovrMin').value = '';

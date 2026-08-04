@@ -1,16 +1,23 @@
 (function () {
   const db = window.PocketManager.db;
 
+  // Equipos de la liga a la que pertenece el equipo (p. ej. LaLiga Hypermotion).
   function teamsOf(team) {
     const country = db.getCountryData(team.id);
-    return country ? country.teams : [];
+    if (!country) return [];
+    const comp = (db.getCompetitions(country.country) || []).find(c => c.type === 'league' && c.teams && c.teams.some(t => t.id === team.id));
+    if (comp && comp.teams && comp.teams.length) return comp.teams;
+    return country.teams;
   }
 
-  // Round-robin de una vuelta (método del círculo). Devuelve array de rondas,
+  // Round-robin de una vuelta (Algoritmo de Berger equilibrado). Devuelve array de rondas,
   // cada ronda es un array de { homeId, awayId }.
   function roundRobin(ids) {
+    if (window.PocketManager.calendar && window.PocketManager.calendar.generateRoundRobin) {
+      return window.PocketManager.calendar.generateRoundRobin(ids);
+    }
     const teams = [...ids];
-    if (teams.length % 2 === 1) teams.push(null); // jornada de descanso
+    if (teams.length % 2 === 1) teams.push(null);
     const rounds = teams.length - 1;
     const half = teams.length / 2;
     const result = [];
@@ -37,7 +44,7 @@
     return st;
   }
 
-  function initSeason(team) {
+  function initSeason(team, compId) {
     const teams = teamsOf(team);
     const ids = teams.map(t => t.id);
     const first = roundRobin(ids);
@@ -46,13 +53,17 @@
     first.forEach((r, i) => {
       jornadas.push({ jornada: i + 1, matches: r.map(toMatch) });
     });
+    // Segunda vuelta: la inversión de la primera, en orden REVERSO para que la jornada
+    // siguiente a la última de la primera vuelta sea la vuelta contra el mismo rival
+    // (round-trip) y no haya rachas de 3 localías/visitantes consecutivas.
     const off = first.length;
-    first.forEach((r, i) => {
-      jornadas.push({ jornada: off + i + 1, matches: r.map(m => toMatch({ homeId: m.awayId, awayId: m.homeId })) });
-    });
+    for (let i = first.length - 1; i >= 0; i--) {
+      const r = first[i];
+      jornadas.push({ jornada: off + (first.length - 1 - i) + 1, matches: r.map(m => toMatch({ homeId: m.awayId, awayId: m.homeId })) });
+    }
     const form = {};
     ids.forEach(id => { form[id] = []; });
-    return { standings: emptyStandings(teams), form, jornadas };
+    return { standings: emptyStandings(teams), form, jornadas, compId: compId || null };
   }
 
   // Primer partido sin jugar del equipo
@@ -72,6 +83,8 @@
     match.homeGoals = homeGoals;
     match.awayGoals = awayGoals;
     match.played = true;
+    // Los partidos de playoff de ascenso no puntúan para la clasificación regular.
+    if (match.playoff) return;
 
     const update = (id, gf, ga, res) => {
       const s = season.standings[id];

@@ -62,6 +62,9 @@ const SCREEN_RENDERERS = {
 document.addEventListener("DOMContentLoaded", () => {
   const tabbar = document.getElementById("app-tabbar");
 
+  if (window.PocketManager.initInbox) window.PocketManager.initInbox();
+  if (window.PocketManager.initBudget) window.PocketManager.initBudget();
+
   let toastTimer = null;
   let pendingDeleteId = null;
 
@@ -76,12 +79,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let matchSubsUsed = 0;
 
   // Recuperación de stamina antes de un partido (entre jornadas)
-  function applyPreMatchRecovery(jornada) {
+  // Recuperación de stamina antes de un partido según la SEMANA del calendario.
+  // Si es el 2º partido de la misma semana (doble jornada), no hay descanso.
+  function applyPreMatchRecovery(week) {
     const team = gameState.team;
-    if (!team || !gameState.season || !staminaEngine.recoverStamina) return;
-    const se = gameState.season;
-    const last = window.PocketManager.season.lastPlayedJornada(se, team.id);
-    const weeks = Math.max(1, (Number(jornada) || 1) - last);
+    if (!team || !staminaEngine.recoverStamina) return;
+    if (!window.PocketManager.calendar || !window.PocketManager.calendar.lastPlayedUserWeek) return;
+    const lastWeek = window.PocketManager.calendar.lastPlayedUserWeek(team.id);
+    const weeks = Math.max(0, (Number(week) || 1) - lastWeek);
+    if (weeks <= 0) return; // mismo partido de la semana: sin descanso
     const country = db.getCountryData(team.id);
     const leagueTeams = country ? country.teams : [team];
     staminaEngine.recoverStamina(leagueTeams, weeks);
@@ -164,6 +170,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // Reponer temporadas de todas las ligas (si el save es antiguo y no las trae).
         initAllSeasons();
+        // Reponer la Copa del Rey de la temporada (si el save es antiguo y no la trae).
+        initCups();
         applyCareerToUI();
         showToast("Partida cargada");
       }
@@ -263,12 +271,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCol(liveMatch.away, 'lr-away-head', 'lr-away');
   }
 
-  function setupLiveMatch(match, jornada) {
+  function setupLiveMatch(match, week, compId, jornada) {
     const home = db.getTeamById(match.homeId);
     const away = db.getTeamById(match.awayId);
     if (!home || !away) return;
-    liveMatch = { home, away, match, jornada };
-    applyPreMatchRecovery(jornada);
+    liveMatch = { home, away, match, week, compId, jornada };
+    applyPreMatchRecovery(week);
     forcedOutId = null;
 
     teamBadgeEl('home-logo', home);
@@ -364,7 +372,9 @@ document.addEventListener("DOMContentLoaded", () => {
         minutesPlayed: liveEngine.minutesPlayed
       },
       match: liveMatch.match,
-      jornada: liveMatch.jornada
+      jornada: liveMatch.jornada,
+      week: liveMatch.week,
+      compId: liveMatch.compId
     };
     liveEngine.stop();
     commitResult();
@@ -522,8 +532,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return lines.join('');
   }
 
-  function showResultModal(result, match, jornada) {
-    pendingResult = { result, match, jornada };
+  function showResultModal(result, match, week, compId, jornada) {
+    pendingResult = { result, match, week, compId, jornada };
     const home = db.getTeamById(match.homeId);
     const away = db.getTeamById(match.awayId);
     const body = document.getElementById('match-result-body');
@@ -560,6 +570,144 @@ document.addEventListener("DOMContentLoaded", () => {
       if (mins[home.id]) staminaEngine.applyMatchStamina(home, mins[home.id]);
       if (mins[away.id]) staminaEngine.applyMatchStamina(away, mins[away.id]);
     }
+    // Playoffs de LaLiga Hypermotion (se resuelven al completar la Jornada 42).
+    if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.advance) {
+      try { window.PocketManager.spanishEngine.advance(se, se.compId || userLeagueCompId()); } catch (e) {}
+    }
+  }
+
+  // Id de la competición de liga del equipo del usuario.
+  function userLeagueCompId() {
+    if (!gameState.team) return null;
+    const country = db.getCountryData(gameState.team.id);
+    if (!country) return null;
+    const comp = (db.getCompetitions(country.country) || []).find(c => c.type !== 'cup' && c.teams && c.teams.some(t => t.id === gameState.team.id));
+    return comp ? comp.id : null;
+  }
+
+  // Motor de copas según el país (España -> cupEngine; Inglaterra -> englandEngine).
+  function cupEngineFor(countryName) {
+    if (countryName === 'Inglaterra') return window.PocketManager.englandEngine || null;
+    return window.PocketManager.cupEngine || null;
+  }
+
+  // Construye la copa de `comp` para `season` con el motor del país. Idempotente por temporada.
+  function buildCountryCup(countryName, comp, season) {
+    const engine = cupEngineFor(countryName);
+    if (!engine) return null;
+    try {
+      if (countryName === 'Inglaterra') {
+        if (comp.id === 'community_shield') {
+          const shield = gameState.englandShield || {};
+          if (!shield.championId || !shield.faCupWinnerId) return null;
+          return engine.buildCommunityShield({ season, championId: shield.championId, faCupWinnerId: shield.faCupWinnerId });
+        }
+        if (comp.id === 'efl_cup') return engine.buildEflCup({ season });
+        if (comp.id === 'fa_cup') return engine.buildFaCup({ season });
+        if (comp.id === 'efl_trophy') return engine.buildEflTrophy({ season });
+        return null;
+      }
+      if (countryName === 'España') {
+        if (comp.id === 'copa_del_rey') {
+          const participants = db.getCupParticipants(countryName) || [];
+          if (participants.length < 4) return null;
+          return engine.buildCup(participants.map(t => t.id), { season });
+        }
+        // La Supercopa se construye al cerrar temporada (necesita los resultados previos).
+        return null;
+      }
+    } catch (e) {
+      if (window.console && console.warn) console.warn('[cups] buildCountryCup:', comp.id, e);
+    }
+    return null;
+  }
+
+  // Construye las copas de TODOS los países (se simulan en paralelo). Idempotente: no pisa
+  // una copa ya creada para la misma temporada.
+  function initCups() {
+    if (!gameState.seasons) gameState.seasons = {};
+    if (!gameState.team) return;
+    const countries = db.getCountries ? db.getCountries() : [];
+    for (const c of countries) {
+      const comps = (db.getCompetitions(c.name) || []).filter(x => x.type === 'cup');
+      for (const comp of comps) {
+        const existing = gameState.seasons[comp.id];
+        if (existing && existing.season === gameState.currentSeason) continue;
+        const cup = buildCountryCup(c.name, comp, gameState.currentSeason);
+        if (cup) gameState.seasons[comp.id] = cup;
+      }
+    }
+  }
+
+  // Avanza las rondas de las competiciones de copa de TODOS los países según la semana actual
+  // del usuario. En la semana de una ronda se respeta el partido del usuario en su país (para
+  // que lo juegue); el resto de copas se auto-simula en segundo plano.
+  function advanceCups() {
+    const calendar = window.PocketManager.calendar;
+    if (!gameState.seasons || !gameState.team) return;
+    const teamId = gameState.team.id;
+    const currentWeek = calendar && calendar.currentUserWeek ? calendar.currentUserWeek(teamId) : 0;
+    const userCountry = db.getCountryData(teamId);
+    const countries = db.getCountries ? db.getCountries() : [];
+    for (const c of countries) {
+      const comps = (db.getCompetitions(c.name) || []).filter(x => x.type === 'cup');
+      for (const comp of comps) {
+        const cup = gameState.seasons[comp.id];
+        if (!cup || cup.finished) continue;
+        const engine = cupEngineFor(c.name);
+        if (!engine || !engine.playRound) continue;
+        for (let i = 0; i < cup.rounds.length; i++) {
+          const r = cup.rounds[i];
+          if (r.completed) continue;
+          if (r.atWeek > currentWeek) break;
+          const isUserCountry = !!(userCountry && userCountry.country === c.name);
+          const skip = isUserCountry && r.atWeek === currentWeek ? { skipTeamId: teamId } : null;
+          try { engine.playRound(cup, i, skip); } catch (e) {}
+        }
+      }
+    }
+    syncEnglandSeason();
+    awardFinishedCupTrophies();
+    // Filiales: el primer equipo (CPU) cubre posiciones descubiertas con jugadores del filial.
+    if (window.PocketManager.parentChildEngine && window.PocketManager.parentChildEngine.weeklyCallUps) {
+      try { window.PocketManager.parentChildEngine.weeklyCallUps(); } catch (e) {}
+    }
+  }
+
+  // Cuando la liga inglesa termina, captura los datos del Community Shield de la próxima
+  // temporada y limpia las copas inglesas ya jugadas.
+  function syncEnglandSeason(le) {
+    le = le || gameState.seasons['inglaterra_league'];
+    if (!le || !le.jornadas) return;
+    const finished = le.jornadas.every(j => j.matches.every(m => m.played));
+    if (!finished) return;
+    const fa = gameState.seasons['fa_cup'];
+    const champ = window.PocketManager.season.sortedStandings(le)[0];
+    if (champ && fa && fa.finished) {
+      gameState.englandShield = { championId: champ.teamId, faCupWinnerId: fa.winner };
+    }
+    ['community_shield', 'efl_cup', 'fa_cup', 'efl_trophy'].forEach(id => { delete gameState.seasons[id]; });
+  }
+
+  // Otorga (una sola vez) el trofeo de cada copa que haya terminado, tanto si la final la
+  // jugó el usuario como si se auto-simuló.
+  function awardFinishedCupTrophies() {
+    if (!gameState.team) return;
+    const countries = db.getCountries ? db.getCountries() : [];
+    for (const c of countries) {
+      const comps = (db.getCompetitions(c.name) || []).filter(x => x.type === 'cup');
+      for (const comp of comps) {
+        const cup = gameState.seasons ? gameState.seasons[comp.id] : null;
+        if (!cup || !cup.finished || cup._trophyAwarded) continue;
+        const engine = cupEngineFor(c.name);
+        if (!engine || !engine.awardCompetitionTrophy) continue;
+        try {
+          const tr = engine.awardCompetitionTrophy(cup);
+          cup._trophyAwarded = true;
+          if (tr) showToast(`🏆 ${tr.team.name} gana la ${tr.trophyName} (${tr.count})`);
+        } catch (e) {}
+      }
+    }
   }
 
   // Crea una temporada persistente para TODAS las competiciones del juego (una liga por país),
@@ -571,15 +719,16 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const c of countries) {
       const comps = db.getCompetitions(c.name) || [];
       for (const comp of comps) {
+        if (comp.type === 'cup') continue; // las copas se gestionan en initCups/advanceCups
         if (!comp.teams || !comp.teams.length) continue;
         if (!gameState.seasons[comp.id]) {
-          gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0]);
+          gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0], comp.id);
         }
       }
     }
     // La temporada de la liga del usuario apunta a su competición.
     if (gameState.team) {
-      const userComp = (db.getCompetitions((db.getCountryData(gameState.team.id) || {}).country) || []).find(c => c.teams && c.teams.some(t => t.id === gameState.team.id));
+      const userComp = (db.getCompetitions((db.getCountryData(gameState.team.id) || {}).country) || []).find(c => c.type !== 'cup' && c.teams && c.teams.some(t => t.id === gameState.team.id));
       if (userComp && gameState.seasons[userComp.id]) gameState.season = gameState.seasons[userComp.id];
     }
     return gameState.seasons;
@@ -600,16 +749,31 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     for (const comp of comps) {
+      if (comp.type === 'cup') continue; // las copas avanzan con advanceCups
       let se = gameState.seasons[comp.id];
-      if (!se) se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0]);
+      // Liga española ya cerrada: el reinicio (con ascensos/descensos) ocurre en el cierre global.
+      if (se && se._spainComplete) continue;
+      if (!se) se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0], comp.id);
       let idx = se.jornadas.findIndex(jj => jj.matches.some(m => !m.played));
       if (idx === -1) {
         // Temporada completa: título al campeón + reinicio.
+        // Inglaterra: capturar campeón PL + ganador de FA Cup para el Community Shield.
+        if (comp.id === 'inglaterra_league') {
+          try { syncEnglandSeason(se); } catch (e) {}
+        }
+        // España: diferir el reinicio hasta el cierre global (ascensos/descensos).
+        if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.isSpanishLeague(comp.id)) {
+          if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
+            try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
+          }
+          se._spainComplete = true;
+          continue;
+        }
         if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
           try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
         }
         for (const t of comp.teams) if (staminaEngine.resetFitness) staminaEngine.resetFitness(t);
-        se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0]);
+        se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0], comp.id);
         idx = 0;
       }
       const j = se.jornadas[idx];
@@ -625,6 +789,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (window.PocketManager.calendar && window.PocketManager.calendar.buildMatchSummary) {
           m.summary = window.PocketManager.calendar.buildMatchSummary(sim.events);
         }
+        // Stamina de los equipos de ligas ajenas (para que las rotaciones de la CPU funcionen).
+        const mins = sim.minutesPlayed || {};
+        if (mins[home.id]) staminaEngine.applyMatchStamina(home, mins[home.id]);
+        if (mins[away.id]) staminaEngine.applyMatchStamina(away, mins[away.id]);
+      }
+      // Playoffs de LaLiga Hypermotion (se resuelven al completar la Jornada 42).
+      if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.advance) {
+        try { window.PocketManager.spanishEngine.advance(se, comp.id); } catch (e) {}
+      }
+      // Recuperación semanal de los equipos de la liga ajena.
+      if (staminaEngine.recoverStamina) {
+        try { staminaEngine.recoverStamina(comp.teams, 1); } catch (e) {}
       }
     }
   }
@@ -653,11 +829,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function commitResult() {
     if (!pendingResult) return;
-    const { result, match, jornada } = pendingResult;
+    const { result, match, jornada, compId } = pendingResult;
+
+    // --- Partido de copa (España o Inglaterra) ---
+    const cupSeason = compId && gameState.seasons[compId];
+    if (cupSeason && cupSeason.type === 'cup') {
+      const cupEngine = cupEngineFor(cupSeason.country);
+      if (cupEngine && cupEngine.applyCupResult) {
+        try { cupEngine.applyCupResult(cupSeason, match, result); } catch (e) {}
+      }
+      if (window.PocketManager.refreshLineup) window.PocketManager.refreshLineup(gameState.team);
+      // Trofeo si la competición acaba con esta final jugada por el usuario.
+      awardFinishedCupTrophies();
+      pendingResult = null;
+      closeModal('match-result-modal');
+      try { saveSystem.saveCurrentGame(); } catch (e) {}
+      showScreen('screen-dashboard');
+      return;
+    }
+
     const se = gameState.season || window.PocketManager.season.initSeason(gameState.team);
     window.PocketManager.season.applyMatchResult(se, match, result.homeGoals, result.awayGoals);
     if (window.PocketManager.calendar && window.PocketManager.calendar.buildMatchSummary) {
       match.summary = window.PocketManager.calendar.buildMatchSummary(result.events);
+    }
+    // Playoffs de LaLiga Hypermotion (se resuelven al completar la Jornada 42).
+    if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.advance) {
+      try { window.PocketManager.spanishEngine.advance(se, se.compId || userLeagueCompId()); } catch (e) {}
     }
 
     // Stamina tras el partido (según minutos jugados)
@@ -673,6 +871,8 @@ document.addEventListener("DOMContentLoaded", () => {
     advanceOutOfLeagueLoans();
     // Avanzar una jornada de cada liga ajena (simulación en paralelo de todas las competiciones)
     advanceForeignLeagues();
+    // Avanzar las rondas de la Copa del Rey según las jornadas de liga completadas
+    advanceCups();
 
     // Recuperación entre jornadas (semanas transcurridas hasta el próximo partido)
     const played = Number(jornada) || 1;
@@ -694,6 +894,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Mercado: la IA realiza fichajes puntuales tras cada jornada
     if (window.PocketManager.runAITransfers) window.PocketManager.runAITransfers(2);
     if (window.PocketManager.runAILoans) window.PocketManager.runAILoans(1);
+    // Ofertas de la CPU por jugadores del usuario (chequeo semanal).
+    if (window.PocketManager.runTransferOffers) window.PocketManager.runTransferOffers(2);
+    if (window.PocketManager.runLoanOffers) window.PocketManager.runLoanOffers(1);
+    // Cantera: genera a los canteranos en la Semana 20 (idempotente por temporada).
+    if (window.PocketManager.academyEngine && window.PocketManager.academyEngine.maybeGenerateYouth) {
+      try { window.PocketManager.academyEngine.maybeGenerateYouth(); } catch (e) {}
+    }
 
     // Fin de temporada: evolución de medias + título de liga + arranque de la nueva temporada
     if (!window.PocketManager.season.nextFixture(se, gameState.team.id) && window.PocketManager.seasonEngine) {
@@ -710,9 +917,33 @@ document.addEventListener("DOMContentLoaded", () => {
       if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.ensureAllTeamsDorsals) {
         try { window.PocketManager.squadEngine.ensureAllTeamsDorsals(); } catch (e) {}
       }
+      // Supercopa de España de la próxima temporada (se jugará en la semana 18):
+      // se construye al cerrar la temporada con los resultados de esta (liga + Copa).
+      const cupEngine = window.PocketManager.cupEngine;
+      if (cupEngine) {
+        const cup = gameState.seasons['copa_del_rey'];
+        const leagueOrder = window.PocketManager.season.sortedStandings(se).map(s => s.teamId);
+        const cupFinalists = cup && cup.finished ? [cup.winner, cup.runnerUp] : [];
+        if (leagueOrder.length >= 2 && cupFinalists.length === 2) {
+          try {
+            const supercopa = cupEngine.buildSupercopa(leagueOrder, cupFinalists, { season: (gameState.currentSeason || 1) + 1 });
+            if (supercopa) gameState.seasons['supercopa_de_espana'] = supercopa;
+          } catch (e) {}
+        }
+        // Nueva temporada: nueva Copa del Rey (se crea en initCups)
+        delete gameState.seasons['copa_del_rey'];
+      }
+      // Ascensos/descensos de las ligas españolas (LaLiga <-> Hypermotion <-> Primera RFEF)
+      // al cierre global de temporada. Reinicia también esas temporadas.
+      if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.seasonEnd) {
+        try { window.PocketManager.spanishEngine.seasonEnd(); } catch (e) {}
+      }
       gameState.currentSeason = (gameState.currentSeason || 1) + 1;
-      gameState.season = window.PocketManager.season.initSeason(gameState.team);
+      const userCompId = userLeagueCompId();
+      gameState.season = window.PocketManager.season.initSeason(gameState.team, userCompId);
+      if (userCompId) gameState.seasons[userCompId] = gameState.season;
       if (window.PocketManager.setFormation) window.PocketManager.setFormation(gameState.team.formation || '4-3-3');
+      initCups();
       pendingSeasonSummary = { changes, trophy };
     }
 
@@ -729,17 +960,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('match-result-continue').addEventListener('click', commitResult);
   document.getElementById('match-result-close').addEventListener('click', commitResult);
 
-  // Muestra el resumen de cambios de media y título de liga al cierre de temporada
+  // Muestra el resumen de cambios de media y títulos (liga + copa + supercopa) al cierre de temporada
   function showSeasonSummary(summary) {
     const body = document.getElementById('season-summary-body');
     const modal = document.getElementById('season-summary-modal');
     if (!body || !modal) return;
     const changes = summary ? summary.changes : null;
     const trophy = summary ? summary.trophy : null;
+    const extra = summary && summary.trophies ? summary.trophies : [];
 
     let html = '';
     if (trophy && trophy.team) {
       html += `<div class="ss-trophy">🏆 ${trophy.team.name} gana la ${trophy.trophyName} (${trophy.count})</div>`;
+    }
+    for (const t of extra) {
+      if (t && t.team) {
+        html += `<div class="ss-trophy">🏆 ${t.team.name} gana la ${t.trophyName} (${t.count})</div>`;
+      }
     }
     if (!changes || !changes.length) {
       html += '<p class="season-summary-empty">Sin cambios destacados de media esta temporada.</p>';
@@ -775,23 +1012,23 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.addEventListener('start-match', (e) => {
-    const { match, jornada } = e.detail || {};
+    const { match, week, compId, jornada } = e.detail || {};
     if (!match) return;
     if (!validateUserDorsals(match)) return;
-    setupLiveMatch(match, jornada);
+    setupLiveMatch(match, week, compId, jornada);
     showScreen('screen-match');
   });
 
   document.addEventListener('simulate-match', (e) => {
-    const { match, jornada } = e.detail || {};
+    const { match, week, compId, jornada } = e.detail || {};
     if (!match) return;
     if (!validateUserDorsals(match)) return;
     const home = db.getTeamById(match.homeId);
     const away = db.getTeamById(match.awayId);
     if (!home || !away) return;
-    applyPreMatchRecovery(jornada);
+    applyPreMatchRecovery(week);
     const result = window.PocketManager.simulateInstant(home, away);
-    showResultModal(result, match, jornada);
+    showResultModal(result, match, week, compId, jornada);
   });
 
   document.addEventListener("nav", (e) => {
@@ -810,7 +1047,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // Temporadas persistentes para TODAS las ligas (se simulan en paralelo).
     initAllSeasons();
+    // Copa del Rey de la temporada (fase previa auto-simulada).
+    initCups();
     applyCareerToUI();
+    if (window.PocketManager.updateInboxBadge) window.PocketManager.updateInboxBadge();
+    if (window.PocketManager.updateBudgetBadge) window.PocketManager.updateBudgetBadge();
     if (window.PocketManager.runAITransfers && gameState.season) {
       window.PocketManager.runAITransfers(8); // mercado de inicio de temporada
       if (window.PocketManager.runAILoans) window.PocketManager.runAILoans(3);
