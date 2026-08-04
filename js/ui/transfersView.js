@@ -87,7 +87,16 @@
 
     seller.players.splice(idx, 1);
     player.loan = null;
-    buyer.players.push(player);
+    // Insertar en la sección correcta de la plantilla (no al final).
+    if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.insertPlayerByPosition) {
+      window.PocketManager.squadEngine.insertPlayerByPosition(buyer, player);
+    } else {
+      buyer.players.push(player);
+    }
+    // Asignar dorsal libre al fichaje en su nuevo club (y reasignar duplicados).
+    if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.assignAutomaticNumbers) {
+      try { window.PocketManager.squadEngine.assignAutomaticNumbers(buyer); } catch (e) {}
+    }
     buyer.budget = Math.round(buyer.budget - fee);
     seller.budget = Math.round((seller.budget || 0) + fee);
 

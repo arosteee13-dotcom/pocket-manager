@@ -76,27 +76,70 @@
       competitionsOf(state.country)[0] || null;
   }
 
-  // Clasificación real si es la liga del usuario; en caso contrario una local vacía.
+  // Clasificación real de la competición (todas las ligas se simulan en paralelo).
   function seasonFor(comp) {
     if (!comp) return null;
-    const isUserLeague = gameState.team && comp.teams.some(t => t.id === gameState.team.id);
-    if (isUserLeague) {
-      return gameState.season || window.PocketManager.season.initSeason(gameState.team);
-    }
+    const saved = gameState.seasons ? gameState.seasons[comp.id] : null;
+    if (saved) return saved;
     return comp.teams.length ? window.PocketManager.season.initSeason(comp.teams[0]) : null;
   }
 
-  // Zonas escaladas al tamaño de la liga, sin solaparse:
-  // verde top 1-4, azul 5-6, rojo últimos 3 (solo si hay hueco).
-  function zoneOf(index, n) {
-    const green = Math.min(4, n);
-    const blue = Math.min(2, Math.max(0, n - green));
-    const red = Math.min(3, Math.max(0, n - green - blue));
-    if (index < green) return 'green';
-    if (index < green + blue) return 'blue';
-    if (index >= n - red) return 'red';
-    return '';
+  // Zonas de clasificación: etiqueta y color por zona (esquema para liga de 20 equipos).
+  const ZONE_META = {
+    champ: { label: 'Campeón', color: '#A8E026' },
+    champions: { label: 'Champions League', color: '#30D32B' },
+    europa: { label: 'Europa League', color: '#2BD396' },
+    conference: { label: 'Fase Previa Conference League', color: '#5B97E2' },
+    permanencia: { label: 'Permanencia', color: '#B0B0B0' },
+    descenso: { label: 'Descenso', color: '#EF3A4B' }
+  };
+
+  // La Premier League no tiene plaza de Conference League (su permanencia empieza en el 6).
+  function hasConferenceFor(comp) {
+    return !(comp && comp.name === 'Premier League');
   }
+
+  // Zona según la posición (0-based). Exacta para n=20 (1 / 2-4 / 5 / 6 / 7-17 / 18-20);
+  // se escala proporcionalmente para otras ligas y en ligas muy pequeñas solo campeón + permanencia.
+  // En la Premier League (hasConference=false) no existe la zona `conference`.
+  function zoneOf(index, n, hasConference) {
+    if (!n || n <= 0) return 'permanencia';
+    if (n < 6) return index === 0 ? 'champ' : 'permanencia';
+    const R = n / 20;
+    const scaled = (ref, min) => Math.max(min, Math.round(ref * R));
+    const champions = scaled(3, 0);
+    const europa = scaled(1, 0);
+    const conference = hasConference === false ? 0 : scaled(1, 0);
+    const descenso = scaled(3, 1);
+    let p = 1; // campeón
+    if (index < p) return 'champ';
+    if (index < (p += champions)) return 'champions';
+    if (index < (p += europa)) return 'europa';
+    if (index < (p += conference)) return 'conference';
+    if (index >= n - descenso) return 'descenso';
+    return 'permanencia';
+  }
+
+  // Zonas presentes en una liga de `n` equipos, en orden canónico (para la leyenda).
+  function zonesFor(n, hasConference) {
+    const order = ['champ', 'champions', 'europa', 'conference', 'permanencia', 'descenso'];
+    const present = new Set();
+    if (n && n > 0) {
+      for (let i = 0; i < n; i++) present.add(zoneOf(i, n, hasConference));
+    }
+    return order.filter(z => present.has(z));
+  }
+
+  // Leyenda dinámica: solo las zonas que aplican a la liga seleccionada.
+  function legendHtml(n, hasConference) {
+    const zones = zonesFor(n, hasConference);
+    if (!zones.length) return '';
+    return `<div class="st-legend">${zones.map(z => {
+      const meta = ZONE_META[z] || { label: z, color: '#B0B0B0' };
+      return `<span class="st-legend-item"><i class="st-legend-dot" style="background:${meta.color}"></i>${meta.label}</span>`;
+    }).join('')}</div>`;
+  }
+
 
   function leaderData(comp) {
     const scorers = [];
@@ -196,7 +239,7 @@
       </div>`;
     const body = rows.map((s, i) => {
       const team = db.getTeamById(s.teamId);
-      const zone = zoneOf(i, n);
+      const zone = zoneOf(i, n, hasConferenceFor(comp));
       const dg = (s.gf || 0) - (s.gc || 0);
       const dgStr = dg > 0 ? '+' + dg : String(dg);
       const user = team && userTeamId && team.id === userTeamId ? ' user' : '';
@@ -281,6 +324,10 @@
 
     const tableEl = document.getElementById('st-table');
     if (tableEl) tableEl.innerHTML = comp ? tableHtml(comp) : '<p class="st-empty">Sin competiciones.</p>';
+
+    // Leyenda dinámica bajo la tabla (solo las zonas que aplican a esta liga)
+    const legendEl = document.getElementById('st-legend');
+    if (legendEl) legendEl.innerHTML = comp ? legendHtml(comp.teams ? comp.teams.length : 0, hasConferenceFor(comp)) : '';
 
     bind();
   }

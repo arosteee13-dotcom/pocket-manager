@@ -52,18 +52,26 @@
       competitionsOf(state.country)[0] || null;
   }
 
-  // Temporada de la competición seleccionada: la tuya (con resultados) o una en blanco
+  // Temporada de la competición seleccionada (todas las ligas se simulan en paralelo).
   function currentSeason() {
     const comp = currentCompetition();
-    if (!comp) return gameState && gameState.season ? gameState.season : null;
-    const mine = isUserLeague();
-    if (mine) return gameState.season || null;
-    return comp.teams.length ? window.PocketManager.season.initSeason(comp.teams[0]) : null;
+    if (comp && comp.teams && comp.teams.length) {
+      const saved = gameState.seasons ? gameState.seasons[comp.id] : null;
+      return saved || window.PocketManager.season.initSeason(comp.teams[0]);
+    }
+    return gameState && gameState.season ? gameState.season : null;
   }
 
   function isUserLeague() {
     const comp = currentCompetition();
     return !!(gameState.team && comp && comp.teams.some(t => t.id === gameState.team.id));
+  }
+
+  // Primera jornada sin jugar de una liga (para ligas ajenas).
+  function nextJornada(se) {
+    if (!se || !se.jornadas) return 1;
+    const idx = se.jornadas.findIndex(j => j.matches.some(m => !m.played));
+    return idx === -1 ? calendar.totalJornadas(se) : se.jornadas[idx].jornada;
   }
 
   function badgeHtml(team, cls) {
@@ -132,9 +140,15 @@
     if (prevBtn) prevBtn.disabled = j <= 1;
     if (nextBtn) nextBtn.disabled = j >= total;
     const currentBtn = document.getElementById('calendar-current');
-    if (currentBtn) currentBtn.textContent = mine
-      ? `Ir a Jornada Actual (${calendar.nextUserJornada(se, team.id)})`
-      : 'Ir a Jornada 1';
+    if (currentBtn) {
+      const target = mine
+        ? calendar.nextUserJornada(se, team.id)
+        : nextJornada(se);
+      currentBtn.textContent = mine
+        ? `Ir a Jornada Actual (${target})`
+        : `Ir a Jornada Actual (${target})`;
+      currentBtn.dataset.target = target;
+    }
 
     const matches = calendar.jornadaMatches(se, j);
     root.innerHTML = matches.length
@@ -283,8 +297,8 @@
       renderCalendar();
     });
     if (currentBtn) currentBtn.addEventListener('click', () => {
-      const team = gameState.team;
-      state.jornada = (isUserLeague() && team) ? calendar.nextUserJornada(currentSeason(), team.id) : 1;
+      const t = currentBtn.dataset.target ? Number(currentBtn.dataset.target) : 0;
+      state.jornada = t || 1;
       renderCalendar();
     });
 

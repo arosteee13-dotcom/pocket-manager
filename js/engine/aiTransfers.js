@@ -10,6 +10,17 @@
 
   const GROUPS = ['POR', 'DEF', 'MED', 'DEL'];
 
+  // GRL (media general) de un equipo: el valor que se muestra en la interfaz
+  // (getTeamRating), con caché por ejecución para no recalcularlo en cada jugador.
+  function gralOf(team, cache) {
+    if (!team) return 0;
+    if (cache && cache.has(team.id)) return cache.get(team.id);
+    const g = (window.PocketManager.getTeamRating ? window.PocketManager.getTeamRating(team) : 0) || team.ovr || 0;
+    if (cache) cache.set(team.id, g);
+    return g;
+  }
+
+
   // Jugadores "disponibles" de un equipo para jugar (sin lesionados ni cedidos fuera)
   function availablePlayers(team) {
     return team.players.filter(p => {
@@ -59,18 +70,26 @@
   // Mejor jugador disponible para reforzar la posición, dentro del presupuesto del club.
   // El club del usuario solo aparece como vendedor si el jugador está en la lista de
   // transferibles, y esos jugadores tienen prioridad sobre el resto del mercado.
-  function pickTarget(team, group) {
+  // Reglas de realismo: no fichar a nadie mejor que el GRL del club (Regla A) ni
+  // jugadores procedentes de un club con mejor GRL (Regla B).
+  function pickTarget(team, group, gralCache) {
+    if (!gralCache) gralCache = new Map();
+    const buyerGral = gralOf(team, gralCache);
     const userTeam = window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
     const moved = recentlyMovedIds();
     let best = null;
     let bestListed = null;
     for (const other of db.getAllTeams()) {
       if (other.id === team.id) continue;
+      // Regla B: no fichar de un equipo mejor que el tuyo
+      if (gralOf(other, gralCache) > buyerGral) continue;
       for (const p of other.players) {
         if (moved.has(p.id)) continue;
         if (p.loan && p.loan.isLoaned) continue; // no fichar cedidos
         if (groupOf(p.pos) !== group) continue;
         if (window.PocketManager.isInjured && window.PocketManager.isInjured(p)) continue;
+        // Regla A: no fichar a nadie mejor que el GRL del club
+        if (p.ovr > buyerGral) continue;
         if ((p.value || 0) > team.budget) continue;
         const isUserPlayer = !!(userTeam && other.id === userTeam.id);
         if (isUserPlayer && !p.transferListed) continue;
@@ -132,6 +151,7 @@
 
     let done = 0;
     const max = Math.max(0, Number(limit) || 0);
+    const gralCache = new Map();
     for (const team of teams) {
       if (done >= max) break;
       if (!window.PocketManager.executeTransfer) break;
@@ -142,7 +162,7 @@
       if (!needs.length) continue;
 
       const group = needs[Math.floor(Math.random() * needs.length)];
-      const target = pickTarget(team, group);
+      const target = pickTarget(team, group, gralCache);
       if (!target) continue;
 
       const res = window.PocketManager.executeTransfer(team, target.seller, target.player, target.player.value);

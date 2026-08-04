@@ -223,7 +223,16 @@
         ratingSum: b.ratingSum, yellows: b.yellows, reds: b.reds
       };
     }
-    buyer.players.push(player);
+    // Insertar en la sección correcta de la plantilla (no al final).
+    if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.insertPlayerByPosition) {
+      window.PocketManager.squadEngine.insertPlayerByPosition(buyer, player);
+    } else {
+      buyer.players.push(player);
+    }
+    // Dorsal en el club de destino: se limpia el del origen y se asigna uno libre.
+    if (window.PocketManager.loanEngine && window.PocketManager.loanEngine.assignDorsalOnLoan) {
+      try { window.PocketManager.loanEngine.assignDorsalOnLoan(buyer, player); } catch (e) {}
+    }
     if (window.PocketManager.refreshLineup) {
       try { window.PocketManager.refreshLineup(buyer); } catch (e) {}
       try { window.PocketManager.refreshLineup(seller); } catch (e) {}

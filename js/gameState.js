@@ -6,6 +6,7 @@
     currentSeason: 1,
     currentDate: null,
     season: null,
+    seasons: {},
     transfers: []
   };
 

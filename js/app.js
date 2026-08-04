@@ -159,6 +159,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (loadBtn) {
       const data = saveSystem.loadSave(loadBtn.dataset.load);
       if (data) {
+        if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.ensureAllTeamsDorsals) {
+          window.PocketManager.squadEngine.ensureAllTeamsDorsals();
+        }
+        // Reponer temporadas de todas las ligas (si el save es antiguo y no las trae).
+        initAllSeasons();
         applyCareerToUI();
         showToast("Partida cargada");
       }
@@ -557,6 +562,73 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Crea una temporada persistente para TODAS las competiciones del juego (una liga por país),
+  // de modo que todas se simulan en paralelo estés o no en ese país. Idempotente: no pisa
+  // temporadas ya existentes (importa para la carga de partidas).
+  function initAllSeasons() {
+    const countries = db.getCountries ? db.getCountries() : [];
+    if (!gameState.seasons) gameState.seasons = {};
+    for (const c of countries) {
+      const comps = db.getCompetitions(c.name) || [];
+      for (const comp of comps) {
+        if (!comp.teams || !comp.teams.length) continue;
+        if (!gameState.seasons[comp.id]) {
+          gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0]);
+        }
+      }
+    }
+    // La temporada de la liga del usuario apunta a su competición.
+    if (gameState.team) {
+      const userComp = (db.getCompetitions((db.getCountryData(gameState.team.id) || {}).country) || []).find(c => c.teams && c.teams.some(t => t.id === gameState.team.id));
+      if (userComp && gameState.seasons[userComp.id]) gameState.season = gameState.seasons[userComp.id];
+    }
+    return gameState.seasons;
+  }
+
+  // Avanza UNA jornada de cada liga en la que el usuario no juega (1 jornada por partido del
+  // usuario, así todas avanzan en sintonía). Si una liga ajena termina, su campeón suma el
+  // título de liga al palmarés y la temporada se reinicia.
+  function advanceForeignLeagues() {
+    if (!gameState.seasons || !gameState.team) return;
+    const comps = [];
+    for (const c of (db.getCountries ? db.getCountries() : [])) {
+      const cs = db.getCompetitions(c.name) || [];
+      for (const comp of cs) {
+        // Saltar la liga del usuario: la gestiona el flujo normal (simulateLeagueRest).
+        if (comp.teams && comp.teams.some(t => t.id === gameState.team.id)) continue;
+        if (comp.teams && comp.teams.length) comps.push(comp);
+      }
+    }
+    for (const comp of comps) {
+      let se = gameState.seasons[comp.id];
+      if (!se) se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0]);
+      let idx = se.jornadas.findIndex(jj => jj.matches.some(m => !m.played));
+      if (idx === -1) {
+        // Temporada completa: título al campeón + reinicio.
+        if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
+          try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
+        }
+        for (const t of comp.teams) if (staminaEngine.resetFitness) staminaEngine.resetFitness(t);
+        se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0]);
+        idx = 0;
+      }
+      const j = se.jornadas[idx];
+      for (const m of j.matches) {
+        if (m.played) continue;
+        const home = db.getTeamById(m.homeId);
+        const away = db.getTeamById(m.awayId);
+        if (!home || !away) continue;
+        const sim = new MatchSim(home, away, function () {});
+        while (sim.minute < 90) sim.stepMinute();
+        sim._recordRatings();
+        window.PocketManager.season.applyMatchResult(se, m, sim.homeGoals, sim.awayGoals);
+        if (window.PocketManager.calendar && window.PocketManager.calendar.buildMatchSummary) {
+          m.summary = window.PocketManager.calendar.buildMatchSummary(sim.events);
+        }
+      }
+    }
+  }
+
   // Avanza estadísticas sintéticas plausibles de los cedidos cuyo club no está en la base
   // de datos (fuera de la liga, p. ej. QPR, Lommel, AS Monaco). Así la pestaña de
   // estadísticas de cedidos muestra progreso real.
@@ -599,6 +671,8 @@ document.addEventListener("DOMContentLoaded", () => {
     simulateLeagueRest(jornada);
     // Stats sintéticas para cedidos en clubes fuera de la liga
     advanceOutOfLeagueLoans();
+    // Avanzar una jornada de cada liga ajena (simulación en paralelo de todas las competiciones)
+    advanceForeignLeagues();
 
     // Recuperación entre jornadas (semanas transcurridas hasta el próximo partido)
     const played = Number(jornada) || 1;
@@ -632,6 +706,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const leagueTeams = country ? country.teams : [gameState.team];
       for (const t of leagueTeams) if (staminaEngine.resetFitness) staminaEngine.resetFitness(t);
       try { db.returnLoans(); } catch (e) {}
+      // Rellenar dorsales de los jugadores que vuelven de cesión (evita que bloqueen el partido)
+      if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.ensureAllTeamsDorsals) {
+        try { window.PocketManager.squadEngine.ensureAllTeamsDorsals(); } catch (e) {}
+      }
       gameState.currentSeason = (gameState.currentSeason || 1) + 1;
       gameState.season = window.PocketManager.season.initSeason(gameState.team);
       if (window.PocketManager.setFormation) window.PocketManager.setFormation(gameState.team.formation || '4-3-3');
@@ -680,9 +758,26 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('season-summary-modal').classList.remove('open');
   });
 
+  // Bloquea el inicio del partido si algún titular/convocado del equipo del usuario
+  // no tiene dorsal asignado. Devuelve true si se puede jugar.
+  function validateUserDorsals(match) {
+    const team = gameState.team;
+    if (!team) return true;
+    if (!(match.homeId === team.id || match.awayId === team.id)) return true;
+    const squadEngine = window.PocketManager.squadEngine;
+    if (!squadEngine || !squadEngine.validateMatchDorsals) return true;
+    const offender = squadEngine.validateMatchDorsals(team);
+    if (offender && offender.player) {
+      showToast(`Debes asignar un dorsal a ${offender.player.name} para poder jugar`);
+      return false;
+    }
+    return true;
+  }
+
   document.addEventListener('start-match', (e) => {
     const { match, jornada } = e.detail || {};
     if (!match) return;
+    if (!validateUserDorsals(match)) return;
     setupLiveMatch(match, jornada);
     showScreen('screen-match');
   });
@@ -690,6 +785,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener('simulate-match', (e) => {
     const { match, jornada } = e.detail || {};
     if (!match) return;
+    if (!validateUserDorsals(match)) return;
     const home = db.getTeamById(match.homeId);
     const away = db.getTeamById(match.awayId);
     if (!home || !away) return;
@@ -709,6 +805,11 @@ document.addEventListener("DOMContentLoaded", () => {
       window.PocketManager.setFormation(gameState.team.formation || "4-3-3");
       if (staminaEngine && staminaEngine.resetFitness) staminaEngine.resetFitness(gameState.team);
     }
+    if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.ensureAllTeamsDorsals) {
+      window.PocketManager.squadEngine.ensureAllTeamsDorsals();
+    }
+    // Temporadas persistentes para TODAS las ligas (se simulan en paralelo).
+    initAllSeasons();
     applyCareerToUI();
     if (window.PocketManager.runAITransfers && gameState.season) {
       window.PocketManager.runAITransfers(8); // mercado de inicio de temporada

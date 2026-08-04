@@ -3819,12 +3819,46 @@ body {
   font-size: 0.72rem;
   color: var(--text-muted);
 }
-.st-row.green .st-c-pos { border-left: 3px solid #16A34A; }
-.st-row.blue .st-c-pos { border-left: 3px solid #2563EB; }
-.st-row.red .st-c-pos { border-left: 3px solid #DC2626; }
+/* Zonas de clasificación (esquema 1-20): indicador de borde + fondo sutil */
+.st-row.champ .st-c-pos { border-left: 3px solid #A8E026; }
+.st-row.champions .st-c-pos { border-left: 3px solid #30D32B; }
+.st-row.europa .st-c-pos { border-left: 3px solid #2BD396; }
+.st-row.conference .st-c-pos { border-left: 3px solid #5B97E2; }
+.st-row.permanencia .st-c-pos { border-left: 3px solid #B0B0B0; }
+.st-row.descenso .st-c-pos { border-left: 3px solid #EF3A4B; }
+.st-row.champ { background: rgba(168, 224, 38, 0.08); }
+.st-row.champions { background: rgba(48, 211, 43, 0.06); }
+.st-row.europa { background: rgba(43, 211, 150, 0.06); }
+.st-row.conference { background: rgba(91, 151, 226, 0.06); }
+.st-row.descenso { background: rgba(239, 58, 75, 0.07); }
+.st-row.permanencia { background: transparent; }
 .st-row.user {
   background: var(--accent-soft);
   box-shadow: inset 0 0 0 1px var(--accent);
+}
+/* Leyenda de la clasificación (dinámica: solo zonas presentes en la liga) */
+.st-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px 4px 2px;
+  border-top: 1px solid var(--border-soft);
+  margin-top: 8px;
+}
+.st-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.st-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  display: inline-block;
 }
 .st-badge {
   width: 20px;

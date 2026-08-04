@@ -82,8 +82,17 @@
         const to = this.getTeamById(toTeamId);
         if (from && to) {
           from.players = from.players.filter(x => x !== player);
+          // Libera el dorsal en el club de destino y restaura el previo (si lo había).
+          if (window.PocketManager.loanEngine && window.PocketManager.loanEngine.freeDorsalOnReturn) {
+            try { window.PocketManager.loanEngine.freeDorsalOnReturn(player); } catch (e) {}
+          }
           player.loan = null;
-          to.players.push(player);
+          // Insertar en la sección correcta de la plantilla del club propietario.
+          if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.insertPlayerByPosition) {
+            try { window.PocketManager.squadEngine.insertPlayerByPosition(to, player); } catch (e) { to.players.push(player); }
+          } else {
+            to.players.push(player);
+          }
         }
       }
       return loans.length;

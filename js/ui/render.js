@@ -505,7 +505,8 @@ function playerRowHtml(team, player, isStarter, isSelected, opts = {}) {
   const group = getPosGroup(player.pos).toLowerCase();
   const foot = player.foot || 'D';
   const cedTag = opts.ced ? '<span class="ced-tag">CED</span>' : '';
-  const destTag = opts.destination ? `<span class="ced-tag dest">CED → ${opts.destination}</span>` : '';
+  const destDorsal = player.number !== undefined && player.number !== null && player.number !== '' ? ` · #${player.number}` : '';
+  const destTag = opts.destination ? `<span class="ced-tag dest">CED → ${opts.destination}${destDorsal}</span>` : '';
 
   return `
     <button class="player-card${selectedClass}${injClass}" data-player-id="${player.id}">
@@ -603,6 +604,10 @@ function buildFirstTeamSquad(team) {
 }
 
 function buildList(team, subTab, statTab) {
+  // Autocompletar dorsales faltantes al renderizar la plantilla (solo rellena huecos).
+  if (team && window.PocketManager.squadEngine && window.PocketManager.squadEngine.assignAutomaticNumbers) {
+    try { window.PocketManager.squadEngine.assignAutomaticNumbers(team); } catch (e) {}
+  }
   const squad = getSquadState(team);
   const sub = subTab || activeSubTab;
   const view = statTab || activeStatTab;

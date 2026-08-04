@@ -125,6 +125,121 @@ window.PocketManager.englandData = {
         { id: "en231", name: "C. Tzolis", nick: "Tzolis", number: "", flag: "🇬🇷", age: 24, stamina: 100, value: 61880000, ovr: 84, pos: "EI", foot: "D", loan: null },
         { id: "en232", name: "Reiss Nelson", nick: "Nelson", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 10860000, ovr: 57, pos: "EI", foot: "D", loan: null }
       ]
+    },
+    {
+      id: "eng_bournemouth",
+      name: "AFC Bournemouth",
+      shortName: "BOU",
+      logo: "assets/logos/england/bournemouth.png",
+      primaryColor: "#DA291C",
+      secondaryColor: "#000000",
+      budget: 40000000,
+      ovr: 82,
+      formation: "4-2-3-1",
+      style: "Ofensivo",
+      stadium: "Vitality Stadium",
+      stadiumCapacity: 11464,
+      trophies: [
+        { name: "Championship", count: 1 }
+      ],
+      players: [
+        // Porteros
+        { id: "en233", name: "Djordje Petrovic", nick: "Petrovic", number: 1, flag: "🇷🇸", age: 26, stamina: 100, value: 28000000, ovr: 79, pos: "POR", foot: "D", loan: null },
+        { id: "en234", name: "Fraser Forster", nick: "Forster", number: 17, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 38, stamina: 100, value: 400000, ovr: 54, pos: "POR", foot: "D", loan: null },
+        { id: "en235", name: "Will Dennis", nick: "Dennis", number: 40, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 325000, ovr: 52, pos: "POR", foot: "D", loan: null },
+        // Defensas
+        { id: "en236", name: "António Silva", nick: "António Silva", number: 14, flag: "🇵🇹", age: 22, stamina: 100, value: 25000000, ovr: 76, pos: "DFC", foot: "D", loan: null },
+        { id: "en237", name: "Bafodé Diakité", nick: "Diakité", number: 18, flag: "🇫🇷", age: 25, stamina: 100, value: 25000000, ovr: 77, pos: "DFC", foot: "D", loan: null },
+        { id: "en238", name: "James Hill", nick: "Hill", number: 23, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 23000000, ovr: 62, pos: "DFC", foot: "D", loan: null },
+        { id: "en239", name: "Veljko Milosavljević", nick: "Milosavljević", number: 44, flag: "🇷🇸", age: 19, stamina: 100, value: 20000000, ovr: 65, pos: "DFC", foot: "D", loan: null },
+        { id: "en240", name: "Matai Akinmboni", nick: "Akinmboni", number: 45, flag: "🇺🇸", age: 19, stamina: 100, value: 1000000, ovr: 45, pos: "DFC", foot: "Z", loan: null },
+        { id: "en241", name: "Adrien Truffert", nick: "Truffert", number: 3, flag: "🇫🇷", age: 24, stamina: 100, value: 30000000, ovr: 77, pos: "LI", foot: "Z", loan: null },
+        { id: "en242", name: "Julio Soler", nick: "Soler", number: 6, flag: "🇦🇷", age: 21, stamina: 100, value: 8000000, ovr: 66, pos: "LI", foot: "Z", loan: null },
+        { id: "en243", name: "Julián Araujo", nick: "Araujo", number: 2, flag: "🇲🇽", age: 24, stamina: 100, value: 8000000, ovr: 60, pos: "LD", foot: "D", loan: null },
+        { id: "en244", name: "Max Aarons", nick: "Aarons", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 2500000, ovr: 63, pos: "LD", foot: "D", loan: null },
+        { id: "en245", name: "Adam Smith", nick: "Smith", number: 15, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 35, stamina: 100, value: 300000, ovr: 70, pos: "LD", foot: "D", loan: null },
+        // Centrocampistas
+        { id: "en246", name: "Tyler Adams", nick: "Adams", number: 12, flag: "🇺🇸", age: 27, stamina: 100, value: 25000000, ovr: 73, pos: "MCD", foot: "D", loan: null },
+        { id: "en247", name: "Ben Winterburn", nick: "Winterburn", number: 47, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 21, stamina: 100, value: 350000, ovr: 39, pos: "MCD", foot: "D", loan: null },
+        { id: "en248", name: "Alex Scott", nick: "Scott", number: 8, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 50000000, ovr: 72, pos: "MC", foot: "D", loan: null },
+        { id: "en249", name: "Alex Tóth", nick: "Tóth", number: 27, flag: "🇭🇺", age: 20, stamina: 100, value: 12000000, ovr: 71, pos: "MC", foot: "D", loan: null },
+        { id: "en250", name: "Lewis Cook", nick: "Cook", number: 4, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 29, stamina: 100, value: 11000000, ovr: 72, pos: "MC", foot: "D", loan: null },
+        { id: "en251", name: "Ryan Christie", nick: "Christie", number: 10, flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 31, stamina: 100, value: 8000000, ovr: 78, pos: "MC", foot: "Z", loan: null },
+        { id: "en252", name: "Marcus Tavernier", nick: "Tavernier", number: 16, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 27, stamina: 100, value: 25000000, ovr: 75, pos: "MCO", foot: "Z", loan: null },
+        { id: "en253", name: "Justin Kluivert", nick: "Kluivert", number: 19, flag: "🇳🇱", age: 27, stamina: 100, value: 25000000, ovr: 75, pos: "MCO", foot: "A", loan: null },
+        // Delanteros
+        { id: "en254", name: "Amine Adli", nick: "Adli", number: 21, flag: "🇲🇦", age: 26, stamina: 100, value: 20000000, ovr: 70, pos: "EI", foot: "Z", loan: null },
+        { id: "en255", name: "Rayan", nick: "Rayan", number: 37, flag: "🇧🇷", age: 20, stamina: 100, value: 60000000, ovr: 76, pos: "ED", foot: "Z", loan: null },
+        { id: "en256", name: "Ben Doak", nick: "Doak", number: 11, flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 20, stamina: 100, value: 15000000, ovr: 64, pos: "ED", foot: "D", loan: null },
+        { id: "en257", name: "David Brooks", nick: "Brooks", number: 7, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 29, stamina: 100, value: 12000000, ovr: 67, pos: "ED", foot: "Z", loan: null },
+        { id: "en258", name: "Junior Kroupi", nick: "Kroupi", number: 22, flag: "🇫🇷", age: 20, stamina: 100, value: 70000000, ovr: 80, pos: "DC", foot: "D", loan: null },
+        { id: "en259", name: "Evanilson", nick: "Evanilson", number: 9, flag: "🇧🇷", age: 26, stamina: 100, value: 35000000, ovr: 79, pos: "DC", foot: "A", loan: null },
+        { id: "en260", name: "Álvaro Rodríguez", nick: "Álvaro", number: 30, flag: "🇺🇾", age: 22, stamina: 100, value: 10000000, ovr: 69, pos: "DC", foot: "Z", loan: null },
+        { id: "en261", name: "Enes Ünal", nick: "Ünal", number: 26, flag: "🇹🇷", age: 29, stamina: 100, value: 7000000, ovr: 59, pos: "DC", foot: "D", loan: null },
+        { id: "en262", name: "Daniel Jebbison", nick: "Jebbison", number: "", flag: "🇨🇦", age: 22, stamina: 100, value: 6000000, ovr: 58, pos: "DC", foot: "D", loan: null },
+        // Cedidos fuera
+        { id: "en263", name: "Alex Paulsen", nick: "Paulsen", number: "", flag: "🇳🇿", age: 24, stamina: 100, value: 2500000, ovr: 65, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_bournemouth", currentTeam: "Motherwell" } },
+        { id: "en264", name: "Álex Jiménez", nick: "Jiménez", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 20090000, ovr: 71, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_bournemouth", currentTeam: "Fiorentina" } }
+      ]
+    },
+    {
+      id: "eng_astonvilla",
+      name: "Aston Villa",
+      shortName: "AVL",
+      logo: "assets/logos/england/astonvilla.png",
+      primaryColor: "#670E36",
+      secondaryColor: "#95BFE5",
+      budget: 50000000,
+      ovr: 86,
+      formation: "4-4-2",
+      style: "Ofensivo",
+      stadium: "Villa Park",
+      stadiumCapacity: 42918,
+      trophies: [
+        { name: "Champions League", count: 1 },
+        { name: "Premier League", count: 7 },
+        { name: "Supercopa de Europa", count: 1 },
+        { name: "Europa League", count: 1 },
+        { name: "FA Cup", count: 7 },
+        { name: "Championship", count: 2 },
+        { name: "EFL Cup", count: 5 }
+      ],
+      players: [
+        // Porteros
+        { id: "en265", name: "Emiliano Martínez", nick: "Dibu", number: 23, flag: "🇦🇷", age: 33, stamina: 100, value: 12000000, ovr: 87, pos: "POR", foot: "D", loan: null },
+        { id: "en266", name: "Marco Bizot", nick: "Bizot", number: 40, flag: "🇳🇱", age: 35, stamina: 100, value: 1500000, ovr: 73, pos: "POR", foot: "D", loan: null },
+        // Defensas
+        { id: "en267", name: "Ezri Konsa", nick: "Konsa", number: 4, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 45000000, ovr: 85, pos: "DFC", foot: "D", loan: null },
+        { id: "en268", name: "Pau Torres", nick: "Pau Torres", number: 14, flag: "🇪🇸", age: 29, stamina: 100, value: 20000000, ovr: 81, pos: "DFC", foot: "Z", loan: null },
+        { id: "en269", name: "Modou Kéba Cissé", nick: "Cissé", number: 48, flag: "🇸🇳", age: 21, stamina: 100, value: 6000000, ovr: 60, pos: "DFC", foot: "D", loan: null },
+        { id: "en270", name: "Victor Lindelöf", nick: "Lindelöf", number: 3, flag: "🇸🇪", age: 32, stamina: 100, value: 5000000, ovr: 72, pos: "DFC", foot: "D", loan: null },
+        { id: "en271", name: "Tyrone Mings", nick: "Mings", number: 5, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 33, stamina: 100, value: 3000000, ovr: 72, pos: "DFC", foot: "Z", loan: null },
+        { id: "en272", name: "Ian Maatsen", nick: "Maatsen", number: 22, flag: "🇳🇱", age: 24, stamina: 100, value: 30000000, ovr: 76, pos: "LI", foot: "Z", loan: null },
+        { id: "en273", name: "Lucas Digne", nick: "Digne", number: 12, flag: "🇫🇷", age: 33, stamina: 100, value: 6000000, ovr: 80, pos: "LI", foot: "Z", loan: null },
+        { id: "en274", name: "Matty Cash", nick: "Cash", number: 2, flag: "🇵🇱", age: 28, stamina: 100, value: 22000000, ovr: 83, pos: "LD", foot: "D", loan: null },
+        { id: "en275", name: "Kosta Nedeljković", nick: "Nedeljković", number: 32, flag: "🇷🇸", age: 20, stamina: 100, value: 6000000, ovr: 64, pos: "LD", foot: "D", loan: null },
+        // Centrocampistas
+        { id: "en276", name: "Amadou Onana", nick: "Onana", number: 24, flag: "🇧🇪", age: 24, stamina: 100, value: 45000000, ovr: 76, pos: "MCD", foot: "D", loan: null },
+        { id: "en277", name: "Boubacar Kamara", nick: "Kamara", number: 8, flag: "🇫🇷", age: 26, stamina: 100, value: 40000000, ovr: 84, pos: "MCD", foot: "D", loan: null },
+        { id: "en278", name: "Lamare Bogarde", nick: "Bogarde", number: 26, flag: "🇳🇱", age: 22, stamina: 100, value: 18000000, ovr: 65, pos: "MCD", foot: "D", loan: null },
+        { id: "en279", name: "João Gomes", nick: "Gomes", number: 35, flag: "🇧🇷", age: 25, stamina: 100, value: 40000000, ovr: 77, pos: "MC", foot: "D", loan: null },
+        { id: "en280", name: "John McGinn", nick: "McGinn", number: 7, flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 31, stamina: 100, value: 13000000, ovr: 85, pos: "MC", foot: "Z", loan: null },
+        { id: "en281", name: "Ross Barkley", nick: "Barkley", number: 6, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 32, stamina: 100, value: 4000000, ovr: 63, pos: "MC", foot: "D", loan: null },
+        { id: "en282", name: "Johan Manzambi", nick: "Manzambi", number: 44, flag: "🇨🇭", age: 20, stamina: 100, value: 65000000, ovr: 70, pos: "MCO", foot: "D", loan: null },
+        // Delanteros
+        { id: "en283", name: "Alejandro Garnacho", nick: "Garnacho", number: 17, flag: "🇦🇷", age: 22, stamina: 100, value: 28000000, ovr: 76, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "Chelsea", currentTeam: "eng_astonvilla" } },
+        { id: "en284", name: "Emiliano Buendía", nick: "Buendía", number: 10, flag: "🇦🇷", age: 29, stamina: 100, value: 16000000, ovr: 74, pos: "EI", foot: "D", loan: null },
+        { id: "en285", name: "Samuel Iling-Junior", nick: "Iling", number: 33, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 6500000, ovr: 65, pos: "EI", foot: "Z", loan: null },
+        { id: "en286", name: "Evann Guessand", nick: "Guessand", number: 29, flag: "🇨🇮", age: 25, stamina: 100, value: 25000000, ovr: 75, pos: "ED", foot: "D", loan: null },
+        { id: "en287", name: "Leon Bailey", nick: "Bailey", number: 31, flag: "🇯🇲", age: 28, stamina: 100, value: 14000000, ovr: 73, pos: "ED", foot: "Z", loan: null },
+        { id: "en288", name: "Alysson", nick: "Alysson", number: 47, flag: "🇧🇷", age: 20, stamina: 100, value: 10000000, ovr: 59, pos: "ED", foot: "Z", loan: null },
+        { id: "en289", name: "Ollie Watkins", nick: "Watkins", number: 11, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 30, stamina: 100, value: 25000000, ovr: 86, pos: "DC", foot: "D", loan: null },
+        { id: "en290", name: "Tammy Abraham", nick: "Abraham", number: 18, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 18000000, ovr: 76, pos: "DC", foot: "D", loan: null },
+        // Cedidos fuera
+        { id: "en291", name: "Joe Gauci", nick: "Gauci", number: "", flag: "🇦🇺", age: 26, stamina: 100, value: 1090000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "Lincoln City" } },
+        { id: "en292", name: "Oliwier Zych", nick: "Zych", number: "", flag: "🇵🇱", age: 22, stamina: 100, value: 1850000, ovr: 61, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "Vitória Guimarães" } },
+        { id: "en293", name: "Yasin Özcan", nick: "Özcan", number: "", flag: "🇹🇷", age: 20, stamina: 100, value: 8830000, ovr: 63, pos: "DFC", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "Beşiktaş" } }
+      ]
     }
   ]
 };
