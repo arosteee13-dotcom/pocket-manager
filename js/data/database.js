@@ -1,7 +1,6 @@
 (function () {
   const spainData = window.PocketManager.spainData;
   const englandData = window.PocketManager.englandData;
-  const hypermotionData = window.PocketManager.hypermotionData;
 
   // Competiciones de copa por país (además de su liga). España tiene la Copa del Rey y la
   // Supercopa; Inglaterra tiene Community Shield, EFL Cup, FA Cup y EFL Trophy.
@@ -21,8 +20,9 @@
   class Database {
     constructor() {
       this.countries = [spainData, englandData];
-      // Segundas ligas (LaLiga Hypermotion): segunda división española jugable.
-      this.leagues = [hypermotionData].filter(Boolean);
+      // Segundas ligas (LaLiga Hypermotion): segunda división española jugable, definida en
+      // spainData.secondLeague (todos los equipos de España viven en js/data/countries/spain.js).
+      this.leagues = [spainData.secondLeague].filter(Boolean);
       // Divisiones inferiores: viven en cada fichero de país (divisionTeams) y participan en
       // las copas de su país, pero no en la liga principal (country.teams sigue siendo la liga).
       this.divisionTeams = (spainData.divisionTeams || []).concat(englandData.divisionTeams || []);
