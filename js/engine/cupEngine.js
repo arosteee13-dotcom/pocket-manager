@@ -516,6 +516,40 @@
     return supercopa;
   }
 
+  // Primera edición de la Supercopa (temporada 1): no hay resultados previos de liga/copa,
+  // así que se fijan los cruces. SF A: FC Barcelona vs Atlético de Madrid; SF B: Real
+  // Sociedad vs Real Madrid. La final se rellena con los ganadores de las semifinales.
+  function buildSupercopaFirstEdition(opts) {
+    opts = opts || {};
+    const season = opts.season || 1;
+    const supercopa = {
+      id: opts.id || 'supercopa_de_espana',
+      name: opts.name || 'Supercopa de España',
+      type: 'cup',
+      country: opts.country || 'España',
+      season,
+      rounds: [],
+      jornadas: [],
+      alive: [],
+      winner: null,
+      runnerUp: null,
+      finished: false,
+      qualifications: {},
+      firstEdition: true
+    };
+    supercopa.rounds.push({
+      round: 'Semifinal', atWeek: 18, slot: 1, semis: false, byes: [],
+      matches: [
+        makeMatch('esp_barcelona', 'esp_atletico', null, 'spa'),
+        makeMatch('esp_sociedad', 'esp_madrid', null, 'spb')
+      ],
+      completed: false
+    });
+    supercopa.rounds.push({ round: 'Final', atWeek: 18, slot: 2, semis: false, byes: [], matches: [makeMatch(null, null)], completed: false });
+    syncJornadas(supercopa);
+    return supercopa;
+  }
+
   // ---------- Trofeos ----------
   function awardTrophy(team, name) {
     if (!team) return null;
@@ -552,7 +586,9 @@
     roundNameForMatches,
     buildCup,
     buildSupercopa,
+    buildSupercopaFirstEdition,
     playRound,
+    MAIN_PLAN,
     applyCupResult,
     nextFixture,
     awardTrophy,

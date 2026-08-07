@@ -633,6 +633,26 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const comp of comps) {
         const existing = gameState.seasons[comp.id];
         if (existing && existing.season === gameState.currentSeason) continue;
+        // Primera edición de la Supercopa de España (temporada 1): sin resultados previos
+        // de liga/copa, se fijan los cruces (FC Barcelona vs Atlético · Real Sociedad vs Real Madrid).
+        if (comp.id === 'supercopa_de_espana' && (gameState.currentSeason || 1) === 1) {
+          const engine = window.PocketManager.cupEngine;
+          const first = engine && engine.buildSupercopaFirstEdition
+            ? engine.buildSupercopaFirstEdition({ season: 1 })
+            : null;
+          if (first) gameState.seasons[comp.id] = first;
+          continue;
+        }
+        // Primera edición de la Community Shield (temporada 1): sin resultados previos
+        // de liga/copa, se fija el cruce (Arsenal vs Manchester City).
+        if (comp.id === 'community_shield' && (gameState.currentSeason || 1) === 1) {
+          const engine = window.PocketManager.englandEngine;
+          const first = engine && engine.buildCommunityShieldFirstEdition
+            ? engine.buildCommunityShieldFirstEdition({ season: 1 })
+            : null;
+          if (first) gameState.seasons[comp.id] = first;
+          continue;
+        }
         const cup = buildCountryCup(c.name, comp, gameState.currentSeason);
         if (cup) gameState.seasons[comp.id] = cup;
       }

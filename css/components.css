@@ -4118,11 +4118,15 @@
 .st-row.conference .st-c-pos { border-left: 3px solid #5B97E2; }
 .st-row.permanencia .st-c-pos { border-left: 3px solid #B0B0B0; }
 .st-row.descenso .st-c-pos { border-left: 3px solid #EF3A4B; }
+.st-row.ascenso .st-c-pos { border-left: 3px solid #1B7A36; }
+.st-row.playoffsAscenso .st-c-pos { border-left: 3px solid #8BC57F; }
 .st-row.champ { background: rgba(168, 224, 38, 0.08); }
 .st-row.champions { background: rgba(48, 211, 43, 0.06); }
 .st-row.europa { background: rgba(43, 211, 150, 0.06); }
 .st-row.conference { background: rgba(91, 151, 226, 0.06); }
 .st-row.descenso { background: rgba(239, 58, 75, 0.07); }
+.st-row.ascenso { background: rgba(27, 122, 54, 0.08); }
+.st-row.playoffsAscenso { background: rgba(139, 197, 127, 0.08); }
 .st-row.permanencia { background: transparent; }
 .st-row.user {
   background: var(--accent-soft);
@@ -4569,6 +4573,10 @@
   padding: 10px;
   margin-bottom: 10px;
 }
+.cup-round.pending {
+  border-style: dashed;
+  background: rgba(120, 120, 130, 0.06);
+}
 .cup-round-title {
   font-size: 0.72rem;
   font-weight: 800;
@@ -4577,43 +4585,94 @@
   color: var(--text-muted, #777);
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(120, 120, 130, 0.2);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+.cup-round-title .cup-pending-tag {
+  margin-left: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #b45309;
+  background: rgba(217, 119, 6, 0.14);
+  padding: 1px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+.cup-pending-note {
+  margin: 4px 0 2px;
+  font-size: 0.74rem;
+  color: var(--text-muted, #999);
+  text-align: center;
+}
+.cup-round-matches {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .cup-match {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 5px 2px;
-  font-size: 0.85rem;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid rgba(120, 120, 130, 0.15);
+  border-radius: 10px;
+  background: var(--bg-card, #fff);
 }
-.cup-mh, .cup-ma {
+.cup-team {
   flex: 1;
-  text-align: center;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.cup-team.rev { flex-direction: row-reverse; }
+.cup-badge {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+.cup-badge.empty { background: rgba(120, 120, 130, 0.2); }
+.cup-badge.win { box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.6); }
+.cup-name {
+  font-size: 0.76rem;
+  font-weight: 600;
   color: var(--text-main, #111);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.cup-mh.cup-win, .cup-ma.cup-win {
-  font-weight: 800;
+.cup-name.win { font-weight: 800; color: #15803d; }
+.cup-center {
+  flex: 0 0 auto;
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 .cup-score {
-  flex: 0 0 auto;
+  font-size: 0.95rem;
   font-weight: 800;
   color: var(--text-main, #111);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
 .cup-vs {
-  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-muted, #999);
 }
 .cup-note {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: var(--text-muted, #999);
+  white-space: nowrap;
 }
 .cup-winner {
   margin-top: 6px;
@@ -4623,6 +4682,71 @@
   color: #fff;
   font-weight: 800;
   text-align: center;
+}
+
+/* Fase de grupos del EFL Trophy */
+.tg-section {
+  margin-bottom: 12px;
+}
+.tg-section-title {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, #777);
+  margin-bottom: 6px;
+}
+.tg-group {
+  background: var(--bg-card, #fff);
+  border: 1px solid rgba(120, 120, 130, 0.2);
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.tg-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-main, #111);
+  padding-bottom: 5px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(120, 120, 130, 0.15);
+}
+.tg-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  font-size: 0.72rem;
+  border-radius: 6px;
+}
+.tg-row .cup-badge {
+  width: 20px;
+  height: 20px;
+  font-size: 0.44rem;
+}
+.tg-row.top {
+  background: rgba(22, 163, 74, 0.09);
+}
+.tg-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text-main, #111);
+}
+.tg-num {
+  width: 22px;
+  text-align: center;
+  color: var(--text-muted, #999);
+  font-weight: 600;
+}
+.tg-pts {
+  width: 26px;
+  text-align: center;
+  font-weight: 800;
+  color: var(--text-main, #111);
 }
 
 /* ---------- Copa del Rey en el Dashboard ---------- */
@@ -4676,37 +4800,109 @@
   flex: 1;
 }
 
-/* ---------- Calendario semanal (solo mi equipo) ---------- */
-.cal-week {
+/* ---------- Calendario semanal (solo mi equipo, vista deslizable) ---------- */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 12px;
+}
+.cal-nav-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+.cal-nav-btn:active { transform: scale(0.94); }
+.cal-nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cal-chips {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  touch-action: pan-x;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px;
+}
+.cal-chips:active { cursor: grabbing; }
+.cal-chips::-webkit-scrollbar {
+  height: 5px;
+}
+.cal-chips::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cal-chips::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 130, 0.35);
+  border-radius: 999px;
+}
+.cal-chips::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 130, 0.55);
+}
+.cal-chip {
+  flex-shrink: 0;
+  min-width: 40px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.cal-chip.current { border-color: rgba(22, 163, 74, 0.6); color: #15803d; }
+.cal-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.cal-chip:active { transform: scale(0.95); }
+
+.cal-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cal-week {
   border: 1px solid rgba(120, 120, 130, 0.22);
   border-radius: 14px;
   background: var(--card-bg, #fff);
-  padding: 10px;
-}
-.cal-week.cal-week-current {
-  border-color: rgba(37, 99, 235, 0.55);
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
-}
-.cal-week.cal-week-highlight {
-  animation: cal-pulse 1s ease-in-out;
-}
-@keyframes cal-pulse {
-  0%, 100% { background: var(--card-bg, #fff); }
-  50% { background: rgba(37, 99, 235, 0.10); }
+  padding: 14px;
 }
 .cal-week-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.78rem;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(120, 120, 130, 0.18);
+  margin-bottom: 10px;
+}
+.cal-week-title {
+  font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-main, #111);
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(120, 120, 130, 0.18);
-  margin-bottom: 8px;
+}
+.cal-week-tags {
+  display: flex;
+  gap: 6px;
 }
 .cal-week-tag {
   font-size: 0.62rem;
@@ -4716,17 +4912,24 @@
   background: rgba(37, 99, 235, 0.14);
   color: #1D4ED8;
   letter-spacing: 0.05em;
-  text-transform: none;
+  white-space: nowrap;
+}
+.cal-rest {
+  padding: 18px 0 8px;
+  text-align: center;
+  color: var(--text-muted, #999);
+  font-size: 0.82rem;
 }
 .cal-week-matches {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .cal-match {
   border: 1px solid rgba(120, 120, 130, 0.18);
   border-radius: 12px;
-  padding: 8px 10px;
+  padding: 12px;
+  background: var(--bg-card, #fff);
 }
 .cal-match.next {
   border-color: rgba(22, 163, 74, 0.5);
@@ -4739,7 +4942,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 .cal-slot {
   font-size: 0.6rem;
@@ -4767,25 +4970,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 14px;
+  margin-bottom: 8px;
 }
 .cal-badge {
-  min-width: 44px;
-  height: 32px;
-  border-radius: 9px;
+  min-width: 48px;
+  height: 36px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: #fff;
-  padding: 0 6px;
+  padding: 0 8px;
 }
 .cal-score {
-  font-size: 1rem;
+  font-size: 1.3rem;
   color: var(--text-main, #111);
-  min-width: 40px;
+  min-width: 48px;
   text-align: center;
 }
 .cal-match-meta {
@@ -4812,14 +5015,14 @@
 .cal-match-actions {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
 .cal-btn-play, .cal-btn-sim, .cal-btn-details {
   flex: 1;
-  padding: 8px;
+  padding: 10px;
   border: none;
   border-radius: 10px;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 800;
   cursor: pointer;
   letter-spacing: 0.04em;

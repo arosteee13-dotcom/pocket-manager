@@ -138,7 +138,11 @@
       const pair = matchday === 1 ? [[a, b], [c, d]]
         : matchday === 2 ? [[a, c], [b, d]]
         : [[a, d], [b, c]];
-      for (const [x, y] of pair) matches.push(makeMatch(x, y));
+      for (const [x, y] of pair) {
+        const m = makeMatch(x, y);
+        m.group = g.name || g.id;
+        matches.push(m);
+      }
     }
     const round = { round: name, atWeek, slot: 1, semis: false, byes: [], groups, matches, completed: false };
     cup.rounds.push(round);
@@ -271,6 +275,19 @@
     return cup;
   }
 
+  // Primera edición de la Community Shield (temporada 1): sin resultados previos de liga/copa,
+  // se fija el cruce (Arsenal vs Manchester City).
+  function buildCommunityShieldFirstEdition(opts) {
+    opts = opts || {};
+    const season = opts.season || 1;
+    const cup = newCup('community_shield', 'Community Shield', season, { mode: 'shield' });
+    cup.alive = ['eng_arsenal', 'eng_mancity'];
+    const round = { round: 'Final', atWeek: 1, slot: 1, semis: false, byes: [], matches: [makeMatch('eng_arsenal', 'eng_mancity')], completed: false };
+    cup.rounds.push(round);
+    syncJornadas(cup);
+    return cup;
+  }
+
   function buildEflCup(opts) {
     opts = opts || {};
     const { pl, divs } = englandTeams();
@@ -302,12 +319,21 @@
     const cup = newCup('efl_trophy', 'EFL Trophy', opts.season, { mode: 'trophy' });
     const rng = mulberry32(hashStr('efl_trophy:' + (opts.season || 1)));
     const ids = shuffle(trophy.map(t => t.id), rng);
+    // 16 grupos de 4 equipos: 8 del Grupo Norte (A-H) y 8 del Grupo Sur (A-H). Los dos
+    // primeros de cada grupo avanzan a las eliminatorias (1/16 → Final).
+    const names = [];
+    for (let i = 0; i < 8; i++) names.push('Grupo Norte ' + String.fromCharCode(65 + i));
+    for (let i = 0; i < 8; i++) names.push('Grupo Sur ' + String.fromCharCode(65 + i));
     const groups = [];
-    for (let i = 0; i < ids.length; i += 4) groups.push(ids.slice(i, i + 4));
+    for (let i = 0; i < ids.length; i += 4) {
+      const g = ids.slice(i, i + 4);
+      g.name = names[groups.length] || ('Grupo ' + (groups.length + 1));
+      groups.push(g);
+    }
     cup.groups = groups;
-    buildGroupRound(cup, 'Grupo 1/3', 3, groups, 1);
-    buildGroupRound(cup, 'Grupo 2/3', 6, groups, 2);
-    buildGroupRound(cup, 'Grupo 3/3', 9, groups, 3);
+    buildGroupRound(cup, 'Jornada 1', 3, groups, 1);
+    buildGroupRound(cup, 'Jornada 2', 6, groups, 2);
+    buildGroupRound(cup, 'Jornada 3', 9, groups, 3);
     return cup;
   }
 
@@ -377,6 +403,7 @@
 
   window.PocketManager.englandEngine = {
     buildCommunityShield,
+    buildCommunityShieldFirstEdition,
     buildEflCup,
     buildFaCup,
     buildEflTrophy,
@@ -386,6 +413,7 @@
     awardCompetitionTrophy,
     resolveSingleTie,
     englandTeams,
-    TROPHY_NAMES
+    TROPHY_NAMES,
+    TROPHY_KNOCKOUT
   };
 })();

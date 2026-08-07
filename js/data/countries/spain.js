@@ -152,7 +152,7 @@ window.PocketManager.spainData = {
         { id: "es304", name: "Robin Le Normand", nick: "Le Normand", number: 24, flag: "🇪🇸", age: 29, stamina: 90, value: 38400000, ovr: 80, pos: "DFC", foot: "D", loan: null },
         { id: "es303", name: "José María Giménez", nick: "Giménez", number: 2, flag: "🇺🇾", age: 31, stamina: 88, value: 18160000, ovr: 77, pos: "DFC", foot: "D", loan: null },
         { id: "es302", name: "Nahuel Molina", nick: "Molina", number: 16, flag: "🇦🇷", age: 28, stamina: 91, value: 24730000, ovr: 76, pos: "LD", foot: "D", loan: null },
-        { id: "es318", name: "Marc Pubill", nick: "Pubill", number: 18, flag: "🇪🇸", age: 23, stamina: 96, value: 27010000, ovr: 73, pos: "LD", foot: "D", loan: null },
+        { id: "es318", name: "Marc Pubill", nick: "Pubill", number: 18, flag: "🇪🇸", age: 23, stamina: 96, value: 27010000, ovr: 73, pos: "DFC", foot: "D", loan: null },
         { id: "es319", name: "Matteo Ruggeri", nick: "Ruggeri", number: 3, flag: "🇮🇹", age: 24, stamina: 95, value: 27680000, ovr: 75, pos: "LI", foot: "Z", loan: null },
         // Centrocampistas
         { id: "es314", name: "Pablo Barrios", nick: "Barrios", number: 8, flag: "🇪🇸", age: 23, stamina: 96, value: 52230000, ovr: 82, pos: "MC", foot: "D", loan: null },

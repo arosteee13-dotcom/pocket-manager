@@ -66,12 +66,18 @@
     return n; // Ronda 1-5, Fase previa, Grupo N/M, …
   }
 
-  // Rondas de una copa para mostrar en el subapartado: se omiten las fases previas de la
-  // Copa del Rey (clasificatorias de divisiones) y se agrupan las dos piernas de la
-  // Semifinal en una sola entrada. Devuelve [{ label, rounds: [round...] }].
+  // Rondas de una copa para mostrar en el subapartado: se muestran todas las rondas
+  // construidas (incluidas las clasificatorias 1/128·1/64·1/32 y Previa 1-3), omitiendo las
+  // literalmente llamadas "Fase previa" y agrupando las dos piernas de la Semifinal en una
+  // sola entrada. Se añaden también las rondas del plan aún no construidas como "pendientes",
+  // de modo que el panel muestra el torneo completo: Copa del Rey (1/128·1/64·1/32·1/16·
+  // Octavos·Cuartos·Semifinal·Final) y copas inglesas (EFL Cup 1/128→Final; FA Cup Previa 1-3
+  // + 1/1024→Final). Devuelve [{ label, rounds: [round...], pending }].
   function displayRounds(cup) {
     const rounds = (cup && cup.rounds) || [];
     const out = [];
+
+    // Todas las rondas construidas (fase clasificatoria + fase final).
     for (let i = 0; i < rounds.length; i++) {
       const r = rounds[i];
       if (/^fase previa/i.test(String(r.round || ''))) continue;
@@ -82,11 +88,41 @@
           legs.push(rounds[j]);
           j++;
         }
-        out.push({ label: 'Semifinal', rounds: legs });
+        out.push({ label: 'Semifinal', rounds: legs, pending: false });
         i = j - 1;
         continue;
       }
-      out.push({ label: roundLabel(r.round), rounds: [r] });
+      out.push({ label: roundLabel(r.round), rounds: [r], pending: false });
+    }
+
+    // Rondas del plan aún no construidas (pendientes).
+    //  - Copas inglesas (EFL Cup / FA Cup): el cup guarda su plan en `_plan` y su progreso en
+    //    `_planIdx` (índice de la última ronda del plan construida).
+    //  - EFL Trophy: plan de eliminatorias `TROPHY_KNOCKOUT` y progreso en `_knockIdx`.
+    //  - Copa del Rey: plan fijo `MAIN_PLAN` y las construidas desde `phase2Start`.
+    let plan = null;
+    let builtCount = 0;
+    if (cup && Array.isArray(cup._plan)) {
+      plan = cup._plan;
+      builtCount = Math.max(0, (cup._planIdx || 0) + 1);
+    } else if (cup && cup.mode === 'trophy') {
+      plan = window.PocketManager.englandEngine && window.PocketManager.englandEngine.TROPHY_KNOCKOUT;
+      builtCount = cup._knockIdx !== undefined ? Math.max(0, cup._knockIdx + 1) : 0;
+    } else if (cup && cup.phase2Start !== undefined) {
+      plan = window.PocketManager.cupEngine && window.PocketManager.cupEngine.MAIN_PLAN;
+      builtCount = Math.max(0, rounds.length - cup.phase2Start);
+    }
+    if (plan) {
+      for (let p = builtCount; p < plan.length; p++) {
+        const name = plan[p].name;
+        if (/^semifinal/i.test(name)) {
+          if (p + 1 < plan.length && /^semifinal/i.test(plan[p + 1].name)) p++;
+          if (out.length && out[out.length - 1].label === 'Semifinal') continue;
+          out.push({ label: 'Semifinal', rounds: [], pending: true });
+          continue;
+        }
+        out.push({ label: roundLabel(name), rounds: [], pending: true });
+      }
     }
     return out;
   }
@@ -326,35 +362,102 @@
   function cupPanelHtml(comp) {
     const cup = gameState.seasons[comp.id];
     if (!cup || !cup.rounds) return '<p class="st-empty">Sin datos.</p>';
-    const nameOf = (id) => { const t = db.getTeamById(id); return t ? t.shortName : '—'; };
+    const shortNameOf = (id) => { const t = db.getTeamById(id); return t ? t.shortName : '—'; };
+    const badge = (t, win) => t
+      ? `<span class="cup-badge${win ? ' win' : ''}" style="background:linear-gradient(135deg, ${t.primaryColor}, ${t.secondaryColor || t.primaryColor})">${t.shortName}</span>`
+      : '<span class="cup-badge empty"></span>';
+    const name = (t, win) => `<span class="cup-name${win ? ' win' : ''}">${t ? t.name : '—'}</span>`;
     const matchLine = (m) => {
-      const home = nameOf(m.homeId), away = nameOf(m.awayId);
+      const home = db.getTeamById(m.homeId), away = db.getTeamById(m.awayId);
+      const homeW = !!(m.played && m.winnerId === m.homeId);
+      const awayW = !!(m.played && m.winnerId === m.awayId);
+      let center;
       if (!m.played) {
-        return `<div class="cup-match"><span class="cup-mh">${home}</span><span class="cup-vs">vs</span><span class="cup-ma">${away}</span></div>`;
+        center = '<span class="cup-vs">vs</span>';
+      } else {
+        const pen = m.penalties ? `<span class="cup-note">pen ${m.penalties.home}-${m.penalties.away}</span>` : '';
+        const extra = m.etGoals ? '<span class="cup-note">prórr.</span>' : '';
+        const leg = m.leg ? `<span class="cup-note">${m.leg === 1 ? 'ida' : 'vuelta'}</span>` : '';
+        center = `<span class="cup-score">${m.homeGoals} - ${m.awayGoals}</span>${extra}${pen}${leg}`;
       }
-      const score = `${m.homeGoals} - ${m.awayGoals}`;
-      const pen = m.penalties ? `<small class="cup-note">pen ${m.penalties.home}-${m.penalties.away}</small>` : '';
-      const extra = m.etGoals ? `<small class="cup-note">prórr.</small>` : '';
-      const leg = m.leg ? `<small class="cup-note">${m.leg === 1 ? 'ida' : 'vuelta'}</small>` : '';
-      const homeW = m.winnerId === m.homeId ? ' cup-win' : '';
-      const awayW = m.winnerId === m.awayId ? ' cup-win' : '';
       return `<div class="cup-match">
-        <span class="cup-mh${homeW}">${home}</span>
-        <span class="cup-score">${score}${extra}${pen}${leg}</span>
-        <span class="cup-ma${awayW}">${away}</span>
+        <span class="cup-team">${badge(home, homeW)}${name(home, homeW)}</span>
+        <span class="cup-center">${center}</span>
+        <span class="cup-team rev">${name(away, awayW)}${badge(away, awayW)}</span>
       </div>`;
     };
+    // Fase de grupos del EFL Trophy: cada grupo (Norte/Sur A-H) como mini-clasificación,
+    // ordenada por puntos, con los 2 primeros (que avanzan) resaltados.
+    const groupStageHtml = (cup) => {
+      const groups = (cup && cup.groups) || [];
+      if (!groups.length) return '<p class="st-empty">Sin grupos.</p>';
+      const groupMatches = (cup.rounds || []).filter(r => r.groups).flatMap(r => r.matches || []);
+      const renderGroup = (g) => {
+        const rows = {};
+        for (const id of g) rows[id] = { teamId: id, pj: 0, pts: 0, gf: 0, ga: 0 };
+        for (const m of groupMatches) {
+          if (g.indexOf(m.homeId) === -1 || g.indexOf(m.awayId) === -1) continue;
+          const h = rows[m.homeId], a = rows[m.awayId];
+          if (!h || !a) continue;
+          const hg = m.homeGoals || 0, ag = m.awayGoals || 0;
+          h.pj++; a.pj++;
+          h.gf += hg; h.ga += ag; a.gf += ag; a.ga += hg;
+          if (hg > ag) h.pts += 3;
+          else if (hg < ag) a.pts += 3;
+          else { h.pts++; a.pts++; }
+        }
+        const sorted = Object.values(rows)
+          .sort((x, y) => (y.pts - x.pts) || ((y.gf - y.ga) - (x.gf - x.ga)) || (y.gf - x.gf) || String(x.teamId).localeCompare(String(y.teamId)));
+        return `
+        <div class="tg-group">
+          <div class="tg-title">${g.name || g.id}</div>
+          ${sorted.map((s, i) => {
+            const t = db.getTeamById(s.teamId);
+            return `<div class="tg-row${i < 2 ? ' top' : ''}">
+              ${badge(t, false)}
+              <span class="tg-name">${t ? t.name : '—'}</span>
+              <span class="tg-num">${s.pj}</span>
+              <span class="tg-num">${s.gf}</span>
+              <span class="tg-num">${s.ga}</span>
+              <span class="tg-pts">${s.pts}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+      };
+      const section = (title, list) => list.length
+        ? `<div class="tg-section"><div class="tg-section-title">${title}</div>${list.map(renderGroup).join('')}</div>`
+        : '';
+      const norte = groups.filter(g => /norte/i.test(g.name || ''));
+      const sur = groups.filter(g => /sur/i.test(g.name || ''));
+      return section('Norte', norte) + section('Sur', sur);
+    };
+
     const display = displayRounds(cup);
     const list = (state.round !== null && display[state.round]) ? [display[state.round]] : display;
     const rounds = list.map(d => {
+      if (!d.rounds.length) {
+        return `
+        <div class="cup-round pending">
+          <div class="cup-round-title">${d.label}<span class="cup-pending-tag">Pendiente</span></div>
+          <p class="cup-pending-note">Se definirá al completarse la ronda anterior.</p>
+        </div>`;
+      }
       const pending = !d.rounds.every(x => x.completed);
+      const gr = d.rounds[0];
+      if (gr && gr.groups) {
+        return `
+        <div class="cup-round">
+          <div class="cup-round-title">${d.label}</div>
+          ${groupStageHtml(cup)}
+        </div>`;
+      }
       return `
       <div class="cup-round">
         <div class="cup-round-title">${d.label}${pending ? ' · pendiente' : ''}</div>
-        ${d.rounds.map(r => r.matches.map(matchLine).join('')).join('')}
+        <div class="cup-round-matches">${d.rounds.map(r => r.matches.map(matchLine).join('')).join('')}</div>
       </div>`;
     }).join('');
-    const winner = cup.winner ? `<div class="cup-winner">🏆 Campeón: ${nameOf(cup.winner)}</div>` : '';
+    const winner = cup.winner ? `<div class="cup-winner">🏆 Campeón: ${shortNameOf(cup.winner)}</div>` : '';
     return rounds + winner;
   }
 
@@ -397,7 +500,7 @@
         if (state.round === null || state.round < 0 || state.round >= rounds.length) state.round = 0;
         groupsEl.style.display = 'flex';
         groupsEl.innerHTML = rounds.map((d, i) =>
-          `<button class="subtab${state.round === i ? ' active' : ''}" data-round="${i}">${d.label}</button>`
+          `<button class="subtab${state.round === i ? ' active' : ''}${d.pending ? ' pending' : ''}" data-round="${i}">${d.label}</button>`
         ).join('');
       } else {
         const groups = comp && comp.groups;

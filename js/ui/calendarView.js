@@ -1,13 +1,15 @@
 (function () {
-  // Calendario: SOLO los partidos de mi equipo, ordenados por semanas (1-39), con sus dos
-  // franjas (slot1 = Miércoles, slot2 = Domingo). Cada partido muestra la competición, el
-  // rival, si juegas en casa o fuera, si está pendiente o jugado y el resultado.
+  // Calendario: SOLO los partidos de mi equipo, en vista semanal deslizable.
+  // Barra superior con chips de semana (S1…Stotal) + flechas; abajo, la semana
+  // seleccionada en una tarjeta grande (1-2 partidos, slot Miércoles/Domingo).
   const db = window.PocketManager.db;
   const gameState = window.PocketManager.gameState;
   const calendar = window.PocketManager.calendar;
   let bound = false;
   let lastFixtures = [];
   let highlightWeek = null;
+  let selectedWeek = null;
+  let lastRenderedCurrent = null;
 
   function badgeHtml(team, cls) {
     return `<span class="${cls}" style="background:linear-gradient(135deg, ${team.primaryColor}, ${team.secondaryColor || team.primaryColor})">${team.shortName}</span>`;
@@ -34,24 +36,20 @@
     return lastFixtures.find(f => fixtureKey(f) === key) || null;
   }
 
-  // Autoscroll directo al bloque de la semana en curso. Se difiere hasta que termine
-  // la animación de entrada del screen (`screenIn`, 0.25s) para que el cálculo del
-  // scroll quede exacto y no se desvíe por el translateY transitorio.
-  function scrollToCurrentWeek() {
+  // Autoscroll del chip activo hasta que sea visible (diferido tras la animación de
+  // entrada del screen `screenIn`, 0.25s, para que el cálculo no se desvíe).
+  function scrollActiveChip() {
     const root = document.getElementById('calendar-root');
     if (!root) return;
-    const target = root.querySelector('.cal-week-current') || root.querySelector('.cal-week');
-    if (!target || !target.scrollIntoView) return;
+    const chip = root.querySelector('.cal-chip.active') || root.querySelector('.cal-chip.current');
+    if (!chip || !chip.scrollIntoView) return;
 
     const doScroll = () => {
-      try { target.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
+      try { chip.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); } catch (e) {}
     };
 
     const screen = document.getElementById('screen-calendar');
-    if (!screen || !document.body.contains(screen)) {
-      doScroll();
-      return;
-    }
+    if (!screen || !document.body.contains(screen)) { doScroll(); return; }
 
     let done = false;
     const finish = () => {
@@ -63,7 +61,6 @@
     };
     const onEnd = (ev) => { if (ev.target === screen) finish(); };
     screen.addEventListener('animationend', onEnd);
-    // Respaldo: si la animación no se emite, scrolleamos igualmente.
     const backup = setTimeout(finish, 320);
   }
 
@@ -85,38 +82,61 @@
     const currentWeek = calendar.currentUserWeek(team.id);
     const totalWeeks = calendar.totalWeeks ? calendar.totalWeeks(team.id) : 39;
 
+    // Snap a la semana actual cuando la jornada avanza; conserva la elección al navegar.
+    if (selectedWeek === null || lastRenderedCurrent !== currentWeek) {
+      selectedWeek = highlightWeek || currentWeek;
+    } else if (highlightWeek) {
+      selectedWeek = highlightWeek;
+    }
+    lastRenderedCurrent = currentWeek;
+    highlightWeek = null;
+
+    const week = Math.max(1, Math.min(totalWeeks, Number(selectedWeek) || currentWeek));
+
     const byWeek = {};
     for (const f of fixtures) {
       (byWeek[f.week] = byWeek[f.week] || []).push(f);
     }
 
-    const weeksHtml = [];
-    for (let w = 1; w <= totalWeeks; w++) {
-      weeksHtml.push(weekBlockHtml(w, byWeek[w] || [], team, currentWeek, w === currentWeek, highlightWeek === w));
-    }
-    root.innerHTML = weeksHtml.join('');
+    root.innerHTML = `
+      <div class="cal-nav">
+        <button class="cal-nav-btn" data-cal="prev" aria-label="Semana anterior">‹</button>
+        <div class="cal-chips">${chipsHtml(totalWeeks, currentWeek, week)}</div>
+        <button class="cal-nav-btn" data-cal="next" aria-label="Semana siguiente">›</button>
+      </div>
+      <div class="cal-sheet">${sheetHtml(week, byWeek[week] || [], team, currentWeek)}</div>
+    `;
 
-    scrollToCurrentWeek();
-
+    scrollActiveChip();
     bind();
   }
 
-  function weekBlockHtml(week, fixtures, team, currentWeek, isCurrent, isHighlight) {
-    const double = fixtures.length >= 2;
-    const isBreak = week === (calendar && calendar.WEEK_BREAK);
-    const cls = ['cal-week', isCurrent ? 'cal-week-current' : '', isHighlight ? 'cal-week-highlight' : ''].filter(Boolean).join(' ');
-    const tag = isBreak ? '<span class="cal-week-tag">Parón</span>' : (double ? '<span class="cal-week-tag">Doble jornada</span>' : '');
-    if (!fixtures.length) {
-      return `<div class="${cls}" data-week="${week}">
-        <div class="cal-week-head">Semana ${week}${tag || '<span class="cal-week-tag">Descanso</span>'}</div>
-      </div>`;
+  function chipsHtml(totalWeeks, currentWeek, selected) {
+    let html = '';
+    for (let w = 1; w <= totalWeeks; w++) {
+      const cls = ['cal-chip', w === currentWeek ? 'current' : '', w === selected ? 'active' : ''].filter(Boolean).join(' ');
+      html += `<button class="${cls}" data-week="${w}">S${w}</button>`;
     }
-    return `<div class="${cls}" data-week="${week}">
-      <div class="cal-week-head">Semana ${week}${tag}</div>
-      <div class="cal-week-matches">
-        ${fixtures.map(f => matchCardHtml(f, team, currentWeek)).join('')}
-      </div>
-    </div>`;
+    return html;
+  }
+
+  function sheetHtml(week, fixtures, team, currentWeek) {
+    const isBreak = week === (calendar && calendar.WEEK_BREAK);
+    const double = fixtures.length >= 2;
+    const tags = [];
+    if (!fixtures.length) tags.push('Descanso');
+    if (double) tags.push('Doble jornada');
+    if (isBreak && !fixtures.length) tags.push('Parón');
+    const tagHtml = tags.length
+      ? `<span class="cal-week-tags">${tags.map(t => `<span class="cal-week-tag">${t}</span>`).join('')}</span>`
+      : '';
+
+    const head = `<div class="cal-week-head"><span class="cal-week-title">Semana ${week}</span>${tagHtml}</div>`;
+
+    if (!fixtures.length) {
+      return `<div class="cal-week" data-week="${week}">${head}<p class="cal-rest">Sin partidos. Descanso.</p></div>`;
+    }
+    return `<div class="cal-week" data-week="${week}">${head}<div class="cal-week-matches">${fixtures.map(f => matchCardHtml(f, team, currentWeek)).join('')}</div></div>`;
   }
 
   function matchCardHtml(f, team, currentWeek) {
@@ -151,7 +171,7 @@
         </div>
         <div class="cal-match-actions">
           ${playable ? `
-            <button class="cal-btn-play" data-action="play" data-key="${key}">JUGAR</button>
+            <button class="cal-btn-play" data-action="play" data-key="${key}">▶ JUGAR</button>
             <button class="cal-btn-sim" data-action="sim" data-key="${key}">SIMULAR</button>` : ''}
           ${played ? `<button class="cal-btn-details" data-action="details" data-key="${key}">Ver detalles</button>` : ''}
         </div>
@@ -197,7 +217,71 @@
 
     const root = document.getElementById('calendar-root');
     if (root) {
+      const chipsEl = () => root.querySelector('.cal-chips');
+      let dragState = null;
+
+      // Rueda del ratón sobre la franja de semanas -> scroll horizontal.
+      root.addEventListener('wheel', (e) => {
+        const chips = chipsEl();
+        if (!chips || e.deltaY === 0) return;
+        if (e.target && !chips.contains(e.target)) return;
+        if (chips.scrollWidth <= chips.clientWidth) return;
+        const max = chips.scrollWidth - chips.clientWidth;
+        const next = Math.max(0, Math.min(max, chips.scrollLeft + e.deltaY));
+        if (next !== chips.scrollLeft) {
+          e.preventDefault();
+          chips.scrollLeft = next;
+        }
+      }, { passive: false });
+
+      // Arrastre con el ratón (el táctil usa el pan nativo de touch-action: pan-x).
+      root.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'mouse') return;
+        const chips = chipsEl();
+        if (!chips || !chips.contains(e.target)) return;
+        dragState = { startX: e.clientX, scrollLeft: chips.scrollLeft, moved: false };
+      });
+      root.addEventListener('pointermove', (e) => {
+        if (!dragState) return;
+        const chips = chipsEl();
+        if (!chips) return;
+        const dx = e.clientX - dragState.startX;
+        if (Math.abs(dx) > 5) dragState.moved = true;
+        chips.scrollLeft = dragState.scrollLeft - dx;
+      });
+      const endDrag = () => {
+        // Si hubo arrastre, suprime el clic posterior (no saltar de semana al arrastrar).
+        if (dragState && dragState.moved) {
+          const suppress = (ev) => {
+            ev.stopPropagation();
+            document.removeEventListener('click', suppress, true);
+          };
+          document.addEventListener('click', suppress, true);
+        }
+        dragState = null;
+      };
+      root.addEventListener('pointerup', endDrag);
+      root.addEventListener('pointercancel', endDrag);
+
       root.addEventListener('click', (e) => {
+        const team = gameState.team;
+        const totalWeeks = (team && calendar && calendar.totalWeeks) ? calendar.totalWeeks(team.id) : 39;
+
+        const nav = e.target.closest('[data-cal]');
+        if (nav) {
+          const dir = nav.dataset.cal === 'prev' ? -1 : 1;
+          selectedWeek = Math.max(1, Math.min(totalWeeks, (Number(selectedWeek) || 1) + dir));
+          renderCalendar();
+          return;
+        }
+
+        const chip = e.target.closest('[data-week]');
+        if (chip) {
+          selectedWeek = Number(chip.dataset.week);
+          renderCalendar();
+          return;
+        }
+
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         const key = btn.dataset.key;
