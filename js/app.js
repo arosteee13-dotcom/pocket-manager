@@ -1182,8 +1182,14 @@ document.addEventListener("DOMContentLoaded", () => {
     saveSystem.setActiveSaveId(saveSystem.newSaveId());
     if (!gameState.currentDate) gameState.currentDate = new Date().toLocaleDateString("es-ES");
     if (gameState.team) {
-      window.PocketManager.setFormation(gameState.team.formation || "4-3-3");
-      if (staminaEngine && staminaEngine.resetFitness) staminaEngine.resetFitness(gameState.team);
+      try { window.PocketManager.setFormation(gameState.team.formation || "4-3-3"); } catch (e) {}
+      // Limpia el estado de alineación/once residual de una partida anterior (mismo id de equipo).
+      if (window.PocketManager.restoreRuntime) { try { window.PocketManager.restoreRuntime(gameState.team, {}); } catch (e) {} }
+    }
+    // Nueva partida: toda la stamina al 100% (y sin lesiones/sanciones), también si en esta
+    // misma sesión se jugó otra carrera y los objetos de los jugadores quedaron mutados.
+    if (staminaEngine && staminaEngine.resetFitness) {
+      try { for (const t of db.getAllTeams()) staminaEngine.resetFitness(t); } catch (e) {}
     }
     if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.ensureAllTeamsDorsals) {
       window.PocketManager.squadEngine.ensureAllTeamsDorsals();
@@ -1192,6 +1198,10 @@ document.addEventListener("DOMContentLoaded", () => {
     initAllSeasons();
     // Copa del Rey de la temporada (fase previa auto-simulada).
     initCups();
+    // Refuerzo: la stamina del equipo del usuario siempre al 100 al empezar la carrera.
+    if (gameState.team && staminaEngine && staminaEngine.resetFitness) {
+      try { staminaEngine.resetFitness(gameState.team); } catch (e) {}
+    }
     applyCareerToUI();
     if (window.PocketManager.updateInboxBadge) window.PocketManager.updateInboxBadge();
     if (window.PocketManager.updateBudgetBadge) window.PocketManager.updateBudgetBadge();

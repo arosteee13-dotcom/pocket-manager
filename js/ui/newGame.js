@@ -8,10 +8,12 @@
   let createFormBound = false;
   let selectLeagueBound = false;
   let selectTeamBound = false;
+  let previewTabsBound = false;
   let selectedNatCode = null;
   let selectedCountry = null;
   let selectedLeague = null;
   let selectedTeamId = null;
+  let previewTeam = null;
 
 function flagFromCode(code) {
   if (!code) return '🌍';
@@ -290,8 +292,10 @@ function resetTeamBox() {
 }
 
 function openTeamPreview(team) {
+  previewTeam = team;
   const modal = document.getElementById('team-preview-modal');
   const list = document.getElementById('team-preview-list');
+  const club = document.getElementById('team-preview-club');
   const title = document.getElementById('team-preview-title');
   if (title) title.textContent = `${team.name} · Plantilla`;
   if (list) {
@@ -312,6 +316,10 @@ function openTeamPreview(team) {
 
     list.innerHTML = html;
   }
+  // Subapartado por defecto: Plantilla.
+  if (modal) modal.querySelectorAll('[data-preview-tab]').forEach(c => c.classList.toggle('active', c.dataset.previewTab === 'plantilla'));
+  if (list) list.style.display = 'block';
+  if (club) club.style.display = 'none';
   if (modal) modal.classList.add('open');
 }
 
@@ -327,6 +335,29 @@ function bindSelectTeam() {
   const leaguesEl = document.getElementById('st-leagues');
   const listEl = document.getElementById('st-team-list');
   const startBtn = document.getElementById('btn-start-career');
+
+  // Subapartados de la vista previa del equipo: Plantilla / Información del club.
+  const previewModal = document.getElementById('team-preview-modal');
+  if (previewModal && !previewTabsBound) {
+    previewTabsBound = true;
+    previewModal.addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-preview-tab]');
+      if (!chip) return;
+      const list = document.getElementById('team-preview-list');
+      const club = document.getElementById('team-preview-club');
+      previewModal.querySelectorAll('[data-preview-tab]').forEach(c => c.classList.toggle('active', c === chip));
+      if (chip.dataset.previewTab === 'info') {
+        if (club && previewTeam) {
+          club.innerHTML = (window.PocketManager.clubInfoHtml ? window.PocketManager.clubInfoHtml(previewTeam) : '');
+        }
+        if (club) club.style.display = 'block';
+        if (list) list.style.display = 'none';
+      } else {
+        if (list) list.style.display = 'block';
+        if (club) club.style.display = 'none';
+      }
+    });
+  }
 
   leaguesEl.addEventListener('click', (e) => {
     const pill = e.target.closest('.st-league-pill');

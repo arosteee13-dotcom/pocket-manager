@@ -50,6 +50,10 @@
   // si dos jugadores comparten número, el de menor prioridad pasa al libre más bajo.
   function assignAutomaticNumbers(team) {
     if (!team || !Array.isArray(team.players)) return 0;
+    // El equipo del usuario gestiona sus dorsales a mano: nunca se le asignan
+    // automáticamente (conserva los definidos en los datos; los demás quedan en blanco).
+    const gs = window.PocketManager.gameState;
+    if (gs && gs.team && team.id === gs.team.id) return 0;
 
     const players = team.players.filter(p => !isLoanedOutOf(team, p));
     const used = new Set();

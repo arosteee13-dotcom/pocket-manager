@@ -465,7 +465,7 @@ function buildField(team, fieldId, live) {
     const sel = squad.selected === p.id ? ' selected' : '';
     const outClass = p._sentOff ? ' sent-off' : (isInjured(p) ? ' injured' : '');
     const group = getPosGroup(slot.pos).toLowerCase();
-    const st = p.stamina !== undefined && p.stamina !== null ? p.stamina : 50;
+    const st = (typeof p.stamina === 'number' && isFinite(p.stamina)) ? p.stamina : 100;
     const liveExtra = live ? liveMarksHtml(team, p, live) + liveRatingHtml(team, p, live) : statusBadgeHtml(p);
     const infoBtn = live ? '' : playerInfoBtnHtml(p.id);
     html += `
@@ -864,7 +864,7 @@ function getBenchSplit(team, squad) {
 function benchRowHtml(team, player, selected, live) {
   const group = getPosGroup(player.pos).toLowerCase();
   const rc = getRatingColor(player.ovr);
-  const st = player.stamina !== undefined && player.stamina !== null ? player.stamina : 50;
+  const st = (typeof player.stamina === 'number' && isFinite(player.stamina)) ? player.stamina : 100;
   const unavailable = isUnavailable(player);
   const injClass = unavailable ? ' unavailable' : '';
   // En el modal de cambios solo se muestra el rendimiento de quien ha jugado (tiene valoración en vivo)
@@ -1047,27 +1047,54 @@ let activeSubTab = 'primer';
 let activeStatTab = 'general';
 let clubTabsBound = false;
 
+function clubStadiumHtml(team) {
+  const capacity = Number(team.stadiumCapacity || 0).toLocaleString('es-ES');
+  return `
+    <span class="stadium-line">${ICON_STADIUM} ${team.stadium || '—'}</span>
+    <span class="stadium-line stadium-cap">${ICON_SEAT} ${capacity} espectadores</span>`;
+}
+
+function clubBudgetHtml(team) {
+  return `<span class="stadium-line">${ICON_BUDGET} € ${Number(team.budget || 0).toLocaleString('es-ES')}</span>`;
+}
+
+function clubTrophiesHtml(team) {
+  const t = team.trophies || [];
+  if (!t.length) return '<span class="trophy-empty">Sin palmarés</span>';
+  return t.map(x => `
+    <li class="trophy-item">
+      <span class="trophy-label">${x.name}</span>
+      <span class="trophy-count">${x.count}</span>
+    </li>`).join('');
+}
+
+// HTML de la información del club (estadio, espectadores, presupuesto y palmarés), reutilizado
+// por la pestaña "Información del club" de la plantilla y por la vista previa del selector.
+function clubInfoHtml(team) {
+  return `
+    <div class="club-info-card">
+      <div class="info-block">
+        <h3>Estadio</h3>
+        <p>${clubStadiumHtml(team)}</p>
+      </div>
+      <div class="info-block">
+        <h3>Presupuesto</h3>
+        <p>${clubBudgetHtml(team)}</p>
+      </div>
+      <div class="info-block">
+        <h3>Palmarés</h3>
+        <ul class="trophies">${clubTrophiesHtml(team)}</ul>
+      </div>
+    </div>`;
+}
+
 function renderClubInfo(team) {
   const stadiumEl = document.getElementById('club-stadium');
-  if (stadiumEl) {
-    const capacity = Number(team.stadiumCapacity || 0).toLocaleString('es-ES');
-    stadiumEl.innerHTML = `
-      <span class="stadium-line">${ICON_STADIUM} ${team.stadium || '—'}</span>
-      <span class="stadium-line stadium-cap">${ICON_SEAT} ${capacity} espectadores</span>`;
-  }
+  if (stadiumEl) stadiumEl.innerHTML = clubStadiumHtml(team);
   const budgetEl = document.getElementById('club-budget');
-  if (budgetEl) {
-    budgetEl.innerHTML = `<span class="stadium-line">${ICON_BUDGET} € ${Number(team.budget || 0).toLocaleString('es-ES')}</span>`;
-  }
+  if (budgetEl) budgetEl.innerHTML = clubBudgetHtml(team);
   const trophiesEl = document.getElementById('club-trophies');
-  if (trophiesEl) {
-    const t = team.trophies || [];
-    trophiesEl.innerHTML = t.map(x => `
-      <li class="trophy-item">
-        <span class="trophy-label">${x.name}</span>
-        <span class="trophy-count">${x.count}</span>
-      </li>`).join('');
-  }
+  if (trophiesEl) trophiesEl.innerHTML = clubTrophiesHtml(team);
 }
 
 function bindClubTabs(team) {
@@ -1537,6 +1564,7 @@ function restoreRuntime(team, data) {
 
   window.PocketManager.renderSquadScreen = renderSquadScreen;
   window.PocketManager.openTeamView = openTeamView;
+  window.PocketManager.clubInfoHtml = clubInfoHtml;
   window.PocketManager.playerRowHtml = playerRowHtml;
   window.PocketManager.getRatingColor = getRatingColor;
   window.PocketManager.getTeamRating = getTeamRating;

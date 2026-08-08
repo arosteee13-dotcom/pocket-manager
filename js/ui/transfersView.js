@@ -95,6 +95,9 @@
     } else {
       buyer.players.push(player);
     }
+    // El equipo del usuario asigna sus dorsales a mano: el fichaje entra en blanco
+    // (no se le pone dorsal automático ni se mueven los del resto).
+    if (buyer.id === (gameState.team ? gameState.team.id : null)) player.number = '';
     // Asignar dorsal libre al fichaje en su nuevo club (y reasignar duplicados).
     if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.assignAutomaticNumbers) {
       try { window.PocketManager.squadEngine.assignAutomaticNumbers(buyer); } catch (e) {}

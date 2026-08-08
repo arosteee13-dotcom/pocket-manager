@@ -6,11 +6,11 @@
   };
   const BASE_EVENT = 0.10;
   const BASE_GOAL = 0.35;
-  const YELLOW_PROB = 0.045;
-  const RED_PROB = 0.008;
+  const YELLOW_PROB = 0.025;
+  const RED_PROB = 0.0015;
   const ASSIST_PROB = 0.70;
-  const INJURY_BASE = 0.0002;
-  const INJURY_LOW_STAMINA = 0.004; // se multiplica por (70 - stamina) / 70 cuando stamina < 70
+  const INJURY_BASE = 0.00007;
+  const INJURY_LOW_STAMINA = 0.002; // se multiplica por (70 - stamina) / 70 cuando stamina < 70
 
   function engine() {
     return window.PocketManager.staminaEngine || { isInjured: () => false, isUnavailable: () => false, randomizeInjury: (p) => (p.injury = { isInjured: true, weeksLeft: 2, type: 'Muscular' }) };

@@ -5048,3 +5048,11 @@
   text-transform: uppercase;
 }
 .st-group-title:first-child { margin-top: 0; }
+
+/* Subapartados de la vista previa del equipo (Plantilla / Información del club) */
+.preview-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px 0;
+}
+.trophy-empty { color: var(--text-muted, #999); font-size: 0.85rem; }
