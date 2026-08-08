@@ -570,9 +570,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (mins[home.id]) staminaEngine.applyMatchStamina(home, mins[home.id]);
       if (mins[away.id]) staminaEngine.applyMatchStamina(away, mins[away.id]);
     }
-    // Playoffs de LaLiga Hypermotion (se resuelven al completar la Jornada 42).
+    // Playoffs de liga (Hypermotion y EFL Championship) al completar las jornadas regulares.
     if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.advance) {
       try { window.PocketManager.spanishEngine.advance(se, se.compId || userLeagueCompId()); } catch (e) {}
+    }
+    if (window.PocketManager.englandEngine && window.PocketManager.englandEngine.championshipAdvance) {
+      try { window.PocketManager.englandEngine.championshipAdvance(se, se.compId || userLeagueCompId()); } catch (e) {}
     }
   }
 
@@ -771,8 +774,9 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const comp of comps) {
       if (comp.type === 'cup') continue; // las copas avanzan con advanceCups
       let se = gameState.seasons[comp.id];
-      // Liga española ya cerrada: el reinicio (con ascensos/descensos) ocurre en el cierre global.
-      if (se && se._spainComplete) continue;
+      // Liga ya cerrada (España o Inglaterra): el reinicio (con ascensos/descensos) ocurre en
+      // el cierre global de temporada.
+      if (se && (se._spainComplete || se._englandComplete)) continue;
       if (!se) se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0], comp.id);
       let idx = se.jornadas.findIndex(jj => jj.matches.some(m => !m.played));
       if (idx === -1) {
@@ -787,6 +791,17 @@ document.addEventListener("DOMContentLoaded", () => {
             try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
           }
           se._spainComplete = true;
+          continue;
+        }
+        // Inglaterra: diferir el reinicio (Premier y Championship) hasta el cierre global para
+        // calcular ascensos/descensos (Premier <-> Championship <-> League One).
+        const isEnglishLeague = comp.id === 'inglaterra_league' ||
+          (window.PocketManager.englandEngine && window.PocketManager.englandEngine.isChampionship(comp.id));
+        if (isEnglishLeague) {
+          if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
+            try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
+          }
+          se._englandComplete = true;
           continue;
         }
         if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
@@ -814,9 +829,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (mins[home.id]) staminaEngine.applyMatchStamina(home, mins[home.id]);
         if (mins[away.id]) staminaEngine.applyMatchStamina(away, mins[away.id]);
       }
-      // Playoffs de LaLiga Hypermotion (se resuelven al completar la Jornada 42).
+      // Playoffs de liga (Hypermotion y EFL Championship) al completar las jornadas regulares.
       if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.advance) {
         try { window.PocketManager.spanishEngine.advance(se, comp.id); } catch (e) {}
+      }
+      if (window.PocketManager.englandEngine && window.PocketManager.englandEngine.championshipAdvance) {
+        try { window.PocketManager.englandEngine.championshipAdvance(se, comp.id); } catch (e) {}
       }
       // Recuperación semanal de los equipos de la liga ajena.
       if (staminaEngine.recoverStamina) {
@@ -873,9 +891,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.PocketManager.calendar && window.PocketManager.calendar.buildMatchSummary) {
       match.summary = window.PocketManager.calendar.buildMatchSummary(result.events);
     }
-    // Playoffs de LaLiga Hypermotion (se resuelven al completar la Jornada 42).
+    // Playoffs de liga (Hypermotion y EFL Championship) al completar las jornadas regulares.
     if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.advance) {
       try { window.PocketManager.spanishEngine.advance(se, se.compId || userLeagueCompId()); } catch (e) {}
+    }
+    if (window.PocketManager.englandEngine && window.PocketManager.englandEngine.championshipAdvance) {
+      try { window.PocketManager.englandEngine.championshipAdvance(se, se.compId || userLeagueCompId()); } catch (e) {}
     }
 
     // Stamina tras el partido (según minutos jugados)
@@ -957,6 +978,10 @@ document.addEventListener("DOMContentLoaded", () => {
       // al cierre global de temporada. Reinicia también esas temporadas.
       if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.seasonEnd) {
         try { window.PocketManager.spanishEngine.seasonEnd(); } catch (e) {}
+      }
+      // Ascensos/descensos de las ligas inglesas (Premier <-> Championship <-> League One).
+      if (window.PocketManager.englandEngine && window.PocketManager.englandEngine.englandSeasonEnd) {
+        try { window.PocketManager.englandEngine.englandSeasonEnd(); } catch (e) {}
       }
       gameState.currentSeason = (gameState.currentSeason || 1) + 1;
       const userCompId = userLeagueCompId();

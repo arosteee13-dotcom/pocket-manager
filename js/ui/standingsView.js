@@ -212,9 +212,20 @@
     return 'permanencia';
   }
 
-  // Zona por competición: Hypermotion usa sus propias zonas; el resto el esquema europeo.
+  // Zonas de la EFL Championship (24 equipos): 1-2 ascenso directo, 3-8 playoffs de ascenso,
+  // 9-21 permanencia, 22-24 descenso a League One.
+  function championshipZoneOf(index, n) {
+    if (!n || n <= 0) return 'permanencia';
+    if (index < 2) return 'ascenso';
+    if (index < 8) return 'playoffsAscenso';
+    if (index >= n - 3) return 'descenso';
+    return 'permanencia';
+  }
+
+  // Zona por competición: Hypermotion y Championship usan sus propias zonas; el resto el esquema europeo.
   function zoneOfComp(comp, index, n) {
     if (comp && String(comp.id || '').indexOf('hypermotion') !== -1) return hypermotionZoneOf(index, n);
+    if (comp && String(comp.id || '').indexOf('championship') !== -1) return championshipZoneOf(index, n);
     return zoneOf(index, n, hasConferenceFor(comp));
   }
 

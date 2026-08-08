@@ -20,9 +20,10 @@
   class Database {
     constructor() {
       this.countries = [spainData, englandData];
-      // Segundas ligas (LaLiga Hypermotion): segunda división española jugable, definida en
-      // spainData.secondLeague (todos los equipos de España viven en js/data/countries/spain.js).
-      this.leagues = [spainData.secondLeague].filter(Boolean);
+      // Segundas ligas jugables: LaLiga Hypermotion (spainData.secondLeague) y la EFL
+      // Championship inglesa (championshipData). Los equipos de España viven en
+      // js/data/countries/spain.js; los del Championship en js/data/leagues/championshipData.js.
+      this.leagues = [spainData.secondLeague, window.PocketManager.championshipData].filter(Boolean);
       // Divisiones inferiores: viven en cada fichero de país (divisionTeams) y participan en
       // las copas de su país, pero no en la liga principal (country.teams sigue siendo la liga).
       this.divisionTeams = (spainData.divisionTeams || []).concat(englandData.divisionTeams || []);

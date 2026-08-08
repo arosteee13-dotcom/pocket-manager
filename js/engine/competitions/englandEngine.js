@@ -401,6 +401,274 @@
     return cupEngine.awardTrophy(winner, name);
   }
 
+  // =====================================================================
+  // EFL CHAMPIONSHIP (liga de 24 equipos · 46 jornadas · playoffs 3º-8º)
+  // =====================================================================
+  // Reglas:
+  //   - Ascenso directo: 1º y 2º. Descenso: 22º, 23º y 24º (a League One).
+  //   - Playoffs de ascenso (3ª plaza) al terminar la Jornada 46:
+  //       · 1ª Ronda (Ida/Vuelta, J47 y J48): 3º vs 8º · 4º vs 7º · 5º vs 6º.
+  //       · Semifinales (Ida/Vuelta, J49 y J50): los 3 ganadores + el mejor perdedor
+  //         (perdedor de la 1ª ronda con mejor posición regular), por cabeza de serie.
+  //       · Final (J51): partido único en campo neutral (Wembley).
+  //   - Empate global en una eliminatoria -> avanza el mejor clasificado en la fase regular.
+  const gameState = window.PocketManager.gameState;
+  const CHAMPIONSHIP_COMP = 'inglaterra_efl_championship_league';
+  const CHAMPION_REGULAR_JORNADAS = 46;
+  const CHAMPION_FINAL_WEEK = 51;
+
+  function isChampionship(compId) {
+    return String(compId || '').indexOf('championship') !== -1;
+  }
+
+  function leagueSim(home, away) {
+    if (window.PocketManager.simulateInstant && home && away) {
+      return window.PocketManager.simulateInstant(home, away);
+    }
+    return simpleSim(home, away);
+  }
+
+  // Simula un partido de liga pendiente (registra stats de jugador).
+  function applyLeagueResult(se, m) {
+    if (m.played) return;
+    const home = db.getTeamById(m.homeId), away = db.getTeamById(m.awayId);
+    if (!home || !away) return;
+    const res = leagueSim(home, away);
+    window.PocketManager.season.applyMatchResult(se, m, res.homeGoals, res.awayGoals);
+  }
+
+  function champMatch(a, b, leg, tieId) {
+    const m = makeMatch(a, b, leg, tieId);
+    m.playoff = true; // no puntúa para la clasificación regular
+    m.championship = true;
+    if (leg === null) m.neutral = 'Wembley';
+    return m;
+  }
+
+  // Crea el cuadro de playoffs tras completar las 46 jornadas (idempotente).
+  function championshipPlayoff(se) {
+    if (se.playoff || !se.jornadas) return;
+    const list = window.PocketManager.season.sortedStandings(se);
+    const at = (i) => (list[i] ? list[i].teamId : null);
+    const p3 = at(2), p4 = at(3), p5 = at(4), p6 = at(5), p7 = at(6), p8 = at(7);
+    if (!p3 || !p4 || !p5 || !p6 || !p7 || !p8) return;
+
+    const pos = {};
+    list.forEach((s, i) => { pos[s.teamId] = i + 1; });
+    se.playoff = {
+      positions: pos,
+      round1: [
+        { a: p3, seedA: 3, b: p8, seedB: 8, tieId: 'r1_1', winner: null },
+        { a: p4, seedA: 4, b: p7, seedB: 7, tieId: 'r1_2', winner: null },
+        { a: p5, seedA: 5, b: p6, seedB: 6, tieId: 'r1_3', winner: null }
+      ],
+      sf: null,
+      final: null,
+      promotedId: null
+    };
+    se.jornadas.push({
+      jornada: 47,
+      matches: se.playoff.round1.map((t) => champMatch(t.a, t.b, 1, t.tieId))
+    });
+    se.jornadas.push({
+      jornada: 48,
+      matches: se.playoff.round1.map((t) => champMatch(t.b, t.a, 2, t.tieId))
+    });
+  }
+
+  function championshipLegs(se, tieId) {
+    const out = [];
+    for (const j of se.jornadas) {
+      if (j.jornada <= CHAMPION_REGULAR_JORNADAS) continue;
+      for (const m of j.matches) if (m.tieId === tieId) out.push(m);
+    }
+    return out;
+  }
+
+  // Agregado; empate global -> avanza el mejor clasificado (menor posición) sin penaltis.
+  function champWinnerByAggregate(legs, seedA, seedB, a, b) {
+    const aggA = legs[0].homeGoals + legs[1].awayGoals;
+    const aggB = legs[0].awayGoals + legs[1].homeGoals;
+    if (aggA !== aggB) return aggA > aggB ? a : b;
+    return seedA < seedB ? a : b;
+  }
+
+  function seedOf(p, teamId) {
+    return p.positions[teamId] != null ? p.positions[teamId] : 99;
+  }
+
+  function resolveChampionshipPlayoff(se) {
+    const p = se.playoff;
+    if (!p) return;
+
+    // 1ª Ronda
+    for (const t of p.round1) {
+      if (t.winner) continue;
+      const legs = championshipLegs(se, t.tieId);
+      if (legs.length === 2 && legs.every((m) => m.played)) {
+        t.winner = champWinnerByAggregate(legs, t.seedA, t.seedB, t.a, t.b);
+      }
+    }
+
+    // Semifinales: 3 ganadores + mejor perdedor (menor posición entre los eliminados).
+    if (!p.sf && p.round1.every((t) => t.winner)) {
+      const qual = p.round1.map((t) => t.winner);
+      const losers = p.round1.map((t) => (t.winner === t.a ? t.b : t.a));
+      const loserSeed = losers.map((id) => seedOf(p, id));
+      const bestIdx = loserSeed.indexOf(Math.min.apply(null, loserSeed));
+      qual.push(losers[bestIdx]);
+      qual.sort((x, y) => (seedOf(p, x) - seedOf(p, y)) || String(x).localeCompare(String(y)));
+
+      p.sf = [
+        { a: qual[0], b: qual[3], tieId: 'sf_1', winner: null },
+        { a: qual[1], b: qual[2], tieId: 'sf_2', winner: null }
+      ];
+      se.jornadas.push({ jornada: 49, matches: p.sf.map((t) => champMatch(t.a, t.b, 1, t.tieId)) });
+      se.jornadas.push({ jornada: 50, matches: p.sf.map((t) => champMatch(t.b, t.a, 2, t.tieId)) });
+    }
+
+    // Resolver semifinales
+    if (p.sf) {
+      for (const t of p.sf) {
+        if (t.winner) continue;
+        const legs = championshipLegs(se, t.tieId);
+        if (legs.length === 2 && legs.every((m) => m.played)) {
+          t.winner = champWinnerByAggregate(legs, seedOf(p, t.a), seedOf(p, t.b), t.a, t.b);
+        }
+      }
+    }
+
+    // Final única en Wembley (J51)
+    if (!p.final && p.sf && p.sf.every((t) => t.winner)) {
+      p.final = { a: p.sf[0].winner, b: p.sf[1].winner, winner: null };
+      se.jornadas.push({ jornada: CHAMPION_FINAL_WEEK, matches: [champMatch(p.final.a, p.final.b, null, 'final')] });
+    }
+    if (p.final && !p.final.winner) {
+      const j = se.jornadas.find((x) => x.jornada === CHAMPION_FINAL_WEEK);
+      const m = j && j.matches[0];
+      if (m && m.played) {
+        if (m.homeGoals !== m.awayGoals) {
+          p.final.winner = m.homeGoals > m.awayGoals ? m.homeId : m.awayId;
+        } else {
+          p.final.winner = seedOf(p, p.final.a) <= seedOf(p, p.final.b) ? p.final.a : p.final.b;
+        }
+        p.promotedId = p.final.winner;
+      }
+    }
+  }
+
+  // Avanza la lógica de playoff tras un resultado (idempotente).
+  function championshipAdvance(se, compId) {
+    if (!isChampionship(compId) || !se || !se.jornadas) return;
+    const regular = se.jornadas.filter((j) => j.jornada <= CHAMPION_REGULAR_JORNADAS);
+    if (regular.length && regular.every((j) => j.matches.every((m) => m.played))) {
+      championshipPlayoff(se);
+      resolveChampionshipPlayoff(se);
+    }
+  }
+
+  function championshipPlayoffWinner(se) {
+    return (se && se.playoff) ? (se.playoff.promotedId || null) : null;
+  }
+
+  // Simula los partidos pendientes de una liga inglesa (para el cierre global).
+  function finishEnglandLeague(se, compId) {
+    if (!se || !se.jornadas) return;
+    const isCh = isChampionship(compId);
+    if (isCh) championshipPlayoff(se);
+    for (const j of se.jornadas) {
+      for (const m of j.matches) if (!m.played) applyLeagueResult(se, m);
+    }
+    if (isCh) resolveChampionshipPlayoff(se);
+  }
+
+  function moveTeam(fromArr, toArr, team) {
+    const i = fromArr.indexOf(team);
+    if (i !== -1) fromArr.splice(i, 1);
+    if (toArr.indexOf(team) === -1) toArr.push(team);
+  }
+
+  // Cierre global de temporada de Inglaterra: completa PL y Championship, calcula
+  // ascensos/descensos (PL <-> Championship <-> League One) y reinicia las temporadas.
+  function englandSeasonEnd() {
+    const sePL = gameState.seasons['inglaterra_league'];
+    const seCh = gameState.seasons[CHAMPIONSHIP_COMP];
+    if (!sePL || !seCh) return;
+
+    finishEnglandLeague(sePL, 'inglaterra_league');
+    finishEnglandLeague(seCh, CHAMPIONSHIP_COMP);
+
+    const plList = window.PocketManager.season.sortedStandings(sePL);
+    const chList = window.PocketManager.season.sortedStandings(seCh);
+    if (plList.length < 20 || chList.length < 24) return;
+
+    // Championship -> Premier: 1º, 2º + ganador del playoff.
+    const promoted = [chList[0].teamId, chList[1].teamId];
+    const pw = championshipPlayoffWinner(seCh);
+    if (pw) promoted.push(pw);
+    // Premier -> Championship: últimos 3 (puestos 18-20).
+    const relPL = plList.slice(17).map((s) => s.teamId);
+    // Championship -> League One: últimos 3 (puestos 22-24).
+    const relCh = chList.slice(21).map((s) => s.teamId);
+    // League One -> Championship: 3 mejores por media (League One no se simula como liga).
+    const leagueOne = db.divisionTeams.filter((t) => t.division === 'league1');
+    const promLO = leagueOne.slice()
+      .sort((a, b) => (b.ovr - a.ovr) || String(a.id).localeCompare(String(b.id)))
+      .slice(0, 3)
+      .map((t) => t.id);
+
+    const engCountry = db.countries.find((c) => c.country === 'Inglaterra');
+    const chLeague = db.leagues.find((l) => l.country === 'Inglaterra');
+    if (!engCountry || !chLeague) return;
+    const plArr = engCountry.teams;
+    const chArr = chLeague.teams;
+    const divArr = db.divisionTeams;
+
+    const byId = (arr, id) => arr.find((t) => t.id === id) || null;
+
+    for (const id of promoted) {
+      const t = byId(chArr, id);
+      if (!t) continue;
+      moveTeam(chArr, plArr, t);
+      t.division = null;
+    }
+    for (const id of relPL) {
+      const t = byId(plArr, id);
+      if (!t) continue;
+      moveTeam(plArr, chArr, t);
+      t.division = 'championship';
+    }
+    for (const id of relCh) {
+      const t = byId(chArr, id);
+      if (!t) continue;
+      moveTeam(chArr, divArr, t);
+      t.division = 'league1';
+    }
+    for (const id of promLO) {
+      const t = byId(divArr, id);
+      if (!t) continue;
+      moveTeam(divArr, chArr, t);
+      t.division = 'championship';
+    }
+
+    if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.assignAutomaticNumbers) {
+      try { for (const t of [...plArr, ...chArr]) window.PocketManager.squadEngine.assignAutomaticNumbers(t); } catch (e) {}
+    }
+    if (window.PocketManager.staminaEngine && window.PocketManager.staminaEngine.resetFitness) {
+      try { for (const t of [...plArr, ...chArr]) window.PocketManager.staminaEngine.resetFitness(t); } catch (e) {}
+    }
+
+    const season = window.PocketManager.season;
+    gameState.seasons['inglaterra_league'] = season.initSeason(plArr[0], 'inglaterra_league');
+    gameState.seasons[CHAMPIONSHIP_COMP] = season.initSeason(chArr[0], CHAMPIONSHIP_COMP);
+    const userCompId = window.PocketManager.calendar && window.PocketManager.calendar.userLeagueCompId
+      ? window.PocketManager.calendar.userLeagueCompId(gameState.team.id)
+      : null;
+    if (userCompId === 'inglaterra_league' || userCompId === CHAMPIONSHIP_COMP) {
+      gameState.season = gameState.seasons[userCompId];
+    }
+  }
+
   window.PocketManager.englandEngine = {
     buildCommunityShield,
     buildCommunityShieldFirstEdition,
@@ -414,6 +682,15 @@
     resolveSingleTie,
     englandTeams,
     TROPHY_NAMES,
-    TROPHY_KNOCKOUT
+    TROPHY_KNOCKOUT,
+    // EFL Championship
+    CHAMPIONSHIP_COMP,
+    isChampionship,
+    championshipAdvance,
+    championshipPlayoff,
+    resolveChampionshipPlayoff,
+    championshipPlayoffWinner,
+    finishEnglandLeague,
+    englandSeasonEnd
   };
 })();
