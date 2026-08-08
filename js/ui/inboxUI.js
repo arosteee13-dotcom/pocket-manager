@@ -105,7 +105,7 @@
     const acceptLabel = isLoan ? 'Aceptar Cesión' : 'Aceptar Oferta';
     return `
       <div class="inbox-offer">
-        <div class="inbox-offer-sender">
+        <div class="inbox-offer-sender"${buyer ? ` data-team-id="${buyer.id}"` : ''}>
           <span class="inbox-offer-shield" style="${shieldStyle}">${buyer ? buyer.shortName : '—'}</span>
           <div class="inbox-offer-sender-text">
             <span class="inbox-offer-from">${buyer ? buyer.name : offer.buyerTeamName}</span>
@@ -212,6 +212,12 @@
     const detailEl = document.getElementById('inbox-detail');
     if (detailEl) {
       detailEl.addEventListener('click', (e) => {
+        const teamEl = e.target.closest('[data-team-id]');
+        if (teamEl && window.PocketManager.openTeamView) {
+          window.PocketManager.openTeamView(teamEl.dataset.teamId);
+          closeInbox();
+          return;
+        }
         const btn = e.target.closest('[data-offer-action]');
         if (!btn) return;
         handleOfferAction(btn.dataset.offerAction, btn.dataset.offerId);

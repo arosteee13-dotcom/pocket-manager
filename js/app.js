@@ -588,9 +588,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return comp ? comp.id : null;
   }
 
-  // Motor de copas según el país (España -> cupEngine; Inglaterra -> englandEngine).
+  // Motor de copas según el país (España -> cupEngine; Inglaterra -> englandEngine; Italia -> italyEngine).
   function cupEngineFor(countryName) {
     if (countryName === 'Inglaterra') return window.PocketManager.englandEngine || null;
+    if (countryName === 'Italia') return window.PocketManager.italyEngine || null;
     return window.PocketManager.cupEngine || null;
   }
 
@@ -617,6 +618,13 @@ document.addEventListener("DOMContentLoaded", () => {
           return engine.buildCup(participants.map(t => t.id), { season });
         }
         // La Supercopa se construye al cerrar temporada (necesita los resultados previos).
+        return null;
+      }
+      if (countryName === 'Italia') {
+        if (comp.id === 'coppa_italia') {
+          return engine.buildCoppaItalia({ season });
+        }
+        // La Supercoppa Italiana se construye al cerrar temporada.
         return null;
       }
     } catch (e) {
@@ -656,10 +664,45 @@ document.addEventListener("DOMContentLoaded", () => {
           if (first) gameState.seasons[comp.id] = first;
           continue;
         }
+        // Primera edición de la Supercoppa Italiana (temporada 1): cruce de los 2 mejores por ovr.
+        if (comp.id === 'supercoppa_italiana' && (gameState.currentSeason || 1) === 1) {
+          const engine = window.PocketManager.italyEngine;
+          const first = engine && engine.buildSupercoppaFirstEdition
+            ? engine.buildSupercoppaFirstEdition({ season: 1 })
+            : null;
+          if (first) gameState.seasons[comp.id] = first;
+          continue;
+        }
         const cup = buildCountryCup(c.name, comp, gameState.currentSeason);
         if (cup) gameState.seasons[comp.id] = cup;
       }
     }
+    // Competiciones continentales (UEFA Champions League) de la temporada en curso.
+    if (window.PocketManager.continentalEngine && window.PocketManager.continentalEngine.buildSeason) {
+      try { window.PocketManager.continentalEngine.buildSeason(gameState.currentSeason); } catch (e) {}
+    }
+  }
+
+  // Avanza las competiciones continentales (Champions) según la semana actual del usuario:
+  // simula los partidos europeos de la CPU y respeta el partido pendiente de su equipo.
+  function advanceContinentals() {
+    const engine = window.PocketManager.continentalEngine;
+    if (!engine || !engine.advanceWeekForAll) return;
+    if (!gameState.seasons || !gameState.team) return;
+    const calendar = window.PocketManager.calendar;
+    const teamId = gameState.team.id;
+    const currentWeek = calendar && calendar.currentUserWeek ? calendar.currentUserWeek(teamId) : 0;
+    try { engine.advanceWeekForAll(currentWeek, { skipTeamId: teamId, isUserWeek: true }); } catch (e) {}
+  }
+
+  // ¿El equipo del usuario tiene un partido europeo pendiente en `week`? (Prioridad sobre la copa.)
+  function userHasContinentalMatch(week) {
+    const engine = window.PocketManager.continentalEngine;
+    if (!engine || !engine.userFixtureWeek || !gameState.team) return false;
+    try {
+      const ucl = gameState.seasons['uefa_champions_league'];
+      return engine.userFixtureWeek(ucl, gameState.team.id) === week;
+    } catch (e) { return false; }
   }
 
   // Avanza las rondas de las competiciones de copa de TODOS los países según la semana actual
@@ -684,7 +727,9 @@ document.addEventListener("DOMContentLoaded", () => {
           if (r.completed) continue;
           if (r.atWeek > currentWeek) break;
           const isUserCountry = !!(userCountry && userCountry.country === c.name);
-          const skip = isUserCountry && r.atWeek === currentWeek ? { skipTeamId: teamId } : null;
+          // Si el usuario tiene Champions en esta semana, su copa doméstica se auto-simula (prioridad europea).
+          const hasContinental = isUserCountry && userHasContinentalMatch(currentWeek);
+          const skip = (isUserCountry && r.atWeek === currentWeek && !hasContinental) ? { skipTeamId: teamId } : null;
           try { engine.playRound(cup, i, skip); } catch (e) {}
         }
       }
@@ -774,9 +819,9 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const comp of comps) {
       if (comp.type === 'cup') continue; // las copas avanzan con advanceCups
       let se = gameState.seasons[comp.id];
-      // Liga ya cerrada (España o Inglaterra): el reinicio (con ascensos/descensos) ocurre en
-      // el cierre global de temporada.
-      if (se && (se._spainComplete || se._englandComplete)) continue;
+      // Liga ya cerrada (España, Inglaterra o Italia): el reinicio (con ascensos/descensos)
+      // ocurre en el cierre global de temporada.
+      if (se && (se._spainComplete || se._englandComplete || se._italyComplete)) continue;
       if (!se) se = gameState.seasons[comp.id] = window.PocketManager.season.initSeason(comp.teams[0], comp.id);
       let idx = se.jornadas.findIndex(jj => jj.matches.some(m => !m.played));
       if (idx === -1) {
@@ -802,6 +847,14 @@ document.addEventListener("DOMContentLoaded", () => {
             try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
           }
           se._englandComplete = true;
+          continue;
+        }
+        // Italia: diferir el reinicio de la Serie A hasta el cierre global (Serie A <-> Serie B).
+        if (comp.id === 'italia_league' && window.PocketManager.italyEngine) {
+          if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
+            try { window.PocketManager.seasonEngine.awardLeagueTitle(se); } catch (e) {}
+          }
+          se._italyComplete = true;
           continue;
         }
         if (window.PocketManager.seasonEngine && window.PocketManager.seasonEngine.awardLeagueTitle) {
@@ -869,8 +922,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!pendingResult) return;
     const { result, match, jornada, compId } = pendingResult;
 
-    // --- Partido de copa (España o Inglaterra) ---
+    // --- Partido continental (Champions) del usuario ---
     const cupSeason = compId && gameState.seasons[compId];
+    if (cupSeason && cupSeason.type === 'continental') {
+      const cont = window.PocketManager.continentalEngine;
+      if (cont && cont.applyResult) {
+        try { cont.applyResult(cupSeason, match, result); } catch (e) {}
+      }
+      if (window.PocketManager.refreshLineup) window.PocketManager.refreshLineup(gameState.team);
+      awardFinishedCupTrophies();
+      pendingResult = null;
+      closeModal('match-result-modal');
+      try { saveSystem.saveCurrentGame(); } catch (e) {}
+      showScreen('screen-dashboard');
+      return;
+    }
+
+    // --- Partido de copa (España o Inglaterra) ---
     if (cupSeason && cupSeason.type === 'cup') {
       const cupEngine = cupEngineFor(cupSeason.country);
       if (cupEngine && cupEngine.applyCupResult) {
@@ -914,6 +982,8 @@ document.addEventListener("DOMContentLoaded", () => {
     advanceForeignLeagues();
     // Avanzar las rondas de la Copa del Rey según las jornadas de liga completadas
     advanceCups();
+    // Avanzar la jornada europea (Champions) de la semana actual
+    advanceContinentals();
 
     // Recuperación entre jornadas (semanas transcurridas hasta el próximo partido)
     const played = Number(jornada) || 1;
@@ -974,6 +1044,11 @@ document.addEventListener("DOMContentLoaded", () => {
         // Nueva temporada: nueva Copa del Rey (se crea en initCups)
         delete gameState.seasons['copa_del_rey'];
       }
+      // Competiciones continentales: regenerar la Champions (y los torneos especiales) para la
+      // próxima temporada usando la clasificación doméstica final (aún no reiniciada).
+      if (window.PocketManager.continentalEngine && window.PocketManager.continentalEngine.seasonEnd) {
+        try { window.PocketManager.continentalEngine.seasonEnd(); } catch (e) {}
+      }
       // Ascensos/descensos de las ligas españolas (LaLiga <-> Hypermotion <-> Primera RFEF)
       // al cierre global de temporada. Reinicia también esas temporadas.
       if (window.PocketManager.spanishEngine && window.PocketManager.spanishEngine.seasonEnd) {
@@ -982,6 +1057,29 @@ document.addEventListener("DOMContentLoaded", () => {
       // Ascensos/descensos de las ligas inglesas (Premier <-> Championship <-> League One).
       if (window.PocketManager.englandEngine && window.PocketManager.englandEngine.englandSeasonEnd) {
         try { window.PocketManager.englandEngine.englandSeasonEnd(); } catch (e) {}
+      }
+      // Supercoppa Italiana de la próxima temporada (Final Four: campeón/subcampeón de
+      // Serie A + campeón/subcampeón de Coppa; duplicados -> 3º/4º de Serie A).
+      if (window.PocketManager.italyEngine && window.PocketManager.italyEngine.buildSupercoppa) {
+        const itSe = gameState.seasons['italia_league'];
+        const coppa = gameState.seasons['coppa_italia'];
+        if (itSe && itSe.jornadas) {
+          const order = window.PocketManager.season.sortedStandings(itSe).map(s => s.teamId);
+          if (order.length >= 2 && coppa && coppa.finished && coppa.winner && coppa.runnerUp) {
+            try {
+              const si = window.PocketManager.italyEngine.buildSupercoppa({
+                season: (gameState.currentSeason || 1) + 1,
+                leagueTop: order,
+                cupFinalists: [coppa.winner, coppa.runnerUp]
+              });
+              if (si) gameState.seasons['supercoppa_italiana'] = si;
+            } catch (e) {}
+          }
+        }
+      }
+      // Ascensos/descensos de la Serie A <-> Serie B y reinicio de la temporada italiana.
+      if (window.PocketManager.italyEngine && window.PocketManager.italyEngine.seasonEnd) {
+        try { window.PocketManager.italyEngine.seasonEnd(); } catch (e) {}
       }
       gameState.currentSeason = (gameState.currentSeason || 1) + 1;
       const userCompId = userLeagueCompId();

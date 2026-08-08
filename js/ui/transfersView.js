@@ -150,13 +150,18 @@
     'segunda': 'Segunda División',
     '1rfef': 'Primera RFEF',
     '2rfef': 'Segunda RFEF',
-    'premier': 'Premier League'
+    'premier': 'Premier League',
+    'serie_a': 'Serie A',
+    'serie_b': 'Serie B'
   };
 
   function divisionOf(player, team) {
     if (player.division) return player.division;
     const country = db.getCountryData(team.id);
-    return country && country.country === 'España' ? 'primera' : 'premier';
+    if (!country) return 'premier';
+    if (country.country === 'España') return 'primera';
+    if (country.country === 'Italia') return 'serie_a';
+    return 'premier';
   }
 
   function applyFilters(pool) {

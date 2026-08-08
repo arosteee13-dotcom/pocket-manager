@@ -18,11 +18,10 @@ window.PocketManager.spainData = {
       stadium: "Estadio Santiago Bernabéu",
       stadiumCapacity: 81044,
       trophies: [
-        { name: "Mundial de Clubes", count: 5 },
         { name: "Champions League", count: 15 },
         { name: "Europa League", count: 2 },
         { name: "Supercopa de Europa", count: 6 },
-        { name: "Copa Intercontinental de la FIFA", count: 1 },        
+        { name: "Copa Intercontinental de la FIFA", count: 6 },
         { name: "Primera División", count: 36 },
         { name: "Copa del Rey", count: 20 },
         { name: "Supercopa de España", count: 13 }
@@ -75,7 +74,7 @@ window.PocketManager.spainData = {
       stadium: "Spotify Camp Nou",
       stadiumCapacity: 99354,
       trophies: [
-        { name: "Mundial de Clubes", count: 3 },
+        { name: "Copa Intercontinental de la FIFA", count: 3 },
         { name: "Champions League", count: 5 },
         { name: "Primera División", count: 29 },
         { name: "Supercopa de Europa", count: 5 },

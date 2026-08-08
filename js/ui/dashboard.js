@@ -32,12 +32,15 @@
     if (f.compType === 'league') return 'Liga';
     if (f.compId === 'copa_del_rey') return 'Copa del Rey';
     if (f.compId === 'supercopa_de_espana') return 'Supercopa';
+    if (f.compId === 'coppa_italia') return 'Coppa Italia';
+    if (f.compId === 'supercoppa_italiana') return 'Supercoppa';
     return f.compName;
   }
 
   function compCls(f) {
     if (f.compType === 'league') return 'dash-comp-liga';
     if (f.compId === 'copa_del_rey') return 'dash-comp-copa';
+    if (f.compId === 'coppa_italia') return 'dash-comp-copa';
     return 'dash-comp-super';
   }
 
@@ -105,7 +108,7 @@
               ${mini.map(s => {
                 const t = db.getTeamById(s.teamId);
                 const isUser = s.teamId === team.id;
-                return `<div class="dash-strow${isUser ? ' user' : ''}">
+                return `<div class="dash-strow${isUser ? ' user' : ''}" data-team-id="${s.teamId}">
                   <span class="dash-stpos">${season.positionOf(se, s.teamId)}</span>
                   ${badgeHtml(t, 'dash-stbadge')}
                   <span class="dash-stname">${t ? t.shortName : '—'}</span>
@@ -132,6 +135,11 @@
     if (!bound) {
       bound = true;
       root.addEventListener('click', (e) => {
+        const teamEl = e.target.closest('[data-team-id]');
+        if (teamEl && window.PocketManager.openTeamView) {
+          window.PocketManager.openTeamView(teamEl.dataset.teamId);
+          return;
+        }
         const btn = e.target.closest('[data-action]');
         if (!btn) return;
         const team = gameState.team;

@@ -4625,6 +4625,7 @@
   align-items: center;
   gap: 6px;
 }
+.cup-team[data-team-id] { cursor: pointer; }
 .cup-team.rev { flex-direction: row-reverse; }
 .cup-badge {
   flex-shrink: 0;
@@ -4961,6 +4962,7 @@
 .cal-comp-liga { background: rgba(22, 163, 74, 0.14); color: #15803d; }
 .cal-comp-copa { background: rgba(37, 99, 235, 0.14); color: #1D4ED8; }
 .cal-comp-super { background: rgba(217, 119, 6, 0.14); color: #b45309; }
+.cal-comp-eur { background: rgba(147, 51, 234, 0.16); color: #7e22ce; }
 .cal-round {
   font-size: 0.62rem;
   color: var(--text-muted, #999);
@@ -5035,3 +5037,14 @@
 .dash-pill.dash-comp-liga { background: rgba(22, 163, 74, 0.14); color: #15803d; }
 .dash-pill.dash-comp-copa { background: rgba(37, 99, 235, 0.14); color: #1D4ED8; }
 .dash-pill.dash-comp-super { background: rgba(217, 119, 6, 0.14); color: #b45309; }
+
+/* Fase de grupos de la Champions (clasificaciones) */
+.st-group-title {
+  margin: 14px 0 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #999);
+  text-transform: uppercase;
+}
+.st-group-title:first-child { margin-top: 0; }

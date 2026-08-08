@@ -73,6 +73,146 @@
   // de modo que el panel muestra el torneo completo: Copa del Rey (1/128·1/64·1/32·1/16·
   // Octavos·Cuartos·Semifinal·Final) y copas inglesas (EFL Cup 1/128→Final; FA Cup Previa 1-3
   // + 1/1024→Final). Devuelve [{ label, rounds: [round...], pending }].
+  // Competiciones continentales mostradas al seleccionar "Continentales".
+  const CONTINENTAL_COMPETITIONS = [
+    { id: 'uefa_champions_league', name: 'UEFA Champions League', short: 'CHA' },
+    { id: 'uefa_europa_league', name: 'UEFA Europa League', short: 'EUR' },
+    { id: 'uefa_conference_league', name: 'UEFA Conference League', short: 'CON' },
+    { id: 'uefa_super_cup', name: 'Supercopa de Europa', short: 'SUP' },
+    { id: 'club_world_cup', name: 'Copa Intercontinental de la FIFA', short: 'INTER' }
+  ];
+
+  function continentalComp(id) {
+    return CONTINENTAL_COMPETITIONS.find(c => c.id === id) || CONTINENTAL_COMPETITIONS[0];
+  }
+
+  // Mini-tabla de la fase de grupos de la Champions (por grupo).
+  function uclGroupsHtml(ucl) {
+    const engine = window.PocketManager.continentalEngine;
+    const head = `
+      <div class="st-head">
+        <span class="st-c-pos">#</span>
+        <span class="st-c-team">EQUIPO</span>
+        <span class="st-c-num">PTS</span>
+        <span class="st-c-num">PJ</span>
+        <span class="st-c-num">PG</span>
+        <span class="st-c-num">PE</span>
+        <span class="st-c-num">PP</span>
+        <span class="st-c-num">GF</span>
+        <span class="st-c-num">GC</span>
+        <span class="st-c-num st-c-dg">DG</span>
+      </div>`;
+    return (ucl.groups || []).map(g => {
+      const rows = engine && engine.classifyGroup ? engine.classifyGroup(ucl, g.id) : [];
+      const body = rows.map((r, i) => {
+        const t = db.getTeamById(r.teamId);
+        const dg = (r.gf || 0) - (r.gc || 0);
+        return `
+        <div class="st-row${i < 2 ? ' ascenso' : ''}" data-team-id="${r.teamId}">
+          <span class="st-c-pos"><i>${i + 1}</i></span>
+          <span class="st-c-team">${t ? badgeHtml(t, 'st-badge') : ''}<span class="st-team-name">${t ? t.name : '—'}</span></span>
+          <span class="st-c-num st-pts">${r.pts}</span>
+          <span class="st-c-num">${r.pj}</span>
+          <span class="st-c-num">${r.g}</span>
+          <span class="st-c-num">${r.e}</span>
+          <span class="st-c-num">${r.p}</span>
+          <span class="st-c-num">${r.gf}</span>
+          <span class="st-c-num">${r.gc}</span>
+          <span class="st-c-num st-c-dg">${dg > 0 ? '+' + dg : dg}</span>
+        </div>`;
+      }).join('');
+      return `<h4 class="st-group-title">${g.name}</h4><div class="st-table">${head}${body}</div>`;
+    }).join('');
+  }
+
+  // Cuadro de eliminatorias (knockout de la Champions o torneos especiales).
+  function tieRoundsHtml(rounds, winnerTeamName) {
+    const html = (rounds || []).map(r => {
+      const lines = r.matches.map(m => {
+        const home = db.getTeamById(m.homeId), away = db.getTeamById(m.awayId);
+        const played = m.played || m.winnerId;
+        const center = played ? `${m.homeGoals} - ${m.awayGoals}` : 'vs';
+        const pen = m.penalties ? `<span class="cup-note">pen ${m.penalties.home}-${m.penalties.away}</span>` : '';
+        const leg = m.leg ? `<span class="cup-note">${m.leg === 1 ? 'ida' : 'vuelta'}</span>` : '';
+        const side = (t, rev) => `
+          <span class="cup-team${rev ? ' rev' : ''}${t ? '' : ' empty'}"${t ? ` data-team-id="${t.id}"` : ''}>
+            ${t ? badgeHtml(t, 'cup-badge') : '<span class="cup-badge empty"></span>'}
+            <span class="cup-name">${t ? t.name : '—'}</span>
+          </span>`;
+        return `<div class="cup-match">
+          ${side(home)}
+          <span class="cup-center"><span class="cup-score">${center}</span>${pen}${leg}</span>
+          ${side(away, true)}
+        </div>`;
+      }).join('');
+      return `<div class="cup-round"><div class="cup-round-title">${r.round}</div><div class="cup-round-matches">${lines}</div></div>`;
+    }).join('');
+    const win = winnerTeamName ? `<div class="cup-winner">🏆 Campeón: ${winnerTeamName}</div>` : '';
+    return `${html}${win}`;
+  }
+
+  function continentalPanelHtml(comp) {
+    const cont = window.PocketManager.continentalEngine;
+    // Mientras las competiciones continentales no estén configuradas, panel "Próximamente".
+    if (!cont || !cont.CONTINENTALS_ENABLED) {
+      return '<div class="st-empty" style="padding:24px">🔜 <strong>Próximamente</strong> · Las competiciones continentales aún no están configuradas.</div>';
+    }
+    const ucl = gameState.seasons ? gameState.seasons['uefa_champions_league'] : null;
+    if (comp.id === 'uefa_champions_league') {
+      if (!ucl) return '<p class="st-empty">Sin datos de Champions.</p>';
+      if (ucl.phase === 'knockout' && ucl.knockout) {
+        return tieRoundsHtml(ucl.knockout.rounds, ucl.winner ? (db.getTeamById(ucl.winner) || {}).name : null);
+      }
+      return uclGroupsHtml(ucl);
+    }
+    if (comp.id === 'uefa_europa_league' || comp.id === 'uefa_conference_league') {
+      return '<div class="st-empty" style="padding:24px">🔜 <strong>Próximamente</strong> · Disponible en la Fase 2 (junto a la UEFA Europa League).</div>';
+    }
+    if (comp.id === 'uefa_super_cup') {
+      return '<div class="st-empty" style="padding:24px">⏳ <strong>A definir</strong> · La Supercopa de Europa se activará cuando exista la UEFA Europa League (Fase 2).</div>';
+    }
+    if (comp.id === 'club_world_cup') {
+      const cwc = gameState.seasons ? gameState.seasons['club_world_cup'] : null;
+      if (!cwc || !cwc.rounds) return '<p class="st-empty">Sin datos.</p>';
+      return tieRoundsHtml(cwc.rounds, cwc.winner ? (db.getTeamById(cwc.winner) || {}).name : null);
+    }
+    return '<p class="st-empty">Sin datos.</p>';
+  }
+
+  // Render del modo "Continentales".
+  function renderContinental() {
+    const trigger = document.getElementById('st-countries-trigger');
+    if (trigger) {
+      trigger.innerHTML = `
+        <span class="nat-flag">🌐</span>
+        <span class="selected-nat">Continentales</span>
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+    }
+    const comp = continentalComp(state.competitionId);
+    state.competitionId = comp.id;
+
+    const compsEl = document.getElementById('st-comps');
+    if (compsEl) {
+      compsEl.innerHTML = CONTINENTAL_COMPETITIONS.map(c => `
+        <button class="st-comp${c.id === state.competitionId ? ' active' : ''}" data-comp="${c.id}">
+          <span class="st-comp-logo">${c.short}</span>
+          <span class="st-comp-name">${c.name}</span>
+        </button>`).join('');
+    }
+    const groupsEl = document.getElementById('st-groups');
+    if (groupsEl) groupsEl.style.display = 'none';
+    const leadersEl = document.getElementById('st-leaders');
+    if (leadersEl) leadersEl.innerHTML = '';
+    ['st-top10-scorers', 'st-top10-assists'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    const tableEl = document.getElementById('st-table');
+    if (tableEl) tableEl.innerHTML = continentalPanelHtml(comp);
+    const legendEl = document.getElementById('st-legend');
+    if (legendEl) legendEl.innerHTML = '';
+  }
+
   function displayRounds(cup) {
     const rounds = (cup && cup.rounds) || [];
     const out = [];
@@ -289,7 +429,7 @@
     return `
       <div class="st-leader">
         <span class="st-leader-title">${icon} ${title}</span>
-        <span class="st-leader-main">
+        <span class="st-leader-main" data-team-id="${t.id}">
           <span class="st-leader-avatar-wrap">
             <span class="st-leader-avatar">${avatarHtml(p)}</span>
             ${badgeHtml(t, 'st-leader-badge')}
@@ -310,7 +450,7 @@
       const { p, t, s } = item;
       const val = statKey === 'goals' ? s.goals : s.assists;
       return `
-        <div class="st-top-row">
+        <div class="st-top-row" data-team-id="${t.id}">
           <span class="st-top-pos">${i + 1}</span>
           <span class="st-top-avatar-wrap">
             <span class="st-top-avatar">${avatarHtml(p)}</span>
@@ -392,9 +532,9 @@
         center = `<span class="cup-score">${m.homeGoals} - ${m.awayGoals}</span>${extra}${pen}${leg}`;
       }
       return `<div class="cup-match">
-        <span class="cup-team">${badge(home, homeW)}${name(home, homeW)}</span>
+        <span class="cup-team${home ? '' : ' empty'}"${home ? ` data-team-id="${home.id}"` : ''}>${badge(home, homeW)}${name(home, homeW)}</span>
         <span class="cup-center">${center}</span>
-        <span class="cup-team rev">${name(away, awayW)}${badge(away, awayW)}</span>
+        <span class="cup-team rev${away ? '' : ' empty'}"${away ? ` data-team-id="${away.id}"` : ''}>${name(away, awayW)}${badge(away, awayW)}</span>
       </div>`;
     };
     // Fase de grupos del EFL Trophy: cada grupo (Norte/Sur A-H) como mini-clasificación,
@@ -473,6 +613,7 @@
   }
 
   function renderStandings() {
+    if (state.continental) { renderContinental(); bind(); return; }
     if (!state.country || !competitionsOf(state.country).length) {
       state.country = state.country || userCountry();
     }
@@ -563,16 +704,26 @@
     const list = document.getElementById('standings-country-list');
     if (!list) return;
     const nq = normalize(q);
+    const isCont = !!state.continental;
+    // "Continentales" siempre primero y fijo (ajeno al orden alfabético y a la búsqueda).
+    const contItem = `
+      <button class="nat-option${isCont ? ' selected' : ''}" data-country="Continentales">
+        <span class="nat-flag">🌐</span>
+        <span class="nat-name">Continentales</span>
+        ${isCont ? '<span class="nat-check">✓</span>' : ''}
+      </button>`;
     const items = countries()
+      .slice()
+      .sort((a, b) => String(a.name).localeCompare(String(b.name)))
       .filter(c => !nq || normalize(c.name).includes(nq))
       .map(c => `
-        <button class="nat-option${c.name === state.country ? ' selected' : ''}" data-country="${c.name}">
+        <button class="nat-option${!isCont && c.name === state.country ? ' selected' : ''}" data-country="${c.name}">
           <span class="nat-flag">${flagForCountry(c.name)}</span>
           <span class="nat-name">${c.name}</span>
-          ${c.name === state.country ? '<span class="nat-check">✓</span>' : ''}
+          ${!isCont && c.name === state.country ? '<span class="nat-check">✓</span>' : ''}
         </button>`)
       .join('');
-    list.innerHTML = items || '<p class="nat-empty">Sin resultados</p>';
+    list.innerHTML = contItem + (items || '');
   }
 
   function bind() {
@@ -588,13 +739,10 @@
     const tableEl = document.getElementById('st-table');
     if (tableEl) {
       tableEl.addEventListener('click', (e) => {
-        const row = e.target.closest('.st-row[data-team-id]');
-        if (!row) return;
-        const teamId = row.dataset.teamId;
-        if (window.PocketManager.renderSquadScreen) {
-          document.dispatchEvent(new CustomEvent('nav', { detail: 'screen-squad' }));
-          window.PocketManager.renderSquadScreen(teamId, false, true);
-        }
+        // Clic en un equipo de la clasificación o de un cuadro de copa -> su plantilla (solo lectura).
+        const teamEl = e.target.closest('[data-team-id]');
+        if (!teamEl) return;
+        if (window.PocketManager.openTeamView) window.PocketManager.openTeamView(teamEl.dataset.teamId);
       });
     }
 
@@ -612,11 +760,17 @@
     list.addEventListener('click', (e) => {
       const opt = e.target.closest('.nat-option');
       if (!opt) return;
-      state.country = opt.dataset.country;
-      state.competitionId = null;
       state.group = null;
       state.round = null;
       state.topOpen = null;
+      if (opt.dataset.country === 'Continentales') {
+        state.continental = true;
+        state.competitionId = 'uefa_champions_league';
+      } else {
+        state.continental = false;
+        state.country = opt.dataset.country;
+        state.competitionId = null;
+      }
       modal.classList.remove('open');
       renderStandings();
     });
@@ -648,9 +802,13 @@
     const leadersEl = document.getElementById('st-leaders');
     leadersEl.addEventListener('click', (e) => {
       const link = e.target.closest('[data-top]');
-      if (!link) return;
-      state.topOpen = state.topOpen === link.dataset.top ? null : link.dataset.top;
-      renderStandings();
+      if (link) {
+        state.topOpen = state.topOpen === link.dataset.top ? null : link.dataset.top;
+        renderStandings();
+        return;
+      }
+      const teamEl = e.target.closest('[data-team-id]');
+      if (teamEl && window.PocketManager.openTeamView) window.PocketManager.openTeamView(teamEl.dataset.teamId);
     });
   }
 

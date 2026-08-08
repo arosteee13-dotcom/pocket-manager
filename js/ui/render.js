@@ -1527,7 +1527,16 @@ function restoreRuntime(team, data) {
   }
 }
 
+  // Abre la plantilla de cualquier equipo en modo solo lectura (desde clasificaciones,
+  // cuadros de copas, calendario, etc.).
+  function openTeamView(teamId) {
+    if (!teamId || !db.getTeamById(teamId)) return;
+    document.dispatchEvent(new CustomEvent('nav', { detail: 'screen-squad' }));
+    renderSquadScreen(teamId, false, true);
+  }
+
   window.PocketManager.renderSquadScreen = renderSquadScreen;
+  window.PocketManager.openTeamView = openTeamView;
   window.PocketManager.playerRowHtml = playerRowHtml;
   window.PocketManager.getRatingColor = getRatingColor;
   window.PocketManager.getTeamRating = getTeamRating;

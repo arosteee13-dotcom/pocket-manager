@@ -53,9 +53,10 @@
         if (!m) return;
         const jornada = idx + 1;
         const week = weekOfJornada(jornada);
-        // En la semana 32 la Final de la Copa del Rey (España) ocupa el slot2: esa
-        // jornada pasa a slot1. En el resto de países la liga se mantiene en slot2.
-        const slot = (week === 32 && country && country.country === 'España') ? 1 : 2;
+        // En la semana 32 la Final de la Copa (España Copa del Rey / Italia Coppa Italia)
+        // ocupa el slot2: esa jornada pasa a slot1. En el resto de países la liga se mantiene en slot2.
+        const cupFinalCountry = (country && (country.country === 'España' || country.country === 'Italia'));
+        const slot = (week === 32 && cupFinalCountry) ? 1 : 2;
         out.push({
           compId: leagueId,
           compName: leagueName,
@@ -94,7 +95,37 @@
       }
     }
 
-    out.sort((a, b) => (a.week - b.week) || (SLOT_ORDER[a.slot] - SLOT_ORDER[b.slot]));
+    // --- Competiciones continentales (Champions) del equipo del usuario.
+    const contEngine = window.PocketManager.continentalEngine;
+    const ucl = contEngine && contEngine.UCL ? (gameState.seasons ? gameState.seasons[contEngine.UCL] : null) : null;
+    if (ucl && ucl.type === 'continental') {
+      if (ucl.phase === 'groups') {
+        for (const j of ucl.groupJornadas || []) {
+          for (const m of j.matches) {
+            if (m.homeId !== teamId && m.awayId !== teamId) continue;
+            out.push({
+              compId: ucl.id, compName: ucl.name, compType: 'continental',
+              week: j.week, slot: j.slot || 1, match: m, isHome: m.homeId === teamId,
+              jornada: null, roundLabel: 'Jornada ' + j.jornada
+            });
+          }
+        }
+      } else if (ucl.knockout && ucl.knockout.rounds) {
+        for (const r of ucl.knockout.rounds) {
+          for (const m of r.matches) {
+            if (m.homeId !== teamId && m.awayId !== teamId) continue;
+            out.push({
+              compId: ucl.id, compName: ucl.name, compType: 'continental',
+              week: r.week, slot: r.slot || 1, match: m, isHome: m.homeId === teamId,
+              jornada: null, roundLabel: r.round
+            });
+          }
+        }
+      }
+    }
+
+    out.sort((a, b) => (a.week - b.week) || (SLOT_ORDER[a.slot] - SLOT_ORDER[b.slot]) ||
+      (a.compType === 'continental' ? -1 : (b.compType === 'continental' ? 1 : 0)));
     return out;
   }
 

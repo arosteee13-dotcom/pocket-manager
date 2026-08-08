@@ -75,7 +75,7 @@
   }
 
   // Nombre del trofeo de liga según el país (para sumar al palmarés del campeón).
-  const LEAGUE_TROPHY_NAMES = { 'España': 'Primera División', 'Inglaterra': 'Premier League' };
+  const LEAGUE_TROPHY_NAMES = { 'España': 'Primera División', 'Inglaterra': 'Premier League', 'Italia': 'Serie A' };
 
   function leagueTrophyNameFor(team) {
     const db = window.PocketManager.db;

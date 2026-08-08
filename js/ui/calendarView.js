@@ -19,12 +19,17 @@
     if (f.compType === 'league') return 'LIGA';
     if (f.compId === 'copa_del_rey') return 'COPA';
     if (f.compId === 'supercopa_de_espana') return 'SUPERC';
+    if (f.compId === 'coppa_italia') return 'COPPA';
+    if (f.compId === 'supercoppa_italiana') return 'SUPERC';
+    if (f.compId === 'uefa_champions_league') return 'CHAMPIONS LEAGUE 🌐';
     return 'COPA';
   }
 
   function compCls(f) {
     if (f.compType === 'league') return 'cal-comp-liga';
     if (f.compId === 'copa_del_rey') return 'cal-comp-copa';
+    if (f.compId === 'coppa_italia') return 'cal-comp-copa';
+    if (f.compId === 'uefa_champions_league') return 'cal-comp-eur';
     return 'cal-comp-super';
   }
 
@@ -163,7 +168,7 @@
         <div class="cal-match-teams">
           ${badgeHtml(team, 'cal-badge')}
           <span class="cal-score">${result}</span>
-          ${rival ? badgeHtml(rival, 'cal-badge') : '<span class="cal-badge"></span>'}
+          ${rival ? `<span data-team-id="${rival.id}">${badgeHtml(rival, 'cal-badge')}</span>` : '<span class="cal-badge"></span>'}
         </div>
         <div class="cal-match-meta">
           <span class="cal-side ${f.isHome ? 'home' : 'away'}">${side}</span>
@@ -195,7 +200,7 @@
 
     body.innerHTML = `
       <div class="md-score">${match.homeGoals} - ${match.awayGoals}</div>
-      <div class="md-teams"><span>${home ? home.shortName : '—'}</span><span>${away ? away.shortName : '—'}</span></div>
+      <div class="md-teams"><span${home ? ` data-team-id="${home.id}"` : ''}>${home ? home.shortName : '—'}</span><span${away ? ` data-team-id="${away.id}"` : ''}>${away ? away.shortName : '—'}</span></div>
       <div class="md-section-title">Goles</div>
       ${goals || '<p class="md-none">Sin goles.</p>'}
       <div class="md-section-title">Tarjetas</div>
@@ -267,6 +272,12 @@
         const team = gameState.team;
         const totalWeeks = (team && calendar && calendar.totalWeeks) ? calendar.totalWeeks(team.id) : 39;
 
+        const teamEl = e.target.closest('[data-team-id]');
+        if (teamEl && window.PocketManager.openTeamView) {
+          window.PocketManager.openTeamView(teamEl.dataset.teamId);
+          return;
+        }
+
         const nav = e.target.closest('[data-cal]');
         if (nav) {
           const dir = nav.dataset.cal === 'prev' ? -1 : 1;
@@ -302,7 +313,14 @@
     const modal = document.getElementById('match-details-modal');
     if (modal) {
       document.getElementById('match-details-close').addEventListener('click', () => modal.classList.remove('open'));
-      modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
+      modal.addEventListener('click', (e) => {
+        const teamEl = e.target.closest('[data-team-id]');
+        if (teamEl && window.PocketManager.openTeamView) {
+          window.PocketManager.openTeamView(teamEl.dataset.teamId);
+          return;
+        }
+        if (e.target === modal) modal.classList.remove('open');
+      });
     }
   }
 

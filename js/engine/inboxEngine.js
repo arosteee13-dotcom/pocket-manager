@@ -61,6 +61,8 @@
     if (f.compType === 'league') return 'Liga';
     if (f.compId === 'copa_del_rey') return 'Copa del Rey';
     if (f.compId === 'supercopa_de_espana') return 'Supercopa';
+    if (f.compId === 'coppa_italia') return 'Coppa Italia';
+    if (f.compId === 'supercoppa_italiana') return 'Supercoppa';
     return f.compName || 'Competición';
   }
 

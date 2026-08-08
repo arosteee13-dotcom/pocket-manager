@@ -18,7 +18,7 @@ window.PocketManager.englandData = {
       stadium: "Etihad Stadium",
       stadiumCapacity: 55017,
       trophies: [
-        { name: "Mundial de Clubes", count: 1 },
+        { name: "Copa Intercontinental de la FIFA", count: 1 },
         { name: "Champions League", count: 1 },
         { name: "Supercopa de Europa", count: 1 },
         { name: "Premier League", count: 10 },
@@ -378,7 +378,7 @@ window.PocketManager.englandData = {
       stadium: "Stamford Bridge",
       stadiumCapacity: 40343,
       trophies: [
-        { name: "Mundial de Clubes", count: 2 },
+        { name: "Copa Intercontinental de la FIFA", count: 2 },
         { name: "Champions League", count: 2 },
         { name: "Premier League", count: 6 },
         { name: "Supercopa de Europa", count: 2 },
@@ -821,7 +821,7 @@ window.PocketManager.englandData = {
       stadium: "Anfield",
       stadiumCapacity: 61116,
       trophies: [
-        { name: "Mundial de Clubes", count: 1 },
+        { name: "Copa Intercontinental de la FIFA", count: 1 },
         { name: "Champions League", count: 6 },
         { name: "Premier League", count: 20 },
         { name: "Supercopa de Europa", count: 4 },
@@ -883,7 +883,7 @@ window.PocketManager.englandData = {
       stadium: "Old Trafford",
       stadiumCapacity: 74140,
       trophies: [
-        { name: "Mundial de Clubes", count: 1 },
+        { name: "Copa Intercontinental de la FIFA", count: 1 },
         { name: "Champions League", count: 3 },
         { name: "Premier League", count: 20 },
         { name: "Supercopa de Europa", count: 1 },
@@ -1197,7 +1197,11 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Birmingham City Stadium",
       stadiumCapacity: 22554,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 4 },
+        { name: "EFL Cup", count: 2 },
+        { name: "League One", count: 1 }
+      ],
       players: [
         { id: "eng_c_birmingham-city_JamesBeadle", name: "James Beadle", nick: "Beadle", number: 25, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 7750000, ovr: 71, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "eng_c_birmingham-city" }, division: "championship" },
         { id: "eng_c_birmingham-city_RyanAllsop", name: "Ryan Allsop", nick: "Allsop", number: 21, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 34, stamina: 100, value: 759000, ovr: 68, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1241,7 +1245,13 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Blackburn Rovers Stadium",
       stadiumCapacity: 30474,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 3 },
+        { name: "Community Shield", count: 1 },
+        { name: "Championship", count: 1 },
+        { name: "EFL Cup", count: 1 },
+        { name: "FA Cup", count: 6 }
+      ],
       players: [
         { id: "eng_c_blackburn-rovers_BToth", name: "B. Toth", nick: "Toth", number: 22, flag: "🇭🇺", age: 28, stamina: 100, value: 1990000, ovr: 70, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_blackburn-rovers_AynsleyPears", name: "Aynsley Pears", nick: "Pears", number: 1, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 1970000, ovr: 67, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1286,7 +1296,12 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "Bolton Wanderers Stadium",
       stadiumCapacity: 28440,
-      trophies: [],
+      trophies: [
+        { name: "Community Shield", count: 1 },
+        { name: "Championship", count: 3 },
+        { name: "FA Cup", count: 4 },
+        { name: "EFL Trophy", count: 1 }
+      ],
       players: [
         { id: "eng_c_bolton-wanderers_LHutchinson", name: "L. Hutchinson", nick: "Hutchinson", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 48000, ovr: 51, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_bolton-wanderers_DHarrington", name: "D. Harrington", nick: "Harrington", number: 23, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 26, stamina: 100, value: 196000, ovr: 51, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1330,7 +1345,11 @@ window.PocketManager.englandData = {
       style: "Defensivo",
       stadium: "Bristol City Stadium",
       stadiumCapacity: 27121,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 1 },
+        { name: "League One", count: 1 },
+        { name: "EFL Trophy", count: 1 }
+      ],
       players: [
         { id: "eng_c_bristol-city_SamTickle", name: "Sam Tickle", nick: "Tickle", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 1830000, ovr: 70, pos: "POR", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_bristol-city_BradCollins", name: "Brad Collins", nick: "Collins", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 29, stamina: 100, value: 918000, ovr: 63, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1380,7 +1399,12 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "Burnley Stadium",
       stadiumCapacity: 37293,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 2 },
+        { name: "Community Shield", count: 1 },
+        { name: "Championship", count: 4 },
+        { name: "FA Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_burnley_MaxWei", name: "Max Weiß", nick: "Weiß", number: 13, flag: "🇩🇪", age: 22, stamina: 100, value: 5620000, ovr: 64, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_burnley_BenAmos", name: "Ben Amos", nick: "Amos", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 36, stamina: 100, value: 49000, ovr: 52, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1429,7 +1453,11 @@ window.PocketManager.englandData = {
       style: "Defensivo",
       stadium: "Cardiff City Stadium",
       stadiumCapacity: 33655,
-      trophies: [],
+      trophies: [
+        { name: "Community Shield", count: 1 },
+        { name: "Championship", count: 1 },
+        { name: "FA Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_cardiff-city_NathanTrott", name: "Nathan Trott", nick: "Trott", number: 13, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 27, stamina: 100, value: 1580000, ovr: 68, pos: "POR", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_cardiff-city_HarryTyrer", name: "Harry Tyrer", nick: "Tyrer", number: 30, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 995000, ovr: 62, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1474,7 +1502,11 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Charlton Athletic Stadium",
       stadiumCapacity: 36917,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 1 },
+        { name: "League One", count: 1 },
+        { name: "FA Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_charlton-athletic_TKaminski", name: "T. Kaminski", nick: "Kaminski", number: 1, flag: "🇧🇪", age: 33, stamina: 100, value: 1170000, ovr: 73, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_charlton-athletic_WillMannion", name: "Will Mannion", nick: "Mannion", number: 25, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 629000, ovr: 59, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1524,7 +1556,12 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Derby County Stadium",
       stadiumCapacity: 18762,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 2 },
+        { name: "Community Shield", count: 1 },
+        { name: "Championship", count: 4 },
+        { name: "FA Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_derby-county_JWidell", name: "J. Widell", nick: "Widell", number: 1, flag: "🇸🇪", age: 28, stamina: 100, value: 3380000, ovr: 74, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_derby-county_JoshVickers", name: "Josh Vickers", nick: "Vickers", number: 31, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 30, stamina: 100, value: 263000, ovr: 49, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1566,7 +1603,12 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "Lincoln City Stadium",
       stadiumCapacity: 13918,
-      trophies: [],
+      trophies: [
+        { name: "League One", count: 1 },
+        { name: "League Two", count: 1 },
+        { name: "EFL Trophy", count: 1 },
+        { name: "National League", count: 1 }
+      ],
       players: [
         { id: "eng_c_lincoln-city_GWickens", name: "G. Wickens", nick: "Wickens", number: 1, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 968000, ovr: 66, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_lincoln-city_JoeGauci", name: "Joe Gauci", nick: "Gauci", number: "", flag: "🇦🇺", age: 26, stamina: 100, value: 1090000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "eng_c_lincoln-city" }, division: "championship" },
@@ -1611,7 +1653,10 @@ window.PocketManager.englandData = {
       style: "Defensivo",
       stadium: "Middlesbrough Stadium",
       stadiumCapacity: 25157,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 4 },
+        { name: "EFL Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_middlesbrough_SBrynn", name: "S. Brynn", nick: "Brynn", number: 31, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 4440000, ovr: 73, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_middlesbrough_SenyDieng", name: "Seny Dieng", nick: "Dieng", number: 1, flag: "🇸🇳", age: 31, stamina: 100, value: 684000, ovr: 69, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1656,7 +1701,10 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "Millwall Stadium",
       stadiumCapacity: 19251,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 1 },
+        { name: "League One", count: 1 }
+      ],
       players: [
         { id: "eng_c_millwall_MCrocombe", name: "M. Crocombe", nick: "Crocombe", number: 15, flag: "🇳🇿", age: 32, stamina: 100, value: 833000, ovr: 71, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_millwall_LukasJensen", name: "Lukas Jensen", nick: "Jensen", number: 1, flag: "🇩🇰", age: 27, stamina: 100, value: 2150000, ovr: 70, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1704,7 +1752,11 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "Norwich City Stadium",
       stadiumCapacity: 19664,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 5 },
+        { name: "EFL Cup", count: 2 },
+        { name: "League One", count: 1 }
+      ],
       players: [
         { id: "eng_c_norwich-city_VKovacevic", name: "V. Kovacevic", nick: "Kovacevic", number: 1, flag: "🇧🇦", age: 28, stamina: 100, value: 3010000, ovr: 71, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_norwich-city_DanielGrimshaw", name: "Daniel Grimshaw", nick: "Grimshaw", number: 32, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 1000000, ovr: 55, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1755,7 +1807,14 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Portsmouth Stadium",
       stadiumCapacity: 15697,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 2 },
+        { name: "Championship", count: 1 },
+        { name: "League One", count: 1 },
+        { name: "FA Cup", count: 2 },
+        { name: "League Two", count: 1 },
+        { name: "EFL Trophy", count: 1 }
+      ],
       players: [
         { id: "eng_c_portsmouth_NSchmid", name: "N. Schmid", nick: "Schmid", number: 1, flag: "🇦🇹", age: 29, stamina: 100, value: 2250000, ovr: 71, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_portsmouth_DBielica", name: "D. Bielica", nick: "Bielica", number: "", flag: "🇵🇱", age: 27, stamina: 100, value: 2990000, ovr: 69, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1810,7 +1869,11 @@ window.PocketManager.englandData = {
       style: "Defensivo",
       stadium: "Preston North End Stadium",
       stadiumCapacity: 16846,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 2 },
+        { name: "Championship", count: 3 },
+        { name: "FA Cup", count: 2 }
+      ],
       players: [
         { id: "eng_c_preston-north-end_DanielIversen", name: "Daniel Iversen", nick: "Iversen", number: 1, flag: "🇩🇰", age: 29, stamina: 100, value: 2270000, ovr: 69, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_preston-north-end_LeeNicholls", name: "Lee Nicholls", nick: "Nicholls", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 33, stamina: 100, value: 453000, ovr: 68, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1851,7 +1914,11 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Queens Park Rangers Stadium",
       stadiumCapacity: 36217,
-      trophies: [],
+      trophies: [
+        { name: "Community Shield", count: 1 },
+        { name: "Championship", count: 2 },
+        { name: "EFL Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_queens-park-rangers_CWard", name: "C. Ward", nick: "Ward", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 2350000, ovr: 71, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_queens-park-rangers_PierceCharles", name: "Pierce Charles", nick: "Charles", number: "", flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 21, stamina: 100, value: 1420000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "Manchester City", currentTeam: "eng_c_queens-park-rangers" }, division: "championship" },
@@ -1899,7 +1966,12 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Sheffield United Stadium",
       stadiumCapacity: 29860,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 1 },
+        { name: "Championship", count: 1 },
+        { name: "League One", count: 1 },
+        { name: "FA Cup", count: 4 }
+      ],
       players: [
         { id: "eng_c_sheffield-united_MCooper", name: "M. Cooper", nick: "Cooper", number: 1, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 6800000, ovr: 74, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_sheffield-united_IGrbi", name: "I. Grbić", nick: "Grbić", number: "", flag: "🇭🇷", age: 30, stamina: 100, value: 1960000, ovr: 66, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1946,7 +2018,10 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Southampton Stadium",
       stadiumCapacity: 26646,
-      trophies: [],
+      trophies: [
+        { name: "FA Cup", count: 1 },
+        { name: "EFL Trophy", count: 1 }
+      ],
       players: [
         { id: "eng_c_southampton_GBazunu", name: "G. Bazunu", nick: "Bazunu", number: "", flag: "🇮🇪", age: 24, stamina: 100, value: 7540000, ovr: 71, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_southampton_ARamsdale", name: "A. Ramsdale", nick: "Ramsdale", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 9540000, ovr: 69, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -1994,7 +2069,10 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "Stoke City Stadium",
       stadiumCapacity: 14374,
-      trophies: [],
+      trophies: [
+        { name: "Championship", count: 2 },
+        { name: "EFL Cup", count: 1 }
+      ],
       players: [
         { id: "eng_c_stoke-city_VJohansson", name: "V. Johansson", nick: "Johansson", number: 1, flag: "🇸🇪", age: 27, stamina: 100, value: 8410000, ovr: 75, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_stoke-city_JoshGriffiths", name: "Josh Griffiths", nick: "Griffiths", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 1990000, ovr: 62, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -2040,7 +2118,11 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Swansea City Stadium",
       stadiumCapacity: 20508,
-      trophies: [],
+      trophies: [
+        { name: "EFL Cup", count: 1 },
+        { name: "League One", count: 1 },
+        { name: "EFL Trophy", count: 1 }
+      ],
       players: [
         { id: "eng_c_swansea-city_LVigouroux", name: "L. Vigouroux", nick: "Vigouroux", number: 22, flag: "🇨🇱", age: 32, stamina: 100, value: 1040000, ovr: 73, pos: "POR", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_swansea-city_PaulFarman", name: "Paul Farman", nick: "Farman", number: 29, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 36, stamina: 100, value: 23000, ovr: 57, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -2131,7 +2213,13 @@ window.PocketManager.englandData = {
       style: "Ofensivo",
       stadium: "West Bromwich Albion Stadium",
       stadiumCapacity: 32379,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 1 },
+        { name: "Community Shield", count: 2 },
+        { name: "Championship", count: 3 },
+        { name: "EFL Cup", count: 1 },
+        { name: "FA Cup", count: 5 }
+      ],
       players: [
         { id: "eng_c_west-bromwich-albion_MaxOLeary", name: "Max O'Leary", nick: "O'Leary", number: 1, flag: "🇮🇪", age: 29, stamina: 100, value: 3120000, ovr: 72, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_west-bromwich-albion_MattIngram", name: "Matt Ingram", nick: "Ingram", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 32, stamina: 100, value: 398000, ovr: 38, pos: "POR", foot: "Z", loan: null, division: "championship" },
@@ -2171,7 +2259,12 @@ window.PocketManager.englandData = {
       style: "Defensivo",
       stadium: "West Ham United Stadium",
       stadiumCapacity: 12211,
-      trophies: [],
+      trophies: [
+        { name: "Community Shield", count: 1 },
+        { name: "Conference League", count: 1 },
+        { name: "Championship", count: 2 },
+        { name: "FA Cup", count: 3 }
+      ],
       players: [
         { id: "eng_c_west-ham-united_AArola", name: "A. Aréola", nick: "Aréola", number: 23, flag: "🇫🇷", age: 33, stamina: 100, value: 3560000, ovr: 77, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_west-ham-united_MHermansen", name: "M. Hermansen", nick: "Hermansen", number: 1, flag: "🇩🇰", age: 26, stamina: 100, value: 10800000, ovr: 64, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -2213,7 +2306,14 @@ window.PocketManager.englandData = {
       style: "Equilibrado",
       stadium: "Wolves Stadium",
       stadiumCapacity: 16476,
-      trophies: [],
+      trophies: [
+        { name: "Premier League", count: 3 },
+        { name: "Community Shield", count: 3 },
+        { name: "Championship", count: 4 },
+        { name: "EFL Cup", count: 2 },
+        { name: "League One", count: 1 },
+        { name: "FA Cup", count: 4 }
+      ],
       players: [
         { id: "eng_c_wolves_JosS", name: "José Sá", nick: "Sá", number: 1, flag: "🇵🇹", age: 33, stamina: 100, value: 4510000, ovr: 75, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_wolves_SamJohnstone", name: "Sam Johnstone", nick: "Johnstone", number: 31, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 33, stamina: 100, value: 2820000, ovr: 63, pos: "POR", foot: "D", loan: null, division: "championship" },
@@ -2262,7 +2362,10 @@ window.PocketManager.englandData = {
       style: "Defensivo",
       stadium: "Wrexham AFC Stadium",
       stadiumCapacity: 12103,
-      trophies: [],
+      trophies: [
+        { name: "EFL Trophy", count: 1 },
+        { name: "National League", count: 1 }
+      ],
       players: [
         { id: "eng_c_wrexham-afc_ArthurChukwuezugoOkonkwo", name: "Arthur Chukwuezugo Okonkwo", nick: "Okonkwo", number: 1, flag: "🇳🇬", age: 24, stamina: 100, value: 2960000, ovr: 72, pos: "POR", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_wrexham-afc_DanielWard", name: "Daniel Ward", nick: "Ward", number: 21, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 33, stamina: 100, value: 1680000, ovr: 60, pos: "POR", foot: "D", loan: null, division: "championship" },

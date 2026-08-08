@@ -1,6 +1,8 @@
 (function () {
   const spainData = window.PocketManager.spainData;
   const englandData = window.PocketManager.englandData;
+  const italyData = window.PocketManager.italyData;
+  const europeData = window.PocketManager.restOfEuropeData;
 
   // Competiciones de copa por país (además de su liga). España tiene la Copa del Rey y la
   // Supercopa; Inglaterra tiene Community Shield, EFL Cup, FA Cup y EFL Trophy.
@@ -14,19 +16,26 @@
       { id: 'efl_cup', name: 'EFL Cup', type: 'cup' },
       { id: 'fa_cup', name: 'FA Cup', type: 'cup' },
       { id: 'efl_trophy', name: 'EFL Trophy', type: 'cup' }
+    ],
+    'Italia': [
+      { id: 'coppa_italia', name: 'Coppa Italia', type: 'cup' },
+      { id: 'supercoppa_italiana', name: 'Supercoppa Italiana', type: 'cup' }
     ]
   };
 
   class Database {
     constructor() {
-      this.countries = [spainData, englandData];
+      this.countries = [spainData, englandData, italyData];
       // Segundas ligas jugables: LaLiga Hypermotion (spainData.secondLeague) y la EFL
       // Championship inglesa (championshipData). Los equipos de España viven en
       // js/data/countries/spain.js; los del Championship en js/data/leagues/championshipData.js.
       this.leagues = [spainData.secondLeague, window.PocketManager.championshipData].filter(Boolean);
       // Divisiones inferiores: viven en cada fichero de país (divisionTeams) y participan en
       // las copas de su país, pero no en la liga principal (country.teams sigue siendo la liga).
-      this.divisionTeams = (spainData.divisionTeams || []).concat(englandData.divisionTeams || []);
+      this.divisionTeams = (spainData.divisionTeams || []).concat(englandData.divisionTeams || []).concat(italyData.divisionTeams || []);
+      // Pool continental "Resto de Europa" (participa en las competiciones europeas, no en
+      // las ligas ni copas domésticas).
+      this.europeTeams = (europeData && europeData.teams) || [];
     }
 
     // Obtener todos los países disponibles
@@ -75,8 +84,10 @@
       if (!data) return [];
       const isSpain = data.country === 'España';
       const isEngland = data.country === 'Inglaterra';
+      const isItaly = data.country === 'Italia';
       const divisions = this.divisionTeams.filter(t => (isSpain && ['1rfef', '2rfef'].indexOf(t.division) !== -1) ||
-        (isEngland && ['championship', 'league1', 'league2', 'academy'].indexOf(t.division) !== -1));
+        (isEngland && ['championship', 'league1', 'league2', 'academy'].indexOf(t.division) !== -1) ||
+        (isItaly && ['serie_b'].indexOf(t.division) !== -1));
       const leagues = (this.leagues || []).filter(l => l.country === data.country);
       return data.teams.concat(leagues.flatMap(l => l.teams), divisions);
     }
@@ -94,6 +105,9 @@
       for (const team of this.divisionTeams) {
         if (team.id === teamId) return team;
       }
+      for (const team of this.europeTeams) {
+        if (team.id === teamId) return team;
+      }
       return null;
     }
 
@@ -109,14 +123,21 @@
         }
       }
       for (const team of this.divisionTeams) {
-        if (team.id === teamId) return String(teamId).indexOf('eng_') === 0 ? englandData : spainData;
+        if (team.id === teamId) {
+          if (String(teamId).indexOf('eng_') === 0) return englandData;
+          if (String(teamId).indexOf('ita_') === 0) return italyData;
+          return spainData;
+        }
+      }
+      for (const team of this.europeTeams) {
+        if (team.id === teamId) return null;
       }
       return null;
     }
 
     // Obtener una lista global de todos los equipos del juego (incluye segundas ligas y divisiones)
     getAllTeams() {
-      return this.countries.flatMap(c => c.teams).concat((this.leagues || []).flatMap(l => l.teams), this.divisionTeams);
+      return this.countries.flatMap(c => c.teams).concat((this.leagues || []).flatMap(l => l.teams), this.divisionTeams, this.europeTeams);
     }
 
     // Jugadores propiedad de `teamId` cedidos a OTROS equipos (con club destino)
