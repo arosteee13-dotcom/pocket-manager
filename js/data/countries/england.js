@@ -65,7 +65,7 @@ window.PocketManager.englandData = {
         { id: "en115", name: "Savinho Moreira", nick: "Savinho", number: 26, flag: "🇧🇷", age: 22, stamina: 100, value: 51880000, ovr: 72, pos: "EI", foot: "Z", loan: null },
         { id: "en136", name: "Jeremy Monga", nick: "Monga", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 17, stamina: 100, value: 11320000, ovr: 51, pos: "EI", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en137", name: "Pierce Charles", nick: "Charles", number: "", flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 21, stamina: 100, value: 1420000, ovr: 59, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_mancity", currentTeam: "Queens Park Rangers" } },
+        { id: "en137", name: "Pierce Charles", nick: "Charles", number: "", flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 21, stamina: 100, value: 1420000, ovr: 59, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_mancity", currentTeam: "eng_c_queens-park-rangers" } },
         { id: "en138", name: "Sverre Nypan", nick: "Nypan", number: "", flag: "🇳🇴", age: 19, stamina: 100, value: 13340000, ovr: 64, pos: "MC", foot: "A", loan: { isLoaned: true, parentTeam: "eng_mancity", currentTeam: "Lommel SK" } },
         { id: "en139", name: "Mathys Detourbet", nick: "Detourbet", number: "", flag: "🇫🇷", age: 19, stamina: 100, value: 11940000, ovr: 57, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "eng_mancity", currentTeam: "AS Monaco" } }
       ]
@@ -179,7 +179,7 @@ window.PocketManager.englandData = {
         { id: "en262", name: "Daniel Jebbison", nick: "Jebbison", number: "", flag: "🇨🇦", age: 22, stamina: 100, value: 6000000, ovr: 58, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
         { id: "en263", name: "Alex Paulsen", nick: "Paulsen", number: "", flag: "🇳🇿", age: 24, stamina: 100, value: 2500000, ovr: 65, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_bournemouth", currentTeam: "Motherwell" } },
-        { id: "en264", name: "Álex Jiménez", nick: "Jiménez", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 20090000, ovr: 71, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_bournemouth", currentTeam: "Fiorentina" } }
+        { id: "en264", name: "Álex Jiménez", nick: "Jiménez", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 20090000, ovr: 71, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_bournemouth", currentTeam: "ita_fiorentina" } }
       ]
     },
     {
@@ -236,7 +236,7 @@ window.PocketManager.englandData = {
         { id: "en289", name: "Ollie Watkins", nick: "Watkins", number: 11, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 30, stamina: 100, value: 25000000, ovr: 86, pos: "DC", foot: "D", loan: null },
         { id: "en290", name: "Tammy Abraham", nick: "Abraham", number: 18, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 18000000, ovr: 76, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en291", name: "Joe Gauci", nick: "Gauci", number: "", flag: "🇦🇺", age: 26, stamina: 100, value: 1090000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "Lincoln City" } },
+        { id: "en291", name: "Joe Gauci", nick: "Gauci", number: "", flag: "🇦🇺", age: 26, stamina: 100, value: 1090000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "eng_c_lincoln-city" } },
         { id: "en292", name: "Oliwier Zych", nick: "Zych", number: "", flag: "🇵🇱", age: 22, stamina: 100, value: 1850000, ovr: 61, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "Vitória Guimarães" } },
         { id: "en293", name: "Yasin Özcan", nick: "Özcan", number: "", flag: "🇹🇷", age: 20, stamina: 100, value: 8830000, ovr: 63, pos: "DFC", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_astonvilla", currentTeam: "Beşiktaş" } }
       ]
@@ -297,8 +297,8 @@ window.PocketManager.englandData = {
         { id: "en325", name: "Kaye Furo", nick: "Furo", number: 47, flag: "🇧🇪", age: 19, stamina: 100, value: 8000000, ovr: 54, pos: "DC", foot: "D", loan: null },
         { id: "en326", name: "Callum Wilson", nick: "Wilson", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 34, stamina: 100, value: 4000000, ovr: 64, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en327", name: "Matthew Cox", nick: "Cox", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 478000, ovr: 55, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brentford", currentTeam: "Barnet" } },
-        { id: "en328", name: "Romelle Donovan", nick: "Donovan", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 19, stamina: 100, value: 2560000, ovr: 41, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brentford", currentTeam: "Sheffield United" } }
+        { id: "en327", name: "Matthew Cox", nick: "Cox", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 478000, ovr: 55, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brentford", currentTeam: "eng_l2_barnet" } },
+        { id: "en328", name: "Romelle Donovan", nick: "Donovan", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 19, stamina: 100, value: 2560000, ovr: 41, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brentford", currentTeam: "eng_c_sheffield-united" } }
       ]
     },
     {
@@ -358,9 +358,9 @@ window.PocketManager.englandData = {
         { id: "en360", name: "Stefanos Tzimas", nick: "Tzimas", number: 9, flag: "🇬🇷", age: 20, stamina: 100, value: 18000000, ovr: 67, pos: "DC", foot: "A", loan: null },
         // Cedidos fuera
         { id: "en361", name: "Brajan Gruda", nick: "Gruda", number: "", flag: "🇩🇪", age: 22, stamina: 100, value: 28340000, ovr: 71, pos: "MCO", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "RB Leipzig" } },
-        { id: "en362", name: "James Beadle", nick: "Beadle", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 7750000, ovr: 72, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "Birmingham City" } },
-        { id: "en363", name: "Rodrigo Rêgo", nick: "Rêgo", number: "", flag: "🇵🇹", age: 21, stamina: 100, value: 802000, ovr: 51, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "CD Castellón" } },
-        { id: "en364", name: "Tom Watson", nick: "Watson", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 20, stamina: 100, value: 6050000, ovr: 51, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "Leicester" } },
+        { id: "en362", name: "James Beadle", nick: "Beadle", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 7750000, ovr: 72, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "eng_c_birmingham-city" } },
+        { id: "en363", name: "Rodrigo Rêgo", nick: "Rêgo", number: "", flag: "🇵🇹", age: 21, stamina: 100, value: 802000, ovr: 51, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "esp_s2_cd-castellon" } },
+        { id: "en364", name: "Tom Watson", nick: "Watson", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 20, stamina: 100, value: 6050000, ovr: 51, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "eng_l1_leicester-city" } },
         { id: "en365", name: "Do-Young Yun", nick: "Yun", number: "", flag: "🇰🇷", age: 19, stamina: 100, value: 1890000, ovr: 54, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brighton", currentTeam: "Magdeburg" } }
       ]
     },
@@ -691,8 +691,8 @@ window.PocketManager.englandData = {
         { id: "en533", name: "Oli McBurnie", nick: "McBurnie", number: 9, flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 30, stamina: 100, value: 5000000, ovr: 69, pos: "DC", foot: "D", loan: null },
         { id: "en534", name: "Enis Destan", nick: "Destan", number: 28, flag: "🇹🇷", age: 24, stamina: 100, value: 2000000, ovr: 54, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en535", name: "Harvey Cartwright", nick: "Cartwright", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 144000, ovr: 52, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_hull", currentTeam: "Grimsby Town" } },
-        { id: "en536", name: "Mason Burstow", nick: "Burstow", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 2960000, ovr: 60, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_hull", currentTeam: "Sheffield Wednesday" } }
+        { id: "en535", name: "Harvey Cartwright", nick: "Cartwright", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 144000, ovr: 52, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_hull", currentTeam: "eng_l2_grimsby-town" } },
+        { id: "en536", name: "Mason Burstow", nick: "Burstow", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 2960000, ovr: 60, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_hull", currentTeam: "eng_l1_sheffield-wednesday" } }
       ]
     },
     {
@@ -750,7 +750,7 @@ window.PocketManager.englandData = {
         { id: "en565", name: "Chuba Akpom", nick: "Akpom", number: 29, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 30, stamina: 100, value: 3500000, ovr: 65, pos: "DC", foot: "D", loan: null },
         { id: "en566", name: "Ali Al-Hamadi", nick: "Al-Hamadi", number: 16, flag: "🇮🇶", age: 24, stamina: 100, value: 1500000, ovr: 58, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en567", name: "Cieran Slicker", nick: "Slicker", number: "", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 23, stamina: 100, value: 340000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_ipswich", currentTeam: "Barnsley" } }
+        { id: "en567", name: "Cieran Slicker", nick: "Slicker", number: "", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 23, stamina: 100, value: 340000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_ipswich", currentTeam: "eng_l1_barnsley" } }
       ]
     },
     {
@@ -988,8 +988,8 @@ window.PocketManager.englandData = {
         { id: "en686", name: "William Osula", nick: "Osula", number: 10, flag: "🇩🇰", age: 23, stamina: 100, value: 28000000, ovr: 60, pos: "DC", foot: "D", loan: null },
         { id: "en687", name: "Yoane Wissa", nick: "Wissa", number: 9, flag: "🇨🇩", age: 29, stamina: 100, value: 25000000, ovr: 76, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en688", name: "Harrison Ashby", nick: "Ashby", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 955000, ovr: 51, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_newcastle", currentTeam: "Luton Town" } },
-        { id: "en689", name: "Antonio Cordero", nick: "Cordero", number: "", flag: "🇪🇸", age: 19, stamina: 100, value: 8200000, ovr: 64, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "eng_newcastle", currentTeam: "Cádiz" } }
+        { id: "en688", name: "Harrison Ashby", nick: "Ashby", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 955000, ovr: 51, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_newcastle", currentTeam: "eng_l1_luton-town" } },
+        { id: "en689", name: "Antonio Cordero", nick: "Cordero", number: "", flag: "🇪🇸", age: 19, stamina: 100, value: 8200000, ovr: 64, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "eng_newcastle", currentTeam: "esp_s2_cadiz" } }
       ]
     },
     {
@@ -1176,7 +1176,7 @@ window.PocketManager.englandData = {
         { id: "en787", name: "Mathys Tel", nick: "Tel", number: 11, flag: "🇫🇷", age: 21, stamina: 100, value: 22000000, ovr: 69, pos: "DC", foot: "D", loan: null },
         { id: "en788", name: "Dane Scarlett", nick: "Scarlett", number: 44, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 1500000, ovr: 54, pos: "DC", foot: "D", loan: null },
         // Cedidos fuera
-        { id: "en789", name: "Radu Drăgușin", nick: "Drăgușin", number: "", flag: "🇷🇴", age: 24, stamina: 100, value: 19160000, ovr: 70, pos: "DFC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_tottenham", currentTeam: "Fiorentina" } }
+        { id: "en789", name: "Radu Drăgușin", nick: "Drăgușin", number: "", flag: "🇷🇴", age: 24, stamina: 100, value: 19160000, ovr: 70, pos: "DFC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_tottenham", currentTeam: "ita_fiorentina" } }
       ]
     }
   ],
@@ -1328,7 +1328,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_bolton-wanderers_KDong", name: "K. Dong", nick: "Dong", number: "", flag: "🇫🇷", age: 21, stamina: 100, value: 1620000, ovr: 55, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "FC Augsburg", currentTeam: "eng_c_bolton-wanderers" }, division: "championship" },
         { id: "eng_c_bolton-wanderers_CWarren", name: "C. Warren", nick: "Warren", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 22000, ovr: 39, pos: "EI", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_bolton-wanderers_SamDalby", name: "Sam Dalby", nick: "Dalby", number: 10, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 2270000, ovr: 68, pos: "DC", foot: "Z", loan: null, division: "championship" },
-        { id: "eng_c_bolton-wanderers_RichardTaylor", name: "Richard Taylor", nick: "R. Taylor", number: 5, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 1430000, ovr: 65, pos: "DFC", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_c_bolton-wanderers", currentTeam: "Bromley" }, division: "championship" }
+        { id: "eng_c_bolton-wanderers_RichardTaylor", name: "Richard Taylor", nick: "R. Taylor", number: 5, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 1430000, ovr: 65, pos: "DFC", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_c_bolton-wanderers", currentTeam: "eng_l1_bromley" }, division: "championship" }
       ]
     },
     {
@@ -1381,7 +1381,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_bristol-city_YHirakawa", name: "Y. Hirakawa", nick: "Hirakawa", number: "", flag: "🇯🇵", age: 25, stamina: 100, value: 2700000, ovr: 62, pos: "ED", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_bristol-city_JedWallace", name: "Jed Wallace", nick: "Wallace", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 32, stamina: 100, value: 1520000, ovr: 61, pos: "ED", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_bristol-city_EYeboah", name: "E. Yeboah", nick: "Yeboah", number: "", flag: "🇮🇹", age: 20, stamina: 100, value: 302000, ovr: 45, pos: "ED", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_bristol-city_JoshStokes", name: "Josh Stokes", nick: "Stokes", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 1010000, ovr: 60, pos: "MCO", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_bristol-city", currentTeam: "Reading" }, division: "championship" },
+        { id: "eng_c_bristol-city_JoshStokes", name: "Josh Stokes", nick: "Stokes", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 1010000, ovr: 60, pos: "MCO", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_bristol-city", currentTeam: "eng_l1_reading" }, division: "championship" },
         { id: "eng_c_bristol-city_JamieKnight", name: "Jamie Knight", nick: "J. Knight", number: "", flag: "🇨🇦", age: 21, stamina: 100, value: 497000, ovr: 59, pos: "DFC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_bristol-city", currentTeam: "Motherwell" }, division: "championship" }
       ]
     },
@@ -1435,7 +1435,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_burnley_ABroja", name: "A. Broja", nick: "Broja", number: 27, flag: "🇦🇱", age: 24, stamina: 100, value: 8960000, ovr: 58, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_burnley_MObafemi", name: "M. Obafemi", nick: "Obafemi", number: "", flag: "🇮🇪", age: 26, stamina: 100, value: 1660000, ovr: 55, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_burnley_QHartman", name: "Q. Hartman", nick: "Hartman", number: 3, flag: "🇳🇱", age: 24, stamina: 100, value: 18670000, ovr: 68, pos: "LI", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_c_burnley", currentTeam: "esp_espanyol" }, division: "championship" },
-        { id: "eng_c_burnley_LUgochukwu", name: "L. Ugochukwu", nick: "Ugochukwu", number: 8, flag: "🇫🇷", age: 22, stamina: 100, value: 23790000, ovr: 69, pos: "MCD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_burnley", currentTeam: "Galatasaray SK" }, division: "championship" },
+        { id: "eng_c_burnley_LUgochukwu", name: "L. Ugochukwu", nick: "Ugochukwu", number: 8, flag: "🇫🇷", age: 22, stamina: 100, value: 23790000, ovr: 69, pos: "MCD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_burnley", currentTeam: "eur_galatasaray" }, division: "championship" },
         { id: "eng_c_burnley_OAdewumi", name: "O. Adewumi", nick: "Adewumi", number: "", flag: "🇦🇹", age: 21, stamina: 100, value: 5720000, ovr: 63, pos: "MCO", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_burnley", currentTeam: "Hertha BSC" }, division: "championship" }
       ]
     },
@@ -1538,7 +1538,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_charlton-athletic_TantoOlaofe", name: "Tanto Olaofe", nick: "Olaofe", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 1440000, ovr: 64, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_charlton-athletic_DKanu", name: "D. Kanu", nick: "Kanu", number: "", flag: "🇸🇱", age: 21, stamina: 100, value: 1060000, ovr: 59, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_charlton-athletic_MicahMbick", name: "Micah Mbick", nick: "Mbick", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 19, stamina: 100, value: 26000, ovr: 48, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_charlton-athletic_GassanAhadme", name: "Gassan Ahadme", nick: "Ahadme", number: "", flag: "🇲🇦", age: 25, stamina: 100, value: 990000, ovr: 56, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_charlton-athletic", currentTeam: "Cambridge United" }, division: "championship" },
+        { id: "eng_c_charlton-athletic_GassanAhadme", name: "Gassan Ahadme", nick: "Ahadme", number: "", flag: "🇲🇦", age: 25, stamina: 100, value: 990000, ovr: 56, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_charlton-athletic", currentTeam: "eng_l1_cambridge-united" }, division: "championship" },
         { id: "eng_c_charlton-athletic_ZachMitchell", name: "Zach Mitchell", nick: "Z. Mitchell", number: 20, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 21, stamina: 100, value: 1210000, ovr: 52, pos: "DFC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_charlton-athletic", currentTeam: "St. Johnstone" }, division: "championship" }
       ]
     },
@@ -1635,8 +1635,8 @@ window.PocketManager.englandData = {
         { id: "eng_c_lincoln-city_JCollins", name: "J. Collins", nick: "Collins", number: 9, flag: "🇮🇪", age: 35, stamina: 100, value: 295000, ovr: 68, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_lincoln-city_FreddieDraper", name: "Freddie Draper", nick: "Draper", number: 34, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 22, stamina: 100, value: 1320000, ovr: 61, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_lincoln-city_MasonMelia", name: "Mason Melia", nick: "Melia", number: "", flag: "🇮🇪", age: 18, stamina: 100, value: 9920000, ovr: 67, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "Tottenham Hotspur U23", currentTeam: "eng_c_lincoln-city" }, division: "championship" },
-        { id: "eng_c_lincoln-city_ZachJeacock", name: "Zach Jeacock", nick: "Jeacock", number: 13, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 124000, ovr: 45, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_lincoln-city", currentTeam: "Northampton" }, division: "championship" },
-        { id: "eng_c_lincoln-city_ZaneOkoro", name: "Zane Okoro", nick: "Okoro", number: "", flag: "🇺🇸", age: 19, stamina: 100, value: 63000, ovr: 55, pos: "ED", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_lincoln-city", currentTeam: "Tranmere Rovers" }, division: "championship" }
+        { id: "eng_c_lincoln-city_ZachJeacock", name: "Zach Jeacock", nick: "Jeacock", number: 13, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 124000, ovr: 45, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_lincoln-city", currentTeam: "eng_l2_northampton-town" }, division: "championship" },
+        { id: "eng_c_lincoln-city_ZaneOkoro", name: "Zane Okoro", nick: "Okoro", number: "", flag: "🇺🇸", age: 19, stamina: 100, value: 63000, ovr: 55, pos: "ED", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_lincoln-city", currentTeam: "eng_l2_tranmere-rovers" }, division: "championship" }
       ]
     },
     {
@@ -1735,7 +1735,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_millwall_JoshCoburn", name: "Josh Coburn", nick: "Coburn", number: 19, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 6810000, ovr: 71, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_millwall_TArconte", name: "T. Arconte", nick: "Arconte", number: "", flag: "🇬🇵", age: 22, stamina: 100, value: 2690000, ovr: 68, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_millwall_AjayMatthews", name: "Ajay Matthews", nick: "Matthews", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 20, stamina: 100, value: 45000, ovr: 38, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_millwall_KGrant", name: "K. Grant", nick: "Grant", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 519000, ovr: 52, pos: "DFC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_millwall", currentTeam: "Bromley" }, division: "championship" }
+        { id: "eng_c_millwall_KGrant", name: "K. Grant", nick: "Grant", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 519000, ovr: 52, pos: "DFC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_millwall", currentTeam: "eng_l1_bromley" }, division: "championship" }
       ]
     },
     {
@@ -1850,9 +1850,9 @@ window.PocketManager.englandData = {
         { id: "eng_c_portsmouth_TWaddingham", name: "T. Waddingham", nick: "Waddingham", number: 20, flag: "🇦🇺", age: 21, stamina: 100, value: 1840000, ovr: 57, pos: "DC", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_portsmouth_NChioma", name: "N. Chioma", nick: "Chioma", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 18, stamina: 100, value: 1000, ovr: 30, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_portsmouth_TayoSingerr", name: "Tayo Singerr", nick: "Singerr", number: 46, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 18, stamina: 100, value: 1000, ovr: 26, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_portsmouth_JordanWilliams", name: "Jordan Williams", nick: "Williams", number: 2, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 1480000, ovr: 63, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_portsmouth", currentTeam: "Blackpool" }, division: "championship" },
+        { id: "eng_c_portsmouth_JordanWilliams", name: "Jordan Williams", nick: "Williams", number: 2, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 1480000, ovr: 63, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_portsmouth", currentTeam: "eng_l1_blackpool" }, division: "championship" },
         { id: "eng_c_portsmouth_TobySteward", name: "Toby Steward", nick: "Steward", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 21, stamina: 100, value: 573000, ovr: 65, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_portsmouth", currentTeam: "St. Johnstone" }, division: "championship" },
-        { id: "eng_c_portsmouth_MKirk", name: "M. Kirk", nick: "Kirk", number: 25, flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 22, stamina: 100, value: 1850000, ovr: 54, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_portsmouth", currentTeam: "Barnsley" }, division: "championship" }
+        { id: "eng_c_portsmouth_MKirk", name: "M. Kirk", nick: "Kirk", number: 25, flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 22, stamina: 100, value: 1850000, ovr: 54, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_portsmouth", currentTeam: "eng_l1_barnsley" }, division: "championship" }
       ]
     },
     {
@@ -1921,7 +1921,7 @@ window.PocketManager.englandData = {
       ],
       players: [
         { id: "eng_c_queens-park-rangers_CWard", name: "C. Ward", nick: "Ward", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 25, stamina: 100, value: 2350000, ovr: 71, pos: "POR", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_queens-park-rangers_PierceCharles", name: "Pierce Charles", nick: "Charles", number: "", flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 21, stamina: 100, value: 1420000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "Manchester City", currentTeam: "eng_c_queens-park-rangers" }, division: "championship" },
+        { id: "eng_c_queens-park-rangers_PierceCharles", name: "Pierce Charles", nick: "Charles", number: "", flag: "🏴󠁧󠁢󠁮󠁩󠁲", age: 21, stamina: 100, value: 1420000, ovr: 60, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_mancity", currentTeam: "eng_c_queens-park-rangers" }, division: "championship" },
         { id: "eng_c_queens-park-rangers_AMbengue", name: "A. Mbengue", nick: "Mbengue", number: 27, flag: "🇸🇳", age: 24, stamina: 100, value: 2640000, ovr: 69, pos: "DFC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_queens-park-rangers_RonnieEdwards", name: "Ronnie Edwards", nick: "Edwards", number: 37, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 5700000, ovr: 67, pos: "DFC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_queens-park-rangers_JakeClarkeSalter", name: "Jake Clarke-Salter", nick: "Clarke-Salter", number: 6, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 1470000, ovr: 65, pos: "DFC", foot: "Z", loan: null, division: "championship" },
@@ -1948,7 +1948,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_queens-park-rangers_RayanKolli", name: "Rayan Kolli", nick: "Kolli", number: 26, flag: "🇩🇿", age: 21, stamina: 100, value: 1700000, ovr: 54, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_queens-park-rangers_JObikwu", name: "J. Obikwu", nick: "Obikwu", number: 46, flag: "🇹🇹", age: 22, stamina: 100, value: 328000, ovr: 50, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_queens-park-rangers_AlfieLloyd", name: "Alfie Lloyd", nick: "Lloyd", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 23, stamina: 100, value: 340000, ovr: 43, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_queens-park-rangers_JoeWalsh", name: "Joe Walsh", nick: "Walsh", number: 13, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 1030000, ovr: 59, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_queens-park-rangers", currentTeam: "Wigan Athletic" }, division: "championship" },
+        { id: "eng_c_queens-park-rangers_JoeWalsh", name: "Joe Walsh", nick: "Walsh", number: 13, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 1030000, ovr: 59, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_queens-park-rangers", currentTeam: "eng_l1_wigan-athletic" }, division: "championship" },
         { id: "eng_c_queens-park-rangers_DBennie", name: "D. Bennie", nick: "Bennie", number: 23, flag: "🇦🇺", age: 20, stamina: 100, value: 321000, ovr: 45, pos: "EI", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_queens-park-rangers", currentTeam: "Dundee United" }, division: "championship" }
       ]
     },
@@ -1996,7 +1996,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_sheffield-united_TahithChong", name: "Tahith Chong", nick: "Chong", number: 24, flag: "🇨🇼", age: 26, stamina: 100, value: 4570000, ovr: 62, pos: "MCO", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_sheffield-united_RyanOn", name: "Ryan Oné", nick: "Oné", number: "", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 20, stamina: 100, value: 847000, ovr: 49, pos: "EI", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_sheffield-united_EUkaki", name: "E. Ukaki", nick: "Ukaki", number: "", flag: "🇳🇬", age: 21, stamina: 100, value: 2380000, ovr: 60, pos: "ED", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_sheffield-united_RDonovan", name: "R. Donovan", nick: "Donovan", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 19, stamina: 100, value: 2560000, ovr: 40, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "Brentford", currentTeam: "eng_c_sheffield-united" }, division: "championship" },
+        { id: "eng_c_sheffield-united_RDonovan", name: "R. Donovan", nick: "Donovan", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 19, stamina: 100, value: 2560000, ovr: 40, pos: "ED", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_brentford", currentTeam: "eng_c_sheffield-united" }, division: "championship" },
         { id: "eng_c_sheffield-united_TyreseCampbell", name: "Tyrese Campbell", nick: "Campbell", number: 23, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 26, stamina: 100, value: 6970000, ovr: 72, pos: "DC", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_sheffield-united_TomCannon", name: "Tom Cannon", nick: "Cannon", number: 7, flag: "🇮🇪", age: 23, stamina: 100, value: 8590000, ovr: 65, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_sheffield-united_PatrickBamford", name: "Patrick Bamford", nick: "Bamford", number: 45, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 32, stamina: 100, value: 1440000, ovr: 58, pos: "DC", foot: "D", loan: null, division: "championship" },
@@ -2099,8 +2099,8 @@ window.PocketManager.englandData = {
         { id: "eng_c_stoke-city_MilanSmit", name: "Milan Smit", nick: "Smit", number: 49, flag: "🇳🇱", age: 23, stamina: 100, value: 7470000, ovr: 70, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_stoke-city_RBozenik", name: "R. Bozenik", nick: "Bozenik", number: 11, flag: "🇸🇰", age: 26, stamina: 100, value: 4620000, ovr: 66, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_stoke-city_SamGallagher", name: "Sam Gallagher", nick: "Gallagher", number: 20, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 30, stamina: 100, value: 1950000, ovr: 65, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_stoke-city_EmreTezgel", name: "Emre Tezgel", nick: "Tezgel", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 20, stamina: 100, value: 804000, ovr: 58, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_stoke-city", currentTeam: "Wycombe Wanderers" }, division: "championship" },
-        { id: "eng_c_stoke-city_TommySimkin", name: "Tommy Simkin", nick: "Simkin", number: 25, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 21, stamina: 100, value: 1450000, ovr: 62, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_stoke-city", currentTeam: "Doncaster Rovers" }, division: "championship" },
+        { id: "eng_c_stoke-city_EmreTezgel", name: "Emre Tezgel", nick: "Tezgel", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 20, stamina: 100, value: 804000, ovr: 58, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_stoke-city", currentTeam: "eng_l1_wycombe-wanderers" }, division: "championship" },
+        { id: "eng_c_stoke-city_TommySimkin", name: "Tommy Simkin", nick: "Simkin", number: 25, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 21, stamina: 100, value: 1450000, ovr: 62, pos: "POR", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_stoke-city", currentTeam: "eng_l1_doncaster-rovers" }, division: "championship" },
         { id: "eng_c_stoke-city_NathanLowe", name: "Nathan Lowe", nick: "Lowe", number: "", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 20, stamina: 100, value: 1510000, ovr: 61, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_stoke-city", currentTeam: "Hibernian FC" }, division: "championship" }
       ]
     },
@@ -2151,8 +2151,8 @@ window.PocketManager.englandData = {
         { id: "eng_c_swansea-city_AdamIdah", name: "Adam Idah", nick: "Idah", number: 33, flag: "🇮🇪", age: 25, stamina: 100, value: 9390000, ovr: 70, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_swansea-city_RStewart", name: "R. Stewart", nick: "Stewart", number: "", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 30, stamina: 100, value: 2780000, ovr: 64, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_swansea-city_BWales", name: "B. Wales", nick: "Wales", number: "", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 21, stamina: 100, value: 1420000, ovr: 52, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_swansea-city_OllieCooper", name: "Ollie Cooper", nick: "Cooper", number: 31, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 26, stamina: 100, value: 1400000, ovr: 49, pos: "MCO", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_swansea-city", currentTeam: "Notts County" }, division: "championship" },
-        { id: "eng_c_swansea-city_SamParker", name: "Sam Parker", nick: "Parker", number: 41, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 20, stamina: 100, value: 108000, ovr: 37, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_swansea-city", currentTeam: "Wycombe Wanderers" }, division: "championship" }
+        { id: "eng_c_swansea-city_OllieCooper", name: "Ollie Cooper", nick: "Cooper", number: 31, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 26, stamina: 100, value: 1400000, ovr: 49, pos: "MCO", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_swansea-city", currentTeam: "eng_l1_notts-county" }, division: "championship" },
+        { id: "eng_c_swansea-city_SamParker", name: "Sam Parker", nick: "Parker", number: 41, flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", age: 20, stamina: 100, value: 108000, ovr: 37, pos: "LD", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_swansea-city", currentTeam: "eng_l1_wycombe-wanderers" }, division: "championship" }
       ]
     },
     {
@@ -2179,7 +2179,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_watford_MattiePollock", name: "Mattie Pollock", nick: "Pollock", number: 6, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 24, stamina: 100, value: 2820000, ovr: 71, pos: "DFC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_watford_KvinKeben", name: "Kévin Keben", nick: "Keben", number: 4, flag: "🇨🇲", age: 22, stamina: 100, value: 1610000, ovr: 56, pos: "DFC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_watford_MarcBola", name: "Marc Bola", nick: "Bola", number: 16, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 2360000, ovr: 70, pos: "LI", foot: "Z", loan: null, division: "championship" },
-        { id: "eng_c_watford_JordanZemura", name: "Jordan Zemura", nick: "Zemura", number: "", flag: "🇿🇼", age: 26, stamina: 100, value: 4960000, ovr: 66, pos: "LI", foot: "Z", loan: { isLoaned: true, parentTeam: "Udinese", currentTeam: "eng_c_watford" }, division: "championship" },
+        { id: "eng_c_watford_JordanZemura", name: "Jordan Zemura", nick: "Zemura", number: "", flag: "🇿🇼", age: 26, stamina: 100, value: 4960000, ovr: 66, pos: "LI", foot: "Z", loan: { isLoaned: true, parentTeam: "ita_udinese", currentTeam: "eng_c_watford" }, division: "championship" },
         { id: "eng_c_watford_JeremyNgakia", name: "Jeremy Ngakia", nick: "Ngakia", number: 2, flag: "🇨🇩", age: 25, stamina: 100, value: 2880000, ovr: 70, pos: "LD", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_watford_JPtris", name: "J. Pétris", nick: "Pétris", number: 29, flag: "🇲🇶", age: 28, stamina: 100, value: 2450000, ovr: 67, pos: "LD", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_watford_OmarTraor", name: "Omar Traorè", nick: "Traorè", number: "", flag: "🇩🇪", age: 28, stamina: 100, value: 5830000, ovr: 67, pos: "LD", foot: "D", loan: null, division: "championship" },
@@ -2196,7 +2196,8 @@ window.PocketManager.englandData = {
         { id: "eng_c_watford_MDoumbia", name: "M. Doumbia", nick: "Doumbia", number: 20, flag: "🇲🇱", age: 20, stamina: 100, value: 3640000, ovr: 56, pos: "DC", foot: "Z", loan: null, division: "championship" },
         { id: "eng_c_watford_IkerBravo", name: "Iker Bravo", nick: "Bravo", number: "", flag: "🇪🇸", age: 21, stamina: 100, value: 5550000, ovr: 57, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_watford_Vivaldo", name: "Vivaldo", nick: "Vivaldo", number: 18, flag: "🇵🇹", age: 21, stamina: 100, value: 2640000, ovr: 55, pos: "DC", foot: "Z", loan: { isLoaned: true, parentTeam: "eng_c_watford", currentTeam: "FC Alverca" }, division: "championship" },
-        { id: "eng_c_watford_JCabezas", name: "J. Cabezas", nick: "Cabezas", number: "", flag: "🇨🇴", age: 22, stamina: 100, value: 1040000, ovr: 53, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_watford", currentTeam: "Deportes Tolima" }, division: "championship" }
+        { id: "eng_c_watford_JCabezas", name: "J. Cabezas", nick: "Cabezas", number: "", flag: "🇨🇴", age: 22, stamina: 100, value: 1040000, ovr: 53, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_watford", currentTeam: "Deportes Tolima" }, division: "championship" },
+        { id: "eng_c_watford_Zemura", name: "Jordan Zemura", nick: "Zemura", number: "", flag: "🇿🇼", age: 26, stamina: 100, value: 4960000, ovr: 66, pos: "LI", foot: "Z", loan: { isLoaned: true, parentTeam: "ita_udinese", currentTeam: "eng_c_watford" }, division: "championship" }
       ]
     },
     {
@@ -2345,7 +2346,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_wolves_HeeChanHwang", name: "Hee-Chan Hwang", nick: "Hwang", number: 11, flag: "🇰🇷", age: 30, stamina: 100, value: 11010000, ovr: 67, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_wolves_SKalajdi", name: "S. Kalajdžić", nick: "Kalajdžić", number: "", flag: "🇦🇹", age: 29, stamina: 100, value: 3910000, ovr: 60, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_wolves_NathanFraser", name: "Nathan Fraser", nick: "Fraser", number: "", flag: "🇮🇪", age: 21, stamina: 100, value: 595000, ovr: 44, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_wolves_TArokodare", name: "T. Arokodare", nick: "Arokodare", number: 14, flag: "🇳🇬", age: 25, stamina: 100, value: 25130000, ovr: 72, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_wolves", currentTeam: "Ajax" }, division: "championship" }
+        { id: "eng_c_wolves_TArokodare", name: "T. Arokodare", nick: "Arokodare", number: 14, flag: "🇳🇬", age: 25, stamina: 100, value: 25130000, ovr: 72, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_wolves", currentTeam: "eur_ajax" }, division: "championship" }
       ]
     },
     {
@@ -2402,7 +2403,7 @@ window.PocketManager.englandData = {
         { id: "eng_c_wrexham-afc_RyanHardie", name: "Ryan Hardie", nick: "Hardie", number: "", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", age: 29, stamina: 100, value: 2530000, ovr: 69, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_wrexham-afc_DavisJamesMarshallKeillorDunn", name: "Davis James Marshall Keillor-Dunn", nick: "Keillor-Dunn", number: 7, flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", age: 28, stamina: 100, value: 2220000, ovr: 66, pos: "DC", foot: "D", loan: null, division: "championship" },
         { id: "eng_c_wrexham-afc_BaileyTyeCadamarteri", name: "Bailey-Tye Cadamarteri", nick: "Cadamarteri", number: 11, flag: "🇯🇲", age: 21, stamina: 100, value: 2860000, ovr: 58, pos: "DC", foot: "D", loan: null, division: "championship" },
-        { id: "eng_c_wrexham-afc_ModouLaminFaal", name: "Modou Lamin Faal", nick: "Faal", number: "", flag: "🇬🇲", age: 23, stamina: 100, value: 661000, ovr: 51, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_wrexham-afc", currentTeam: "Port Vale" }, division: "championship" }
+        { id: "eng_c_wrexham-afc_ModouLaminFaal", name: "Modou Lamin Faal", nick: "Faal", number: "", flag: "🇬🇲", age: 23, stamina: 100, value: 661000, ovr: 51, pos: "DC", foot: "D", loan: { isLoaned: true, parentTeam: "eng_c_wrexham-afc", currentTeam: "eng_l2_port-vale" }, division: "championship" }
       ]
     },
     {
