@@ -21,6 +21,27 @@
     return Math.max(45, Math.min(99, n));
   }
 
+  // Factor de revalorización del valor de mercado según el cambio de OVR y la edad.
+  // Cada punto de media: subida ×1.12, bajada ×0.90 (potencia de |delta|). La edad modula:
+  // los jóvenes revalorizan más al subir y pierden menos al bajar; los veteranos al revés.
+  function valueFactor(delta, age) {
+    const base = delta >= 0 ? 1.12 : 0.90;
+    let mult = Math.pow(base, Math.abs(delta));
+    if (delta > 0) {
+      if (age <= 23) mult *= 1.15;
+      else if (age <= 27) mult *= 1.08;
+      else if (age <= 30) mult *= 1.0;
+      else if (age <= 33) mult *= 0.92;
+      else mult *= 0.85;
+    } else if (delta < 0) {
+      if (age <= 23) mult *= 0.95;
+      else if (age <= 27) mult *= 0.98;
+      else if (age <= 30) mult *= 1.0;
+      else mult *= 1.08;
+    }
+    return mult;
+  }
+
   // Devuelve el cambio de OVR según la edad y el rendimiento.
   function deltaFor(player, apps, avg) {
     if (player.age <= 29) {
@@ -37,9 +58,12 @@
     return -randInt(1, 3); // nota baja
   }
 
-  // Evalúa a todos los jugadores de los equipos dados, registra los cambios y resetea stats.
-  function updatePlayerRatingsAtSeasonEnd(teams) {
+  // Aplica la evolución de medias al cierre de temporada y guarda el cambio en cada
+  // jugador (p.ovrDelta) y en gameState.ratingChanges para mostrarlo en las plantillas.
+  // NO resetea las stats: eso ocurre en resetSeasonStats (después de cerrar todas las ligas).
+  function applySeasonRatingChanges(teams) {
     const changes = [];
+    const ratingChanges = {};
     for (const team of teams) {
       if (!team || !team.players) continue;
       for (const p of team.players) {
@@ -47,22 +71,44 @@
         const apps = s.apps || 0;
         const avg = avgRatingOf(p);
         const delta = deltaFor(p, apps, avg);
-        if (delta !== 0) {
-          const from = p.ovr;
-          p.ovr = clamp((p.ovr || 0) + delta);
-          if (p.ovr !== from) {
-            changes.push({
-              playerId: p.id,
-              name: p.name,
-              flag: p.flag || '',
-              team: team.name,
-              from,
-              to: p.ovr,
-              delta: p.ovr - from
-            });
-          }
+        const from = p.ovr || 0;
+        const to = clamp(from + delta);
+        p.ovr = to;
+        p.ovrDelta = to - from;
+        // Revalorización: el valor de mercado sigue el cambio de media ponderado por la edad.
+        const valueFrom = p.value || 0;
+        const valueTo = Math.max(20000, Math.round(valueFrom * valueFactor(p.ovrDelta, p.age)));
+        p.value = valueTo;
+        p.valueDelta = valueTo - valueFrom;
+        ratingChanges[p.id] = {
+          from, to, delta: p.ovrDelta, name: p.name, team: team.name,
+          valueFrom, valueTo, valueDelta: p.valueDelta
+        };
+        if (p.ovrDelta !== 0) {
+          changes.push({
+            playerId: p.id,
+            name: p.name,
+            flag: p.flag || '',
+            team: team.name,
+            from,
+            to: p.ovr,
+            delta: p.ovrDelta
+          });
         }
-        // Reset para la siguiente temporada
+      }
+    }
+    const gs = window.PocketManager.gameState;
+    if (gs) gs.ratingChanges = ratingChanges;
+    return changes;
+  }
+
+  // Resetea las estadísticas de todos los jugadores para la nueva temporada.
+  function resetSeasonStats(teams) {
+    for (const team of teams) {
+      if (!team || !team.players) continue;
+      for (const p of team.players) {
+        const s = statsOf(p);
+        if (!s) continue;
         s.apps = 0;
         s.goals = 0;
         s.assists = 0;
@@ -71,20 +117,18 @@
         s.reds = 0;
       }
     }
-    return changes;
   }
 
   // Nombre del trofeo de liga según el país (para sumar al palmarés del campeón).
-  const LEAGUE_TROPHY_NAMES = { 'España': 'Primera División', 'Inglaterra': 'Premier League', 'Italia': 'Serie A' };
-
+  // Usa el nombre real de la competición (p. ej. "LaLiga EA Sports", "LaLiga Hypermotion",
+  // "Premier League", "Serie A"); solo como último recurso cae al nombre de la liga del país.
   function leagueTrophyNameFor(team) {
     const db = window.PocketManager.db;
     const country = db.getCountryData(team.id);
     if (country) {
-      // El trofeo depende de la liga del equipo (p. ej. LaLiga Hypermotion).
       const comp = (db.getCompetitions(country.country) || []).find(c => c.type === 'league' && c.teams && c.teams.some(t => t.id === team.id));
-      if (comp && String(comp.id || '').indexOf('hypermotion') !== -1) return 'LaLiga Hypermotion';
-      return LEAGUE_TROPHY_NAMES[country.country] || country.leagueName;
+      if (comp && comp.name) return comp.name;
+      return country.leagueName || 'Liga';
     }
     return 'Liga';
   }
@@ -110,7 +154,9 @@
   }
 
   window.PocketManager.seasonEngine = {
-    updatePlayerRatingsAtSeasonEnd,
+    updatePlayerRatingsAtSeasonEnd: applySeasonRatingChanges,
+    applySeasonRatingChanges,
+    resetSeasonStats,
     avgRatingOf,
     awardLeagueTitle
   };

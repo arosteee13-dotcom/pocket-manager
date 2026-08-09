@@ -7,8 +7,17 @@
     return gameState.team || null;
   }
 
-  function fmt(n) {
-    return window.PocketManager.formatBudget ? window.PocketManager.formatBudget(n) : String(Math.round(n));
+  // Presupuesto abreviado con 2 decimales en millones (€25,43M), igual que el valor de mercado.
+  function fmtShort(n) {
+    const v = Number(n || 0);
+    if (v >= 1e9) return `€${(v / 1e9).toFixed(2).replace('.', ',')}B`;
+    if (v >= 1e6) return `€${(v / 1e6).toFixed(2).replace('.', ',')}M`;
+    return `€${window.PocketManager.thousands(v)}`;
+  }
+
+  // Presupuesto exacto con separador de miles (€25.432.000).
+  function fmtExact(n) {
+    return `€${window.PocketManager.thousands(n)}`;
   }
 
   // Movimientos del equipo del usuario en la temporada actual.
@@ -42,7 +51,7 @@
     const badge = document.getElementById('budget-badge');
     if (!badge) return;
     const team = getTeam();
-    badge.textContent = team ? fmt(team.budget) : '€—';
+    badge.textContent = team ? fmtShort(team.budget) : '€—';
   }
 
   function renderBudget() {
@@ -51,11 +60,11 @@
     const data = computeBudget();
 
     const currentEl = document.getElementById('budget-current');
-    if (currentEl) currentEl.textContent = fmt(data.budget);
+    if (currentEl) currentEl.textContent = fmtExact(data.budget);
     const incEl = document.getElementById('budget-income');
-    if (incEl) incEl.innerHTML = `<b>${fmt(data.income)}</b><span>${data.incomeCount} venta${data.incomeCount === 1 ? '' : 's'}</span>`;
+    if (incEl) incEl.innerHTML = `<b>${fmtShort(data.income)}</b><span>${data.incomeCount} venta${data.incomeCount === 1 ? '' : 's'}</span>`;
     const expEl = document.getElementById('budget-expenses');
-    if (expEl) expEl.innerHTML = `<b>${fmt(data.expenses)}</b><span>${data.expenseCount} fichaje${data.expenseCount === 1 ? '' : 's'}</span>`;
+    if (expEl) expEl.innerHTML = `<b>${fmtShort(data.expenses)}</b><span>${data.expenseCount} fichaje${data.expenseCount === 1 ? '' : 's'}</span>`;
 
     if (!data.items.length) {
       body.innerHTML = '<p class="budget-empty">Sin movimientos de mercado esta temporada.</p>';
@@ -65,7 +74,7 @@
       <div class="budget-item ${it.type}">
         <span class="budget-item-player">${it.playerName}</span>
         <span class="budget-item-rival">${it.rival || ''}</span>
-        <span class="budget-item-fee">${it.sign} ${fmt(it.fee)}</span>
+        <span class="budget-item-fee">${it.sign} ${fmtShort(it.fee)}</span>
       </div>`).join('');
   }
 

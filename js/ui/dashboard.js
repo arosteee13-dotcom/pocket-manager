@@ -60,8 +60,21 @@
 
     // El próximo partido real: liga, Copa del Rey, Supercopa… lo que toque.
     const next = calendar && calendar.nextUserFixture ? calendar.nextUserFixture(team.id) : null;
-    if (!next) {
+    const seasonEnded = !!gameState._seasonEnded;
+    if (!next && !seasonEnded) {
       root.innerHTML = '<p class="dash-empty">Temporada completada. ¡Enhorabuena!</p>';
+      return;
+    }
+
+    if (seasonEnded) {
+      root.innerHTML = `
+        <div class="dash">
+          <div class="dash-season-end">
+            <span class="dash-season-end-title">🏆 Temporada ${(gameState.currentSeason || 1)} finalizada</span>
+            <p class="dash-season-end-sub">Revisa las clasificaciones finales y las plantillas (los cambios de media aparecen junto a cada jugador). Cuando estés listo, comienza la nueva temporada.</p>
+            <button class="dash-play-btn" data-action="next-season">SIGUIENTE TEMPORADA</button>
+          </div>
+        </div>`;
       return;
     }
 
@@ -111,7 +124,7 @@
                 return `<div class="dash-strow${isUser ? ' user' : ''}" data-team-id="${s.teamId}">
                   <span class="dash-stpos">${season.positionOf(se, s.teamId)}</span>
                   ${badgeHtml(t, 'dash-stbadge')}
-                  <span class="dash-stname">${t ? t.shortName : '—'}</span>
+                  <span class="dash-stname">${t ? t.name : '—'}</span>
                   <span class="dash-stpts">${s.pts}</span>
                 </div>`;
               }).join('')}
@@ -152,6 +165,12 @@
             document.dispatchEvent(new CustomEvent(ev, {
               detail: { match: next.match, week: next.week, compId: next.compId, jornada: next.jornada }
             }));
+          }
+          return;
+        }
+        if (btn.dataset.action === 'next-season') {
+          if (window.PocketManager.startNextSeason) {
+            window.PocketManager.startNextSeason();
           }
           return;
         }

@@ -114,12 +114,22 @@
       : 0;
   }
 
+  // Ventana de fichajes: el mercado solo está abierto en las semanas 1-6 y 19-22.
+  // Semana 0 (sin calendario) o fuera de esos rangos => mercado cerrado.
+  function isTransferWindowOpen() {
+    const week = currentWeek();
+    if (week >= 1 && week <= 6) return true;
+    if (week >= 19 && week <= 22) return true;
+    return false;
+  }
+
   // Chequeo semanal de ofertas. Itera la plantilla del usuario y genera ofertas según la
   // probabilidad de cada jugador. Máximo `maxOffers` por chequeo (por defecto 2).
   function runTransferOffers(maxOffers) {
     const userTeam = gameState.team;
     const inbox = window.PocketManager.inbox;
     if (!userTeam || !inbox || !db.getAllTeams) return 0;
+    if (!isTransferWindowOpen()) return 0;
 
     const pendingByPlayer = new Set();
     for (const o of (gameState.inbox && gameState.inbox.offers) || []) {
@@ -246,6 +256,7 @@
   function runLoanOffers(limit) {
     const userTeam = gameState.team;
     if (!userTeam) return 0;
+    if (!isTransferWindowOpen()) return 0;
     const cap = Math.max(0, Number(limit) || 1);
     let done = 0;
     const candidates = userTeam.players.filter(p => p.loanListed && !(p.loan && p.loan.isLoaned));
@@ -262,4 +273,5 @@
   window.PocketManager.runTransferOffers = runTransferOffers;
   window.PocketManager.generateLoanOffer = generateLoanOffer;
   window.PocketManager.runLoanOffers = runLoanOffers;
+  window.PocketManager.isTransferWindowOpen = isTransferWindowOpen;
 })();

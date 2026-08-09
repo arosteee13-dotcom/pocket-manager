@@ -313,6 +313,7 @@
     conference: { label: 'Fase Previa Conference League', color: '#5B97E2' },
     permanencia: { label: 'Permanencia', color: '#B0B0B0' },
     descenso: { label: 'Descenso', color: '#EF3A4B' },
+    playout: { label: 'Playout de Descenso', color: '#F79A2F' },
     ascenso: { label: 'Ascenso Directo', color: '#1B7A36' },
     playoffsAscenso: { label: 'Playoffs de Ascenso', color: '#8BC57F' }
   };
@@ -362,16 +363,28 @@
     return 'permanencia';
   }
 
-  // Zona por competición: Hypermotion y Championship usan sus propias zonas; el resto el esquema europeo.
+  // Zonas de la Serie B (20 equipos): 1-2 ascenso directo a Serie A, 3-8 playoff de ascenso,
+  // 9-15 permanencia, 16-17 playout de descenso, 18-20 descenso a Serie C.
+  function serieBZoneOf(index, n) {
+    if (!n || n <= 0) return 'permanencia';
+    if (index < 2) return 'ascenso';
+    if (index < 8) return 'playoffsAscenso';
+    if (index >= n - 3) return 'descenso';
+    if (index >= n - 4) return 'playout';
+    return 'permanencia';
+  }
+
+  // Zona por competición: Hypermotion, Championship y Serie B usan sus propias zonas; el resto el esquema europeo.
   function zoneOfComp(comp, index, n) {
     if (comp && String(comp.id || '').indexOf('hypermotion') !== -1) return hypermotionZoneOf(index, n);
     if (comp && String(comp.id || '').indexOf('championship') !== -1) return championshipZoneOf(index, n);
+    if (comp && String(comp.id || '').indexOf('serie_b') !== -1) return serieBZoneOf(index, n);
     return zoneOf(index, n, hasConferenceFor(comp));
   }
 
   // Zonas presentes en una liga de `n` equipos, en orden canónico (para la leyenda).
   function zonesFor(n, comp) {
-    const order = ['champ', 'champions', 'europa', 'conference', 'ascenso', 'playoffsAscenso', 'permanencia', 'descenso'];
+    const order = ['champ', 'champions', 'europa', 'conference', 'ascenso', 'playoffsAscenso', 'permanencia', 'playout', 'descenso'];
     const present = new Set();
     if (n && n > 0) {
       for (let i = 0; i < n; i++) present.add(zoneOfComp(comp, i, n));

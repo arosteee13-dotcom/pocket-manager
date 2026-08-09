@@ -71,14 +71,6 @@
     window.PocketManager.season.applyMatchResult(se, m, res.homeGoals, res.awayGoals);
   }
 
-  // Simula los partidos pendientes de la Serie A (para el cierre global).
-  function finishItalyLeague(se) {
-    if (!se || !se.jornadas) return;
-    for (const j of se.jornadas) {
-      for (const m of j.matches) if (!m.played) applyLeagueResult(se, m);
-    }
-  }
-
   // =====================================================================
   // COPPA ITALIA
   // =====================================================================
@@ -127,7 +119,7 @@
     opts = opts || {};
     const season = opts.season || 1;
     const serieA = db.getTeamsByCountry('Italia');
-    const serieB = db.divisionTeams.filter(t => t.division === 'serie_b');
+    const serieB = serieBTeams();
     if (serieA.length < 8) return null;
     const heads = cupHeads();
     // Los 8 cabezas de serie entran en Octavos (1/8). El resto: 12 de Serie A + 20 de Serie B.
@@ -266,6 +258,11 @@
     return buildSupercoppa({ season: (opts && opts.season) || 1, leagueTop: top, cupFinalists: [top[0], top[1]] });
   }
 
+  // Fallback determinista (temporadas 2+ sin finalistas previos): mismo criterio por OVR.
+  function buildSupercoppaFallback(opts) {
+    return buildSupercoppaFirstEdition(opts);
+  }
+
   function shootoutDirect(homeId, awayId) {
     const rng = cupEngine.mulberry32(hashStr(homeId + '|' + awayId) ^ Math.floor(Math.random() * 0x7fffffff));
     const conv = (id) => {
@@ -382,52 +379,266 @@
   }
 
   // =====================================================================
-  // Cierre de temporada: Serie A <-> Serie B
-  // =====================================================================
+  // Serie B (segunda liga jugable): ascensos a Serie A + descensos a Serie C.
+  //   - Ascenso directo a Serie A: 1º y 2º de la Serie B.
+  //   - Playoff de ascenso (3ª plaza): 3º-8º. Excepción: si el 3º saca 14+ puntos
+  //     al 4º, el playoff no se juega y asciende el 3º directamente.
+  //   - Descenso a Serie C: 18º, 19º y 20º directos + perdedor del playout 16º-17º.
+  //     Excepción: si el 16º saca 5+ puntos al 17º, el playout no se juega y
+  //     desciende el 17º directamente.
+  //   - Ascenso desde Serie C: 4 mejores por OVR.
+  const SERIE_B_COMP = 'italia_serie_b_league';
+  const REGULAR_JORNADAS_B = 38; // 20 equipos, todos contra todos a doble vuelta
+
+  function isSerieB(compId) {
+    return String(compId || '') === SERIE_B_COMP;
+  }
+
+  function serieBLeague() {
+    return (db.leagues || []).find(l => l.country === 'Italia' && l.leagueName === 'Serie B');
+  }
+
+  function serieBTeams() {
+    const l = serieBLeague();
+    return l ? l.teams : [];
+  }
+
+  // ---------- Playoff de ascenso (3º-8º) ----------
+
+  function makeMatch(h, a) {
+    return { homeId: h, awayId: a, homeGoals: null, awayGoals: null, played: false, playoff: true };
+  }
+
+  // Crea los partidos de playoff de ascenso tras las 38 jornadas regulares.
+  function buildSerieBPlayoffs(se) {
+    if (se.playoff || !se.jornadas) return;
+    const list = window.PocketManager.season.sortedStandings(se);
+    const at = (i) => (list[i] ? list[i].teamId : null);
+    const pts = (i) => (list[i] ? list[i].pts : 0);
+    const p3 = at(2), p4 = at(3), p5 = at(4), p6 = at(5), p7 = at(6), p8 = at(7);
+    if (!p3 || !p4 || !p5 || !p6 || !p7 || !p8) return;
+
+    // Excepción 14 puntos: el 3º asciende directo sin playoff.
+    if (pts(2) - pts(3) >= 14) {
+      se.playoff = { skipped: true, sf: [], final: null, promotedId: p3 };
+      return;
+    }
+
+    const sf = [
+      { a: p3, seedA: 3, b: p6, seedB: 6, winner: null },
+      { a: p4, seedA: 4, b: p5, seedB: 5, winner: null }
+    ];
+    se.playoff = { skipped: false, sf, final: null, promotedId: null };
+    se.jornadas.push({ jornada: 39, matches: [makeMatch(p3, p6), makeMatch(p4, p5)] });
+    se.jornadas.push({ jornada: 40, matches: [makeMatch(p6, p3), makeMatch(p5, p4)] });
+  }
+
+  function serieBPlayoffWinner(se) {
+    return (se && se.playoff) ? (se.playoff.promotedId || null) : null;
+  }
+
+  function legsOf(se, tie) {
+    const out = [];
+    for (const j of se.jornadas) {
+      if (j.jornada < 39) continue;
+      for (const m of j.matches) {
+        if ((m.homeId === tie.a && m.awayId === tie.b) || (m.homeId === tie.b && m.awayId === tie.a)) out.push(m);
+      }
+    }
+    return out;
+  }
+
+  // Agregado; si hay empate global avanza el mejor clasificado (menor posición) sin penaltis.
+  function winnerByAggregate(legs, seedA, seedB, a, b) {
+    const aggA = legs[0].homeGoals + legs[1].awayGoals;
+    const aggB = legs[0].awayGoals + legs[1].homeGoals;
+    if (aggA !== aggB) return aggA > aggB ? a : b;
+    return seedA < seedB ? a : b; // mejor clasificado en la fase regular
+  }
+
+  function resolveSerieBPlayoffs(se) {
+    const p = se.playoff;
+    if (!p || p.skipped) return;
+
+    // Semifinales
+    for (const t of p.sf) {
+      if (t.winner) continue;
+      const legs = legsOf(se, t);
+      if (legs.length === 2 && legs.every(m => m.played)) {
+        t.winner = winnerByAggregate(legs, t.seedA, t.seedB, t.a, t.b);
+      }
+    }
+
+    // Construir la Final cuando ambas semifinales están resueltas.
+    if (!p.final && p.sf.every(t => t.winner)) {
+      const [s1, s2] = p.sf;
+      p.final = { a: s1.winner, seedA: s1.winner === s1.a ? s1.seedA : s1.seedB, b: s2.winner, seedB: s2.winner === s2.a ? s2.seedA : s2.seedB, winner: null };
+      se.jornadas.push({ jornada: 41, matches: [makeMatch(p.final.a, p.final.b)] });
+      se.jornadas.push({ jornada: 42, matches: [makeMatch(p.final.b, p.final.a)] });
+    }
+
+    // Final
+    if (p.final && !p.final.winner) {
+      const legs = legsOf(se, p.final);
+      if (legs.length === 2 && legs.every(m => m.played)) {
+        p.final.winner = winnerByAggregate(legs, p.final.seedA, p.final.seedB, p.final.a, p.final.b);
+        p.promotedId = p.final.winner; // 3ª plaza de ascenso
+      }
+    }
+  }
+
+  // ---------- Playout de descenso (16º-17º) ----------
+
+  function buildSerieBPlayout(se) {
+    if (se.playout || !se.jornadas) return;
+    const list = window.PocketManager.season.sortedStandings(se);
+    const at = (i) => (list[i] ? list[i].teamId : null);
+    const pts = (i) => (list[i] ? list[i].pts : 0);
+    const p16 = at(15), p17 = at(16);
+    if (!p16 || !p17) return;
+
+    // Excepción 5 puntos: desciende el 17º sin playout.
+    if (pts(15) - pts(16) >= 5) {
+      se.playout = { skipped: true, a: p16, b: p17, loser: p17 };
+      return;
+    }
+    se.playout = { skipped: false, a: p16, b: p17, loser: null };
+    // Partido único en casa del 16º; empate -> gana el mejor clasificado (16º).
+    const m = { homeId: p16, awayId: p17, homeGoals: null, awayGoals: null, played: false, playoff: true };
+    se.jornadas.push({ jornada: 39, matches: [m] });
+  }
+
+  function resolveSerieBPlayout(se) {
+    const p = se.playout;
+    if (!p || p.skipped || p.loser) return;
+    const legs = legsOf(se, { a: p.a, b: p.b });
+    if (legs.length && legs[0].played) {
+      const m = legs[0];
+      if (m.homeGoals > m.awayGoals) p.loser = p.b;
+      else if (m.homeGoals < m.awayGoals) p.loser = p.a;
+      else p.loser = p.b; // empate -> se salva el 16º
+    }
+  }
+
+  // Avanza la lógica de playoff/playout tras un resultado (idempotente).
+  function advanceSerieB(se, compId) {
+    if (!isSerieB(compId) || !se || !se.jornadas) return;
+    const regular = se.jornadas.filter(j => j.jornada <= REGULAR_JORNADAS_B);
+    if (regular.length && regular.every(j => j.matches.every(m => m.played))) {
+      buildSerieBPlayoffs(se);
+      buildSerieBPlayout(se);
+      resolveSerieBPlayoffs(se);
+      resolveSerieBPlayout(se);
+    }
+  }
+
+  // ---------- Cierre de temporada: Serie A <-> Serie B <-> Serie C ----------
+
   function moveTeam(fromArr, toArr, team) {
     const i = fromArr.indexOf(team);
     if (i !== -1) fromArr.splice(i, 1);
     if (toArr.indexOf(team) === -1) toArr.push(team);
   }
 
-  function seasonEnd() {
-    const se = gameState.seasons[ITALIA_COMP];
+  // Simula los partidos pendientes de una liga (para el fast-forward en el cierre global).
+  function finishItalyLeague(se, compId) {
     if (!se || !se.jornadas) return;
+    if (isSerieB(compId)) {
+      advanceSerieB(se, compId);
+    }
+    for (const j of se.jornadas) {
+      for (const m of j.matches) if (!m.played) applyLeagueResult(se, m);
+    }
+    if (isSerieB(compId)) {
+      resolveSerieBPlayoffs(se);
+      resolveSerieBPlayout(se);
+    }
+  }
 
-    finishItalyLeague(se);
-    const list = window.PocketManager.season.sortedStandings(se);
-    if (list.length < 20) return;
+  function seasonEnd() {
+    const seA = gameState.seasons[ITALIA_COMP];
+    const seB = gameState.seasons[SERIE_B_COMP];
+    if (!seA || !seA.jornadas) return;
+
+    finishItalyLeague(seA, ITALIA_COMP);
+    if (seB && seB.jornadas) finishItalyLeague(seB, SERIE_B_COMP);
+
+    const listA = window.PocketManager.season.sortedStandings(seA);
+    if (listA.length < 20) return;
 
     // Cabezas de serie de la Coppa Italia de la próxima temporada (top-8 actual).
-    gameState.italyCupHeads = list.slice(0, 8).map(s => s.teamId);
+    gameState.italyCupHeads = listA.slice(0, 8).map(s => s.teamId);
 
     const ita = db.countries.find(c => c.country === 'Italia');
     if (!ita) return;
     const serieA = ita.teams;
+    const serieB = serieBTeams();
+    const serieC = db.divisionTeams; // array real: moveTeam debe eliminar/añadir sobre él
 
-    // Serie A -> Serie B: puestos 18-20. Serie B -> Serie A: 3 mejores por ovr.
-    const rel = list.slice(17).map(s => s.teamId);
-    const serieB = db.divisionTeams.filter(t => t.division === 'serie_b');
-    const prom = serieB.slice()
-      .sort((a, b) => (b.ovr - a.ovr) || String(a.id).localeCompare(String(b.id)))
-      .slice(0, 3)
-      .map(t => t.id);
-
+    // ----- Serie A -> Serie B (descensos) y Serie B -> Serie A (ascensos) -----
+    const relA = listA.slice(17).map(s => s.teamId); // 18º-20º
     const byId = (arr, id) => arr.find(t => t.id === id) || null;
 
-    for (const id of rel) {
+    // Descensos de Serie A a Serie B.
+    for (const id of relA) {
       const t = byId(serieA, id);
       if (!t) continue;
-      moveTeam(serieA, db.divisionTeams, t);
+      moveTeam(serieA, serieB, t);
       t.division = 'serie_b';
       for (const p of t.players) p.division = 'serie_b';
     }
-    for (const id of prom) {
-      const t = byId(db.divisionTeams, id);
+
+    // Ascensos a Serie A desde Serie B (solo si la Serie B se simula como liga).
+    const promoted = [];
+    if (seB && seB.jornadas) {
+      const listB = window.PocketManager.season.sortedStandings(seB);
+      if (listB.length < 20) return;
+      promoted.push(listB[0].teamId, listB[1].teamId); // 1º y 2º directos
+      const pw = serieBPlayoffWinner(seB);
+      if (pw) promoted.push(pw); // 3ª plaza (playoff)
+    } else {
+      // Fallback: la Serie B no se simula (debería simularse); 3 mejores por OVR.
+      const best = serieB.slice().sort((a, b) => (b.ovr - a.ovr) || String(a.id).localeCompare(String(b.id))).slice(0, 3);
+      promoted.push(...best.map(t => t.id));
+    }
+
+    for (const id of promoted) {
+      const t = byId(serieB, id);
       if (!t) continue;
-      moveTeam(db.divisionTeams, serieA, t);
+      moveTeam(serieB, serieA, t);
       t.division = null;
       for (const p of t.players) p.division = null;
+    }
+
+    // ----- Serie B -> Serie C (descensos) -----
+    const relegatedB = [];
+    if (seB && seB.jornadas) {
+      const listB = window.PocketManager.season.sortedStandings(seB);
+      relegatedB.push(listB[17].teamId, listB[18].teamId, listB[19].teamId); // 18º-20º
+      const pl = seB.playout;
+      if (pl && pl.loser) relegatedB.push(pl.loser);
+      else if (pl && pl.skipped) relegatedB.push(pl.b); // 17º
+    }
+    const relBSet = new Set(relegatedB);
+    for (const id of relBSet) {
+      const t = byId(serieB, id);
+      if (!t) continue;
+      moveTeam(serieB, serieC, t);
+      t.division = 'serie_c';
+      for (const p of t.players) p.division = 'serie_c';
+    }
+
+    // ----- Serie C -> Serie B (ascensos por OVR) -----
+    const promC = serieC.filter(t => t.division === 'serie_c')
+      .sort((a, b) => (b.ovr - a.ovr) || String(a.id).localeCompare(String(b.id)))
+      .slice(0, 4)
+      .map(t => t.id);
+    for (const id of promC) {
+      const t = byId(serieC, id);
+      if (!t) continue;
+      moveTeam(serieC, serieB, t);
+      t.division = 'serie_b';
+      for (const p of t.players) p.division = 'serie_b';
     }
 
     if (window.PocketManager.squadEngine && window.PocketManager.squadEngine.assignAutomaticNumbers) {
@@ -438,24 +649,32 @@
     }
 
     gameState.seasons[ITALIA_COMP] = window.PocketManager.season.initSeason(serieA[0], ITALIA_COMP);
+    gameState.seasons[SERIE_B_COMP] = window.PocketManager.season.initSeason(serieB[0], SERIE_B_COMP);
     const userComp = window.PocketManager.calendar && window.PocketManager.calendar.userLeagueCompId
       ? window.PocketManager.calendar.userLeagueCompId(gameState.team.id)
       : null;
-    if (userComp === ITALIA_COMP) gameState.season = gameState.seasons[ITALIA_COMP];
+    if (userComp === ITALIA_COMP || userComp === SERIE_B_COMP) {
+      gameState.season = gameState.seasons[userComp];
+    }
   }
 
   window.PocketManager.italyEngine = {
     ITALIA_COMP,
     COPPA_ITALIA,
     SUPERCOPPA,
+    SERIE_B_COMP,
     buildCoppaItalia,
     buildSupercoppa,
     buildSupercoppaFirstEdition,
+    buildSupercoppaFallback,
     playRound,
     nextFixture,
     applyCupResult,
     awardCompetitionTrophy,
     finishItalyLeague,
-    seasonEnd
+    seasonEnd,
+    isSerieB,
+    advanceSerieB,
+    serieBPlayoffWinner
   };
 })();

@@ -855,6 +855,20 @@
   font-size: 0.95rem;
 }
 
+/* Cambio de media respecto a la temporada anterior: + verde, − rojo, 0 negro. */
+.ovr-delta {
+  font-size: 0.6rem;
+  font-weight: 700;
+  margin-left: 2px;
+  vertical-align: super;
+  line-height: 1;
+}
+.ovr-delta.up { color: #22c55e; }
+.ovr-delta.down { color: #ef4444; }
+.ovr-delta { color: #000; }
+body.dark .ovr-delta { color: #fff; }
+
+
 /* Banquillo (táctica): suplentes + reservas en mini-fichas tipo campo, 4 por fila */
 .squad-bench {
   padding: 12px 16px 4px;
@@ -2618,32 +2632,48 @@
 
 /* Modal de presupuesto: desglose de gastos y beneficios */
 .budget-body {
-  padding: 14px 16px;
+  padding: 16px 16px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   max-height: 60vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 .budget-current {
-  font-size: 0.9rem;
-  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-card-light);
+  text-align: center;
+}
+.budget-current-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-faint);
 }
 .budget-current b {
-  font-size: 1.25rem;
+  font-size: 1.6rem;
+  font-weight: 800;
   color: #15803d;
+  line-height: 1.1;
 }
 .budget-cards {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 .budget-card {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 12px;
+  gap: 5px;
+  padding: 12px 14px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--bg-card);
@@ -2655,8 +2685,13 @@
   text-transform: uppercase;
   color: var(--text-faint);
 }
+.budget-card-value {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .budget-card-value b {
-  font-size: 1rem;
+  font-size: 1.05rem;
 }
 .budget-card-income .budget-card-value { color: #15803d; }
 .budget-card-expense .budget-card-value { color: #DC2626; }
@@ -2665,6 +2700,7 @@
   color: var(--text-muted);
 }
 .budget-list-title {
+  margin-top: 2px;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -2674,13 +2710,13 @@
 .budget-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 .budget-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 2px;
+  gap: 10px;
+  padding: 9px 4px;
   border-bottom: 1px solid var(--border-soft);
   font-size: 0.8rem;
 }
@@ -2689,6 +2725,10 @@
   font-weight: 800;
   color: var(--text-main);
   flex-shrink: 0;
+  min-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .budget-item-rival {
   flex: 1;
@@ -2703,6 +2743,7 @@
   font-weight: 800;
   font-size: 0.8rem;
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 .budget-item.sale .budget-item-fee { color: #15803d; }
 .budget-item.buy .budget-item-fee { color: #DC2626; }
@@ -2865,6 +2906,30 @@
   transition: background 0.15s ease, transform 0.1s ease;
 }
 .dash-sim-btn:active { transform: scale(0.97); }
+
+.dash-season-end {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 28px 16px;
+}
+.dash-season-end-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+.dash-season-end-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  line-height: 1.5;
+}
+.dash-season-end .dash-play-btn {
+  max-width: 280px;
+  min-height: 50px;
+}
 
 .dash-widgets {
   display: flex;

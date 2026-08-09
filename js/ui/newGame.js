@@ -41,7 +41,7 @@ function normalizeText(s) {
 function formatBudget(n) {
   if (n >= 1e9) return `€${(n / 1e9).toFixed(1).replace('.', ',')}B`;
   if (n >= 1e6) return `€${Math.round(n / 1e6)}M`;
-  return `€${Math.round(n)}`;
+  return `€${window.PocketManager.thousands(n)}`;
 }
 
 const nationalityByFlagName = new Map(nationalities.map(n => [n.name, n.code]));

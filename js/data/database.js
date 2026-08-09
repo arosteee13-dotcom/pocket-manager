@@ -26,10 +26,11 @@
   class Database {
     constructor() {
       this.countries = [spainData, englandData, italyData];
-      // Segundas ligas jugables: LaLiga Hypermotion (spainData.secondLeague) y la EFL
-      // Championship inglesa (championshipData). Los equipos de España viven en
-      // js/data/countries/spain.js; los del Championship en js/data/leagues/championshipData.js.
-      this.leagues = [spainData.secondLeague, window.PocketManager.championshipData].filter(Boolean);
+      // Segundas ligas jugables: LaLiga Hypermotion (spainData.secondLeague), la EFL
+      // Championship inglesa (championshipData) y la Serie B italiana (italyData.secondLeague).
+      // Los equipos de España viven en js/data/countries/spain.js; los del Championship en
+      // js/data/leagues/championshipData.js; los de la Serie B en js/data/countries/italy.js.
+      this.leagues = [spainData.secondLeague, window.PocketManager.championshipData, italyData.secondLeague].filter(Boolean);
       // Divisiones inferiores: viven en cada fichero de país (divisionTeams) y participan en
       // las copas de su país, pero no en la liga principal (country.teams sigue siendo la liga).
       this.divisionTeams = (spainData.divisionTeams || []).concat(englandData.divisionTeams || []).concat(italyData.divisionTeams || []);
@@ -85,9 +86,12 @@
       const isSpain = data.country === 'España';
       const isEngland = data.country === 'Inglaterra';
       const isItaly = data.country === 'Italia';
+      // Equipos que participan en las copas de un país: la liga + las segundas ligas + divisiones.
+      // Italia: la Serie B vive en `this.leagues` (italyData.secondLeague), no en divisionTeams;
+      // la Serie C no participa en la Coppa Italia en este modelo.
       const divisions = this.divisionTeams.filter(t => (isSpain && ['1rfef', '2rfef'].indexOf(t.division) !== -1) ||
         (isEngland && ['championship', 'league1', 'league2', 'academy'].indexOf(t.division) !== -1) ||
-        (isItaly && ['serie_b'].indexOf(t.division) !== -1));
+        (isItaly && false));
       const leagues = (this.leagues || []).filter(l => l.country === data.country);
       return data.teams.concat(leagues.flatMap(l => l.teams), divisions);
     }

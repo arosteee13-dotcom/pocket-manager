@@ -181,7 +181,9 @@
         staminaInjury: runtime ? runtime.staminaInjury : undefined,
         inbox: gs.inbox || { seen: [], offers: [] },
         academy: gs.academy || null,
-        englandShield: gs.englandShield || null
+        englandShield: gs.englandShield || null,
+        ratingChanges: gs.ratingChanges || null,
+        seasonEnded: gs._seasonEnded || false
       }
     };
   }
@@ -243,6 +245,21 @@
     S.gameState.inbox = gsd.inbox || { seen: [], offers: [] };
     S.gameState.academy = gsd.academy || null;
     S.gameState.englandShield = gsd.englandShield || null;
+    S.gameState._seasonEnded = !!gsd.seasonEnded;
+    S.gameState.ratingChanges = gsd.ratingChanges || null;
+    // Reaplicar el delta de media y de valor (ovrDelta/valueDelta) a cada jugador para que
+    // las plantillas los muestren.
+    if (S.gameState.ratingChanges) {
+      for (const t of S.db.getAllTeams()) {
+        for (const p of t.players) {
+          const c = S.gameState.ratingChanges[p.id];
+          if (c) {
+            p.ovrDelta = c.delta;
+            if (c.valueDelta !== undefined) p.valueDelta = c.valueDelta;
+          }
+        }
+      }
+    }
     setActiveSaveId(data.saveId);
 
     if (S.restoreRuntime) S.restoreRuntime(team, gsd);

@@ -186,15 +186,18 @@
 
   function renderMarket() {
     const myTeam = gameState.team;
+    const marketOpen = !window.PocketManager.isTransferWindowOpen || window.PocketManager.isTransferWindowOpen();
     const pool = applyFilters(marketPool()).sort((a, b) => b.player.ovr - a.player.ovr);
     const countEl = document.getElementById('tm-count');
     if (countEl) countEl.textContent = `${pool.length} jugadores · Presupuesto: ${formatBudget(myTeam.budget)}`;
     const listEl = document.getElementById('tm-list');
     if (!listEl) return;
-    if (!pool.length) { listEl.innerHTML = '<p class="tm-empty">Sin resultados.</p>'; return; }
+    const banner = marketOpen ? '' :
+      '<p class="tm-empty tm-closed">🔒 El mercado de fichajes está cerrado (abre en las semanas 19-22). No puedes hacer ofertas ni cesiones.</p>';
+    if (!pool.length) { listEl.innerHTML = banner + '<p class="tm-empty">Sin resultados.</p>'; return; }
     // Tope de render para no saturar el DOM (todos siguen siendo buscables con filtros).
     const limited = pool.slice(0, 300);
-    listEl.innerHTML = limited.map(({ player: p, team }) => marketCard(p, team)).join('') +
+    listEl.innerHTML = banner + limited.map(({ player: p, team }) => marketCard(p, team)).join('') +
       (pool.length > limited.length ? '<p class="tm-empty">Mostrando los 300 mejores. Usa los filtros para afinar.</p>' : '');
   }
 

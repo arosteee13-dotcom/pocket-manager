@@ -106,6 +106,7 @@
   function runAILoans(limit) {
     const userTeam = window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
     if (!userTeam || !window.PocketManager.executeLoan) return 0;
+    if (window.PocketManager.isTransferWindowOpen && !window.PocketManager.isTransferWindowOpen()) return 0;
 
     let candidates = userTeam.players.filter(p => p.loanListed && !(p.loan && p.loan.isLoaned));
     const teams = db.getAllTeams().filter(t => t.id !== userTeam.id);
@@ -142,6 +143,7 @@
   // `limit`: número máximo de traspasos en esta ejecución.
   function runAITransfers(limit) {
     const userTeam = window.PocketManager.gameState ? window.PocketManager.gameState.team : null;
+    if (window.PocketManager.isTransferWindowOpen && !window.PocketManager.isTransferWindowOpen()) return 0;
     const teams = db.getAllTeams().filter(t => !userTeam || t.id !== userTeam.id);
     // Barajar el orden para que no siempre actúen los mismos clubes
     for (let i = teams.length - 1; i > 0; i--) {

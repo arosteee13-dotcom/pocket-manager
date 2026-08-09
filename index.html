@@ -24,6 +24,7 @@
         <div class="club-text">
           <span class="club-name" id="header-club-name">Modo Prueba</span>
           <span class="club-budget" id="header-club-budget"> Presupuesto: -</span>
+          <span class="club-season" id="header-season">Temporada 26/27</span>
         </div>
       </div>
       <div class="header-actions">
@@ -549,19 +550,6 @@
       </div>
     </div>
 
-    <!-- Modal Balance de Temporada -->
-    <div class="modal-backdrop centered" id="season-summary-modal">
-      <div class="modal-panel modal-center">
-        <div class="modal-head">
-          <h3>Balance de temporada</h3>
-        </div>
-        <div class="season-summary-body" id="season-summary-body"></div>
-        <div class="season-summary-actions">
-          <button class="btn btn-primary" id="season-summary-continue">Continuar</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Modal Selección de Dorsal -->
     <div class="modal-backdrop centered" id="dorsal-picker-modal">
       <div class="modal-panel modal-center dorsal-picker-panel">
@@ -710,7 +698,10 @@
           </button>
         </div>
         <div class="budget-body">
-          <div class="budget-current">Presupuesto actual: <b id="budget-current">€—</b></div>
+          <div class="budget-current">
+            <span class="budget-current-label">Presupuesto actual</span>
+            <b id="budget-current">€—</b>
+          </div>
           <div class="budget-cards">
             <div class="budget-card budget-card-income">
               <span class="budget-card-title">Ingresos por ventas</span>

@@ -288,6 +288,20 @@
     return cup;
   }
 
+  // Community Shield con fallback determinista (temporadas 2+ sin campeón/FA Cup previos):
+  // se usan los 2 mejores de la Premier por OVR.
+  function buildCommunityShieldFallback(opts) {
+    opts = opts || {};
+    const season = opts.season || 1;
+    const { pl } = englandTeams();
+    const top = pl.slice()
+      .sort((a, b) => (b.ovr - a.ovr) || String(a.id).localeCompare(String(b.id)))
+      .slice(0, 2)
+      .map(t => t.id);
+    if (top.length < 2) return null;
+    return buildCommunityShield({ season, championId: top[0], faCupWinnerId: top[1] });
+  }
+
   function buildEflCup(opts) {
     opts = opts || {};
     const { pl, divs } = englandTeams();
@@ -672,6 +686,7 @@
   window.PocketManager.englandEngine = {
     buildCommunityShield,
     buildCommunityShieldFirstEdition,
+    buildCommunityShieldFallback,
     buildEflCup,
     buildFaCup,
     buildEflTrophy,

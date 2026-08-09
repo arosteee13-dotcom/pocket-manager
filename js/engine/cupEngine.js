@@ -550,6 +550,19 @@
     return supercopa;
   }
 
+  // Supercopa de España con fallback determinista (temporadas 2+ sin resultados previos):
+  // si no hay clasificación de liga ni finalistas de Copa disponibles, se usan los 4 mejores
+  // equipos de LaLiga por OVR. Mantiene la estructura de cruces de buildSupercopa.
+  function buildSupercopaFallback(opts) {
+    opts = opts || {};
+    const season = opts.season || 1;
+    const laliga = db.getTeamsByCountry('España').slice()
+      .sort((a, b) => (b.ovr - a.ovr) || String(a.id).localeCompare(String(b.id)))
+      .slice(0, 4)
+      .map(t => t.id);
+    return buildSupercopa(laliga, laliga.slice(2), { season });
+  }
+
   // ---------- Trofeos ----------
   function awardTrophy(team, name) {
     if (!team) return null;
@@ -587,6 +600,7 @@
     buildCup,
     buildSupercopa,
     buildSupercopaFirstEdition,
+    buildSupercopaFallback,
     playRound,
     MAIN_PLAN,
     applyCupResult,

@@ -131,6 +131,32 @@
       { pos: 'MCO', x: 65, y: 20 },
       { pos: 'DC', x: 50, y: 10 }
     ],
+    '3-4-1-2': [
+      { pos: 'POR', x: 50, y: 86 },
+      { pos: 'DFC', x: 75, y: 67 },
+      { pos: 'DFC', x: 50, y: 67 },
+      { pos: 'DFC', x: 25, y: 67 },
+      { pos: 'CAI', x: 16, y: 45 },
+      { pos: 'MC', x: 38, y: 40 },
+      { pos: 'MC', x: 62, y: 40 },
+      { pos: 'CAD', x: 84, y: 45 },
+      { pos: 'MCO', x: 50, y: 24 },
+      { pos: 'DC', x: 38, y: 10 },
+      { pos: 'DC', x: 62, y: 10 }
+    ],
+    '4-3-1-2': [
+      { pos: 'POR', x: 50, y: 86 },
+      { pos: 'LD', x: 80, y: 67 },
+      { pos: 'DFC', x: 61, y: 67 },
+      { pos: 'DFC', x: 39, y: 67 },
+      { pos: 'LI', x: 20, y: 67 },
+      { pos: 'MCD', x: 50, y: 45 },
+      { pos: 'MC', x: 33, y: 34 },
+      { pos: 'MC', x: 67, y: 34 },
+      { pos: 'MCO', x: 50, y: 20 },
+      { pos: 'DC', x: 38, y: 10 },
+      { pos: 'DC', x: 62, y: 10 }
+    ],
     '4-4-1-1': [
       { pos: 'POR', x: 50, y: 86 },
       { pos: 'LD', x: 80, y: 67 },
@@ -146,7 +172,7 @@
     ]
   };
 
-  const FORMATION_ORDER = ['3-4-3', '3-5-2', '3-4-2-1', '4-3-3', '4-4-2', '4-4-1-1', '4-2-3-1', '4-1-4-1', '5-3-2'];
+  const FORMATION_ORDER = ['3-4-3', '3-5-2', '3-4-2-1', '3-4-1-2', '4-3-3', '4-3-1-2', '4-4-2', '4-4-1-1', '4-2-3-1', '4-1-4-1', '5-3-2'];
 
   function getPosGroup(pos) {
     return POS_GROUPS[pos] || 'MED';
@@ -408,12 +434,16 @@ function getFormation(team) {
 
 // Valor de mercado: millones con 2 decimales (€5,11M / €25,62M); por debajo de 1M,
 // redondeado al millar (€107.000 / €108.000).
+// `thousands` separa los miles con punto SIEMPRE (1000 -> "1.000", 25000 -> "25.000").
+function thousands(n) {
+  return String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
 function formatValue(n) {
   const v = Number(n || 0);
   if (v >= 1e9) return `€${(v / 1e9).toFixed(2).replace('.', ',')}B`;
   if (v >= 1e6) return `€${(v / 1e6).toFixed(2).replace('.', ',')}M`;
   const k = Math.round(v / 1000) * 1000;
-  return `€${k.toLocaleString('es-ES')}`;
+  return `€${thousands(k)}`;
 }
 
 function getRatingColor(ovr) {
@@ -552,9 +582,30 @@ function playerRowHtml(team, player, isStarter, isSelected, opts = {}) {
         <span class="player-meta"><span class="pos-pill ${group}">${player.pos}</span> · ${player.age} años · ${foot}</span>
         ${destTag ? `<span class="player-dest">${destTag}</span>` : ''}
       </span>
-      <span class="player-value">${formatValue(player.value)}</span>
-      <span class="ovr-badge" style="background:${rc.bg}; color:${rc.color}">${player.ovr}</span>
+      <span class="player-value">${formatValue(player.value)}${valueDeltaHtml(player)}</span>
+      <span class="ovr-badge" style="background:${rc.bg}; color:${rc.color}">${player.ovr}${ovrDeltaHtml(player)}</span>
     </button>`;
+}
+
+// Indicador del cambio de valor de mercado respecto a la temporada anterior (verde +, rojo −, negro 0).
+function valueDeltaHtml(player) {
+  const d = player && player.valueDelta;
+  if (d === undefined || d === null) return '';
+  const s = Math.abs(d) >= 1e6
+    ? (Math.abs(d) / 1e6).toFixed(2).replace('.', ',') + 'M'
+    : Math.round(Math.abs(d) / 1000) + 'K';
+  if (d > 0) return `<span class="ovr-delta up">+${s}</span>`;
+  if (d < 0) return `<span class="ovr-delta down">−${s}</span>`;
+  return '<span class="ovr-delta">0</span>';
+}
+
+// Indicador del cambio de media respecto a la temporada anterior (verde +, rojo −, negro 0).
+function ovrDeltaHtml(player) {
+  const d = player && player.ovrDelta;
+  if (d === undefined || d === null) return '';
+  if (d > 0) return `<span class="ovr-delta up">+${d}</span>`;
+  if (d < 0) return `<span class="ovr-delta down">${d}</span>`;
+  return '<span class="ovr-delta">0</span>';
 }
 
 function isLoanedIn(team, player) {
@@ -1048,14 +1099,14 @@ let activeStatTab = 'general';
 let clubTabsBound = false;
 
 function clubStadiumHtml(team) {
-  const capacity = Number(team.stadiumCapacity || 0).toLocaleString('es-ES');
+  const capacity = thousands(team.stadiumCapacity || 0);
   return `
     <span class="stadium-line">${ICON_STADIUM} ${team.stadium || '—'}</span>
     <span class="stadium-line stadium-cap">${ICON_SEAT} ${capacity} espectadores</span>`;
 }
 
 function clubBudgetHtml(team) {
-  return `<span class="stadium-line">${ICON_BUDGET} € ${Number(team.budget || 0).toLocaleString('es-ES')}</span>`;
+  return `<span class="stadium-line">${ICON_BUDGET} € ${thousands(team.budget || 0)}</span>`;
 }
 
 function clubTrophiesHtml(team) {
@@ -1480,6 +1531,16 @@ function renderSquadScreen(teamId, keepTab = false, isView = false) {
   bindClubTabs(team);
 }
 
+// Limpia todo el estado runtime en memoria (once, secciones, roles, stats, estilo y
+// formación). Se usa al crear una partida nueva para no heredar el estado de la anterior.
+function resetRuntime() {
+  state.clear();
+  roleOverrides.clear();
+  playerStats.clear();
+  styleOverrides.clear();
+  activeFormation = '4-3-3';
+}
+
 function captureRuntime() {
   const team = window.PocketManager.gameState.team;
   if (!team) return null;
@@ -1580,6 +1641,7 @@ function restoreRuntime(team, data) {
   window.PocketManager.setPlayerSection = setPlayerSection;
   window.PocketManager.isPlayerInFirstTeam = isPlayerInFirstTeam;
   window.PocketManager.formatValue = formatValue;
+  window.PocketManager.thousands = thousands;
   window.PocketManager.getFormation = getFormation;
   window.PocketManager.buildSuplentes = buildSuplentes;
   window.PocketManager.buildField = buildField;
@@ -1589,6 +1651,7 @@ function restoreRuntime(team, data) {
   window.PocketManager.sortByPosition = sortByPosition;
   window.PocketManager.captureRuntime = captureRuntime;
   window.PocketManager.restoreRuntime = restoreRuntime;
+  window.PocketManager.resetRuntime = resetRuntime;
   window.PocketManager.refreshLineup = refreshLineup;
   window.PocketManager.isInjured = isInjured;
   window.PocketManager.isSuspended = isSuspended;

@@ -127,9 +127,12 @@
         <p class="pm-note">Jugador del filial de tu club.</p>
         <div class="pm-squad-actions pm-filial-actions"><button class="pm-list-btn" id="pm-promote">ASCENDER AL PRIMER EQUIPO</button></div>`;
     } else {
-      actions = `
+      const marketOpen = !window.PocketManager.isTransferWindowOpen || window.PocketManager.isTransferWindowOpen();
+      actions = marketOpen
+        ? `
         <button class="btn btn-primary" id="pm-offer">REALIZAR OFERTA DE TRASPASO</button>
-        <button class="btn btn-secondary" id="pm-loan">PEDIR CESIÓN</button>`;
+        <button class="btn btn-secondary" id="pm-loan">PEDIR CESIÓN</button>`
+        : `<p class="pm-note">El mercado de fichajes está cerrado. Las ofertas de traspaso y cesión se reanudan cuando abra la ventana.</p>`;
     }
 
     return `
@@ -216,6 +219,10 @@
   }
 
   function confirmOffer() {
+    if (window.PocketManager.isTransferWindowOpen && !window.PocketManager.isTransferWindowOpen()) {
+      setMsg('El mercado de fichajes está cerrado. No puedes hacer ofertas ahora.');
+      return;
+    }
     const input = document.getElementById('pm-offer-input');
     const offer = Math.floor(Number(input ? input.value : 0));
     if (!offer || offer <= 0) { setMsg('Introduce una cantidad válida.'); return; }
@@ -235,6 +242,10 @@
   }
 
   function requestLoan() {
+    if (window.PocketManager.isTransferWindowOpen && !window.PocketManager.isTransferWindowOpen()) {
+      setMsg('El mercado de fichajes está cerrado. No puedes pedir cesiones ahora.');
+      return;
+    }
     const res = executeLoan(gameState.team, state.owner, state.player);
     if (res.ok) {
       const name = state.player.name;

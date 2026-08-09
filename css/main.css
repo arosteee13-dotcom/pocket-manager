@@ -157,6 +157,12 @@ body {
   color: var(--text-muted);
 }
 
+.club-season {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 .btn-icon {
   position: relative;
   width: 40px;
